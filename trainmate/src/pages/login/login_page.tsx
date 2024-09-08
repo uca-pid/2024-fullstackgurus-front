@@ -2,24 +2,29 @@ import React, { useState } from 'react';
 import Button from '@mui/material/Button';
 import Input from '@mui/material/Input';
 import FormLabel from '@mui/material/FormLabel';
+import { blue, grey } from '@mui/material/colors';
 import { Dumbbell } from "lucide-react";
-import { Link } from 'react-router-dom';
-import { auth } from '../../FirebaseConfig';  // Import Firebase auth
+import { Link, useNavigate } from 'react-router-dom';
+import { auth } from '../../FirebaseConfig';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 
 export default function LogIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const provider = new GoogleAuthProvider();
+  const navigate = useNavigate();
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value);
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value);
+  const [loggedIn, setLoggedIn] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
       console.log('User logged in successfully');
+      setLoggedIn(true);
+      navigate('/homepage');
     } catch (error: any) {
       console.error('Error logging in:', error.message);
     }
@@ -29,6 +34,7 @@ export default function LogIn() {
     try {
       await signInWithPopup(auth, provider);
       console.log('Google sign-in successful');
+      navigate('/homepage');
     } catch (error: any) {
       console.error('Error with Google sign-in:', error.message);
     }
@@ -46,7 +52,7 @@ export default function LogIn() {
             <h2 className="text-2xl font-semibold text-center mb-6">Log In</h2>
             <Button
               variant="outlined"
-              className="w-full mb-4 flex items-center justify-center border-gray-300 text-gray-700 hover:bg-gray-100"
+              className="w-full mb-4 flex items-center justify-center"
               type="button"
               onClick={handleGoogleSignIn}
             >
