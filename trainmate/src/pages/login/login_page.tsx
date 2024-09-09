@@ -7,6 +7,7 @@ import { Dumbbell } from "lucide-react";
 import { Link, useNavigate } from 'react-router-dom';
 import { auth } from '../../FirebaseConfig';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { sendResetPasswordEmail } from '../../utils/AuthUtils';
 
 export default function LogIn() {
   const [email, setEmail] = useState('');
@@ -21,8 +22,8 @@ export default function LogIn() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      console.log('User logged in successfully');
+      const data: any = await signInWithEmailAndPassword(auth, email, password);
+      localStorage.setItem("token", data.user.accessToken)
       setLoggedIn(true);
       navigate('/homepage');
     } catch (error: any) {
@@ -81,7 +82,7 @@ export default function LogIn() {
               </Button>
             </form>
             <div className="mt-4 text-center">
-              <a href="#" className="text-sm text-primary hover:underline">Forgot password?</a>
+              <a href="#" className="text-sm text-primary hover:underline" onClick={(email) => sendResetPasswordEmail}>Forgot password?</a>
             </div>
             <div className="mt-6 border-t pt-4">
               <p className="text-center text-sm text-gray-600">
