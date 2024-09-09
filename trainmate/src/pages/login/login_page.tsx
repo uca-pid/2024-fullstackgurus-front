@@ -41,6 +41,21 @@ export default function LogIn() {
     }
   };
 
+  const handleForgotPassword = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    if (email) {
+      sendResetPasswordEmail(email)
+        .then(() => {
+          console.log(`Password reset email sent to ${email}`);
+        })
+        .catch((error) => {
+          console.error('Error sending password reset email:', error);
+        });
+    } else {
+      console.error('Please enter an email address.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -82,7 +97,9 @@ export default function LogIn() {
               </Button>
             </form>
             <div className="mt-4 text-center">
-              <a href="#" className="text-sm text-primary hover:underline" onClick={(email) => sendResetPasswordEmail}>Forgot password?</a>
+              <a href="#" className="text-sm text-primary hover:underline" onClick={handleForgotPassword}>
+                Forgot password?
+              </a>
             </div>
             <div className="mt-6 border-t pt-4">
               <p className="text-center text-sm text-gray-600">
