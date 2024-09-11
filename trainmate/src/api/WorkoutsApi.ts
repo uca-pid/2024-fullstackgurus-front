@@ -93,3 +93,48 @@ export const getWorkouts = async (token: string) => {
     throw error;
   }
 };
+
+
+export const getWorkoutsCalories = async (token: string) => {
+  try {
+    const response = await fetch(`${BASE_URL}/get-workouts-calories`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    // Si la respuesta es 401, intentamos renovar el token
+    if (response.status === 401) {
+      console.log('Token expirado, intentando renovar...');
+      const newToken = await refreshAuthToken(); // Renueva el token
+      // Intentamos la solicitud de nuevo con el nuevo token
+      const retryResponse = await fetch(`${BASE_URL}/workouts`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${newToken}`,
+        },
+      });
+
+      if (!retryResponse.ok) {
+        const errorData = await retryResponse.json();
+        throw new Error(errorData.error || 'Error al obtener las calorias de los entrenamientos');
+      }
+
+      const retryData = await retryResponse.json();
+      return retryData.workouts;
+    }
+
+    // Si no es 401, seguimos con el flujo normal
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Error al obtener las calorias de los entrenamientos');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error al obtener las calorias de los entrenamientos', error);
+    throw error;
+  }
+};

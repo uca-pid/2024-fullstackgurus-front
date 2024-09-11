@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Avatar from '@mui/material/Avatar';
 import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
@@ -18,18 +18,11 @@ import { Dumbbell, Timer, Bike, Trophy } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
 import Typography from '@mui/material/Typography';
 import ScrollArea from '@mui/material/Box';
-import { getWorkouts, saveWorkout } from '../../api/WorkoutsApi';
-import { get } from 'http';
-
-const data = [
-  { name: 'Week 1', calories: 420 },
-  { name: 'Week 2', calories: 250 },
-  { name: 'Week 3', calories: 700 },
-  { name: 'Week 4', calories: 590 },
-];
+import { getWorkouts, saveWorkout, getWorkoutsCalories } from '../../api/WorkoutsApi';
+import { calculate_calories_per_day } from '../../functions/calculations';
 
 const exerciseTypes = [
-  'Running', 'Weightlifting', 'Cycling', 'Swimming', 'Football', 'Basketball', 'Tennis', 'Gymnastics',
+  'Running', 'Weightlifting', 'Cycling', 'Swimming', 'Football', 'Basketball', 'Tennis',
 ];
 
 interface Exercise {
@@ -45,6 +38,7 @@ export default function HomePage() {
   const [open, setOpen] = useState(false);
   const [exerciseList, setExerciseList] = useState<Exercise[]>([]);
   const [addedExcercise, setAddedExercise] = useState(false);
+  const [caloriesPerDay, setCaloriesPerDay] = useState<{ [date: string]: number }>({});
 
   const getAllWorkouts = async () => {
     try {
@@ -52,7 +46,6 @@ export default function HomePage() {
       if (!token) throw new Error('Token no encontrado');
   
       const workouts = await getWorkouts(token);
-      console.log(workouts);
       return Array.isArray(workouts) ? workouts : [];
     } catch (error) {
       console.error('Error al obtener todos los entrenamientos:', error);
@@ -76,6 +69,44 @@ export default function HomePage() {
     fetchWorkouts();
   }, [addedExcercise]);
 
+  const getAllWorkoutsCalories = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Token no encontrado');
+  
+      const workouts_data = await getWorkoutsCalories(token);
+      const workouts_calories_and_dates = workouts_data.workouts_calories_and_dates;
+      return Array.isArray(workouts_calories_and_dates) ? workouts_calories_and_dates : [];
+    } catch (error) {
+      console.error('Error al obtener toda la data de los entrenamientos:', error);
+      return [];
+    }
+  };
+
+  const formatDataForChart = () => {
+    return Object.keys(caloriesPerDay)
+      .map(date => ({
+        date,
+        calories: caloriesPerDay[date],
+      }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  };
+
+  useEffect(() => {
+    const fetchWorkoutsCalories = async () => {
+      try {
+        const workouts_calories_and_dates = await getAllWorkoutsCalories();
+        const calories_per_day = calculate_calories_per_day(workouts_calories_and_dates);
+        setCaloriesPerDay(calories_per_day);
+      } catch (error) {
+        console.error('Error al obtener toda la data de los entrenamientos:', error);
+      }
+    };
+    fetchWorkoutsCalories();
+  }, [addedExcercise]);
+
+  const dataForChart = useMemo(() => formatDataForChart(), [caloriesPerDay]);
+
   const [newExercise, setNewExercise] = useState({
     type: '',
     duration: '',
@@ -92,13 +123,6 @@ export default function HomePage() {
 
   const handleAddExercise = async () => {
     if (newExercise.type && newExercise.duration && newExercise.date) {
-      const exercise = {
-        id: exerciseList.length + 1,
-        ...newExercise,
-        calories: Math.floor(Math.random() * 300) + 100, // Generating a random calorie value
-      };
-  
-      // setExerciseList([...exerciseList, exercise]);
   
       setNewExercise({
         type: '',
@@ -194,12 +218,12 @@ export default function HomePage() {
           />
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={data}>
+              <LineChart data={dataForChart}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" stroke="#fff" tick={{ dy: 13 }} />
+                <XAxis dataKey="date" stroke="#fff" tick={{ dy: 13 }} /> {/* Usamos "date" como eje X */}
                 <YAxis stroke="#fff" />
                 <Tooltip />
-                <Line type="monotone" dataKey="calories" stroke="#008000" activeDot={{ r: 10 }} />
+                <Line type="monotone" dataKey="calories" stroke="#008000" activeDot={{ r: 10 }} /> {/* "calories" como eje Y */}
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
