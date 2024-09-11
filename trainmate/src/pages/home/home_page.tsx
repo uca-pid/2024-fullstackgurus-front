@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Avatar from '@mui/material/Avatar';
 import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
@@ -18,7 +18,8 @@ import { Dumbbell, Timer, Bike, Trophy } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
 import Typography from '@mui/material/Typography';
 import ScrollArea from '@mui/material/Box';
-import { saveWorkout } from '../../api/WorkoutsApi';
+import { getWorkouts, saveWorkout } from '../../api/WorkoutsApi';
+import { get } from 'http';
 
 const data = [
   { name: 'Week 1', calories: 420 },
@@ -27,22 +28,53 @@ const data = [
   { name: 'Week 4', calories: 590 },
 ];
 
-const exercises = [
-  { id: 1, type: 'Running', duration: '30', date: '2024-08-16', calories: 300 },
-  { id: 2, type: 'Weightlifting', duration: '45', date: '2024-08-16', calories: 200 },
-  { id: 3, type: 'Cycling', duration: '60', date: '2024-08-20', calories: 450 },
-  { id: 4, type: 'Swimming', duration: '40', date: '2024-08-23', calories: 350 },
-  { id: 5, type: 'Basketball', duration: '60', date: '2024-09-02', calories: 150 },
-];
-
 const exerciseTypes = [
   'Running', 'Weightlifting', 'Cycling', 'Swimming', 'Football', 'Basketball', 'Tennis', 'Gymnastics',
 ];
 
+interface Exercise {
+  id: number;
+  exercise: string;
+  duration: number;
+  date: string;
+  calories: number;
+}
+
 export default function HomePage() {
   const [timeRange, setTimeRange] = useState('month');
-  const [exerciseList, setExerciseList] = useState(exercises);
   const [open, setOpen] = useState(false);
+  const [exerciseList, setExerciseList] = useState<Exercise[]>([]);
+  const [addedExcercise, setAddedExercise] = useState(false);
+
+  const getAllWorkouts = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Token no encontrado');
+  
+      const workouts = await getWorkouts(token);
+      console.log(workouts);
+      return Array.isArray(workouts) ? workouts : [];
+    } catch (error) {
+      console.error('Error al obtener todos los entrenamientos:', error);
+      return [];
+    }
+  };
+  
+  useEffect(() => {
+    const fetchWorkouts = async () => {
+      try {
+        const workouts = await getAllWorkouts();
+        const validWorkouts = workouts.filter((exercise: Exercise) => 
+          exercise.exercise && exercise.duration && exercise.date && exercise.calories
+        );
+        setExerciseList(validWorkouts);
+      } catch (error) {
+        console.error('Error al obtener los entrenamientos:', error);
+      }
+    };
+  
+    fetchWorkouts();
+  }, [addedExcercise]);
 
   const [newExercise, setNewExercise] = useState({
     type: '',
@@ -66,7 +98,7 @@ export default function HomePage() {
         calories: Math.floor(Math.random() * 300) + 100, // Generating a random calorie value
       };
   
-      setExerciseList([...exerciseList, exercise]);
+      // setExerciseList([...exerciseList, exercise]);
   
       setNewExercise({
         type: '',
@@ -83,6 +115,7 @@ export default function HomePage() {
             date: newExercise.date,
           });
           console.log('Workout saved successfully');
+          setAddedExercise(true);
         } else {
           console.error('No token found, unable to save workout');
         }
@@ -175,17 +208,18 @@ export default function HomePage() {
         <Card sx={{ backgroundColor: '#333', color: '#fff' }}>
           <CardHeader title="Recent Exercises" />
           <CardContent>
-            <ScrollArea sx={{ maxHeight: 300, overflow: 'auto' }}>
-              {exerciseList.map((exercise) => (
+          <ScrollArea sx={{ maxHeight: 300, overflow: 'auto' }}>
+            {Array.isArray(exerciseList) && exerciseList.length > 0 ? (
+              exerciseList.map((exercise: any) => (
                 <div key={exercise.id} className="flex items-center space-x-4 mb-4">
                   <div className="bg-primary rounded-full p-2">
-                    {exercise.type === 'Running' && <Timer className="h-6 w-6" />}
-                    {exercise.type === 'Weightlifting' && <Dumbbell className="h-6 w-6" />}
-                    {exercise.type === 'Cycling' && <Bike className="h-6 w-6" />}
-                    {(exercise.type !== 'Running' && exercise.type !== 'Weightlifting' && exercise.type !== 'Cycling') && <Trophy className="h-6 w-6" />}
+                    {exercise.exercise === 'Running' && <Timer className="h-6 w-6" />}
+                    {exercise.exercise === 'Weightlifting' && <Dumbbell className="h-6 w-6" />}
+                    {exercise.exercise === 'Cycling' && <Bike className="h-6 w-6" />}
+                    {(exercise.exercise !== 'Running' && exercise.exercise !== 'Weightlifting' && exercise.exercise !== 'Cycling') && <Trophy className="h-6 w-6" />}
                   </div>
                   <div className="flex-1">
-                    <Typography variant="h6">{exercise.type}</Typography>
+                    <Typography variant="h6">{exercise.exercise}</Typography>
                     <Typography variant="body2" color="gray">
                       {exercise.duration} min | {exercise.date}
                     </Typography>
@@ -194,9 +228,12 @@ export default function HomePage() {
                     <Typography variant="h6">{exercise.calories} kcal</Typography>
                   </div>
                 </div>
-              ))}
-            </ScrollArea>
-          </CardContent>
+              ))
+            ) : (
+              <Typography variant="body2" color="gray">No hay entrenamientos disponibles</Typography>
+            )}
+          </ScrollArea>
+        </CardContent>
         </Card>
       </main>
     </div>
