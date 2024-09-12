@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Avatar from '@mui/material/Avatar';
 import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
@@ -34,12 +35,17 @@ interface Exercise {
 }
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState('month');
   const [open, setOpen] = useState(false);
   const [exerciseList, setExerciseList] = useState<Exercise[]>([]);
   const [addedExcercise, setAddedExercise] = useState(false);
   const [caloriesPerDay, setCaloriesPerDay] = useState<{ [date: string]: number }>({});
 
+  const handleAvatarClick = () => {
+    navigate('/userinfo');
+  };
+  
   const getAllWorkouts = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -153,7 +159,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
       <header className="p-4 flex justify-between items-center">
-        <Avatar alt="User" src={require('../../images/profile_pic.png')} />
+        <Avatar alt="User" src={require('../../images/profile_pic.png')} onClick={handleAvatarClick} style={{ cursor: 'pointer' }}/>
         <IconButton aria-label="add" onClick={handleClickOpen}>
           <AddCircleOutlineIcon sx={{ color: grey[50], fontSize: 40 }} className="h-24 w-24" />
         </IconButton>

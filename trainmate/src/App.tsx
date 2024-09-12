@@ -5,6 +5,7 @@ import HomePage from './pages/home/home_page';
 import LogIn from './pages/login/login_page';
 import SignUp from './pages/signup/signup_page';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import UserInfo from './pages/user/userinfo_page';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -48,6 +49,11 @@ function App() {
         <Route 
           path="/homepage" 
           element={isAuthenticated ? <HomePage /> : <Navigate to="/login" />} 
+        />
+
+        <Route 
+          path="/userinfo" 
+          element={isAuthenticated ? <UserInfo /> : <Navigate to="/login" />} 
         />
         
         {/* Redirect any unknown routes to login if not authenticated */}
