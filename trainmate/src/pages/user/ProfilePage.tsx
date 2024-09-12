@@ -2,16 +2,13 @@ import React, { useState, useEffect } from 'react';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
+import { SelectChangeEvent } from '@mui/material/Select';
 import { Card, CardContent, CardHeader, IconButton } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import EditIcon from '@mui/icons-material/Edit';
 import { useNavigate } from 'react-router-dom';
 import { getUserProfile, updateUserProfile } from '../../api/UserAPI';
-import { blue, green, grey } from '@mui/material/colors';
-
-const genders = ['masculino', 'femenino', 'otro'];
+import { grey } from '@mui/material/colors';
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
@@ -19,7 +16,9 @@ export default function ProfilePage() {
     full_name: '', 
     gender: '',
     weight: '',
-    height: ''
+    height: '',
+    email: '',
+    birthday: '',
   });
 
   const navigate = useNavigate();
@@ -29,7 +28,7 @@ export default function ProfilePage() {
       try {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('Token no encontrado');
-  
+        
         const profileData = await getUserProfile();
 
         const formattedData = {
@@ -37,7 +36,10 @@ export default function ProfilePage() {
           gender: profileData.gender,
           weight: profileData.weight,
           height: profileData.height,
+          email: profileData.email,
+          birthday: profileData.birthday,
         };
+        console.log('formattedData:', formattedData);
         setUserProfile(formattedData);
       } catch (error) {
         console.error('Error al obtener el perfil del usuario:', error);
@@ -77,7 +79,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
       <header className="p-4 flex justify-between items-center">
-        <Avatar alt="User" src={require('../../images/profile_pic.png')} />
+        <Avatar alt="User" src={require('../../images/profile_pic_2.jpg')} />
         <IconButton
           aria-label="edit"
           onClick={() => setIsEditing((prevState) => !prevState)}
@@ -91,6 +93,11 @@ export default function ProfilePage() {
           <CardHeader title="User Profile" sx={{color: 'black'}}/>
           <CardContent>
           <form style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <TextField
+              label="Email"
+              value={userProfile.email}
+              disabled
+            />
             <TextField
               fullWidth
               label="Full Name"
@@ -131,6 +138,11 @@ export default function ProfilePage() {
                 </MenuItem>
               ))}
             </Select> */}
+            <TextField
+              label="Birthday"
+              value={userProfile.birthday}
+              disabled
+            />
             <TextField
               fullWidth
               label="Weight"
