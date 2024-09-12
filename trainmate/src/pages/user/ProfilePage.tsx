@@ -7,21 +7,22 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 import { Card, CardContent, CardHeader, IconButton } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import EditIcon from '@mui/icons-material/Edit';
-import { useNavigate } from 'react-router-dom';  // Importa useNavigate
-import { getUserProfile, updateUserProfile } from '../../api/UserAPI'; // Asegúrate de implementar estas funciones en tu backend
+import { useNavigate } from 'react-router-dom';
+import { getUserProfile, updateUserProfile } from '../../api/UserAPI';
+import { blue, green, grey } from '@mui/material/colors';
 
 const genders = ['masculino', 'femenino', 'otro'];
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [userProfile, setUserProfile] = useState({
-    full_name: '',  // Cambiado a full_name
+    full_name: '', 
     gender: '',
     weight: '',
     height: ''
   });
 
-  const navigate = useNavigate();  // Inicializa useNavigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -32,7 +33,7 @@ export default function ProfilePage() {
         const profileData = await getUserProfile();
 
         const formattedData = {
-          full_name: profileData.fullName,  // Mapear el valor devuelto a full_name
+          full_name: profileData.fullName,
           gender: profileData.gender,
           weight: profileData.weight,
           height: profileData.height,
@@ -48,9 +49,11 @@ export default function ProfilePage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => {
     const { name, value } = e.target;
+    const parsedValue = (name === 'weight' || name === 'height') ? parseInt(value) : value;
+  
     setUserProfile((prevProfile) => ({
       ...prevProfile,
-      [name]: value,
+      [name]: parsedValue,
     }));
   };
 
@@ -59,7 +62,7 @@ export default function ProfilePage() {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Token no encontrado');
 
-      await updateUserProfile(userProfile);  // Asegúrate de que se envía el objeto correcto
+      await updateUserProfile(userProfile);
       setIsEditing(false);
       console.log('Perfil actualizado correctamente');
     } catch (error) {
@@ -68,7 +71,7 @@ export default function ProfilePage() {
   };
 
   const handleBackToHome = () => {
-    navigate('/homepage');  // Navega a la página de inicio
+    navigate('/homepage');
   };
 
   return (
@@ -84,19 +87,37 @@ export default function ProfilePage() {
       </header>
 
       <main className="p-4 space-y-6">
-        <Card sx={{ backgroundColor: '#333', color: '#fff' }}>
-          <CardHeader title="Perfil del Usuario" />
+        <Card sx={{ backgroundColor: grey[100], color: '#fff' }}>
+          <CardHeader title="User Profile" sx={{color: 'black'}}/>
           <CardContent>
+          <form style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <TextField
               fullWidth
-              label="Nombre Completo"
-              name="full_name"  // Cambiado a full_name para que coincida con el backend
-              value={userProfile.full_name}  // Usamos full_name
+              label="Full Name"
+              name="full_name"
+              value={userProfile.full_name}
               onChange={handleChange}
               disabled={!isEditing}
               margin="normal"
+              slotProps={{
+                input: {
+                  sx: {
+                    color: 'black',
+                  },
+                },
+                inputLabel: {
+                sx: {
+                    color: 'black',
+                    },
+                }
+              }}
+              // sx = {{
+              //       '&.Mui-disabled': {
+              //   backgroundColor: 'white',
+              // },
+              // }}
             />
-            <Select
+            {/* <Select
               fullWidth
               name="gender"
               value={userProfile.gender}
@@ -109,24 +130,48 @@ export default function ProfilePage() {
                   {gender.charAt(0).toUpperCase() + gender.slice(1)}
                 </MenuItem>
               ))}
-            </Select>
+            </Select> */}
             <TextField
               fullWidth
-              label="Peso"
+              label="Weight"
               name="weight"
               value={userProfile.weight}
               onChange={handleChange}
               disabled={!isEditing}
               margin="normal"
+              slotProps={{
+                input: {
+                  sx: {
+                    color: 'black',
+                  },
+                },
+                inputLabel: {
+                sx: {
+                    color: 'black',
+                    },
+                }
+              }}
             />
             <TextField
               fullWidth
-              label="Altura"
+              label="Height"
               name="height"
               value={userProfile.height}
               onChange={handleChange}
               disabled={!isEditing}
               margin="normal"
+              slotProps={{
+                input: {
+                  sx: {
+                    color: 'black',
+                  },
+                },
+                inputLabel: {
+                sx: {
+                    color: 'black',
+                    },
+                }
+              }}
             />
             {isEditing && (
               <Button
@@ -135,19 +180,19 @@ export default function ProfilePage() {
                 onClick={handleSave}
                 sx={{ mt: 2, backgroundColor: '#008000' }}
               >
-                Guardar Cambios
+                Save changes
               </Button>
             )}
+          </form>
           </CardContent>
         </Card>
 
-        {/* Botón para volver a la página de inicio */}
         <Button
           variant="outlined"
           onClick={handleBackToHome}
           sx={{ mt: 2, color: '#fff', borderColor: '#fff' }}
         >
-          Volver a Home
+          Back to Home
         </Button>
       </main>
     </div>

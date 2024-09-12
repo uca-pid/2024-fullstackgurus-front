@@ -42,6 +42,10 @@ export default function HomePage() {
   const [caloriesPerDay, setCaloriesPerDay] = useState<{ [date: string]: number }>({});
   const navigate = useNavigate();
 
+  const handleAvatarClick = () => {
+    navigate('/profile');
+  };
+
   const getAllWorkouts = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -155,7 +159,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
       <header className="p-4 flex justify-between items-center">
-        <Avatar alt="User" src={require('../../images/profile_pic.png')} onClick={() => navigate("/profile")}/>
+        <Avatar alt="User" src={require('../../images/profile_pic.png')} onClick={handleAvatarClick} style={{ cursor: 'pointer' }}/>
         <IconButton aria-label="add" onClick={handleClickOpen}>
           <AddCircleOutlineIcon sx={{ color: grey[50], fontSize: 40 }} className="h-24 w-24" />
         </IconButton>
