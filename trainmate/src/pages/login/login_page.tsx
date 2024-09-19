@@ -22,6 +22,7 @@ export default function LogIn() {
   const provider = new GoogleAuthProvider();
   const navigate = useNavigate();
   const [loggedIn, setLoggedIn] = useState(false);
+  const [errorLoggingIn, setErrorLoggingIn] = useState(false);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value);
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value);
@@ -31,10 +32,12 @@ export default function LogIn() {
     try {
       const data: any = await signInWithEmailAndPassword(auth, email, password);
       localStorage.setItem("token", data.user.accessToken);
+      setErrorLoggingIn(false);
       navigate('/homepage');
       window.location.reload();
     } catch (error: any) {
       console.error('Error logging in:', error.message);
+      setErrorLoggingIn(true);
     }
   };
 
@@ -120,6 +123,11 @@ export default function LogIn() {
                 Log In
               </Button>
             </form>
+            {errorLoggingIn && (
+              <div className="mt-4 text-center text-red-500 font-medium">
+                Email or Password incorrect
+              </div>
+            )}
             <div className="mt-4 text-center">
               <a href="#" className="text-sm text-primary hover:underline" onClick={handleForgotPasswordClick}>
                 Forgot password?

@@ -162,6 +162,9 @@ export default function HomePage() {
         <Avatar alt="User" src={require('../../images/profile_pic_2.jpg')} onClick={handleAvatarClick} style={{ cursor: 'pointer' }}/>
         <IconButton aria-label="add" onClick={handleClickOpen}>
           <AddCircleOutlineIcon sx={{ color: grey[50], fontSize: 40 }} className="h-24 w-24" />
+          <div>
+            <p className='p-3 text-white'>Add New Excerise</p>
+          </div>
         </IconButton>
       </header>
 
@@ -188,8 +191,26 @@ export default function HomePage() {
             margin="dense"
             label="Duration"
             value={newExercise.duration}
-            onChange={(e) => setNewExercise({ ...newExercise, duration: e.target.value })}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === "") {
+                setNewExercise({ ...newExercise, duration: "" });
+              } else {
+                const numericValue = parseInt(value, 10);
+                if (numericValue >= 1 && numericValue <= 1000) {
+                  setNewExercise({ ...newExercise, duration: value });
+                } else if (numericValue < 1) {
+                  setNewExercise({ ...newExercise, duration: "1" });
+                } else if (numericValue > 1000) {
+                  setNewExercise({ ...newExercise, duration: "1000" });
+                }
+              }
+            }}
             placeholder="In minutes"
+            type="number"
+            slotProps={{
+              htmlInput: { min: 1, max: 1000 }
+            }}
           />
           <TextField
             fullWidth
