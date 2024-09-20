@@ -49,6 +49,7 @@ export default function LogIn() {
       localStorage.setItem("token", idToken);
 
       const isFirstLogin = user.metadata.creationTime === user.metadata.lastSignInTime;
+      // Hagamos verificacion por si tiene todos los datos del body cargados o no
 
       if (isFirstLogin) {
         window.location.href = '/profile';

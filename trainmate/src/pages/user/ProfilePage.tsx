@@ -57,15 +57,16 @@ export default function ProfilePage() {
     };
   
     fetchProfile();
-  }, []);
+  }, [isEditing]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>
+  ) => {
     const { name, value } = e.target;
-    const parsedValue = (name === 'weight' || name === 'height') ? parseInt(value) : value;
   
     setUserProfile((prevProfile) => ({
       ...prevProfile,
-      [name]: parsedValue,
+      [name]: value,
     }));
   };
 
@@ -73,8 +74,38 @@ export default function ProfilePage() {
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Token no encontrado');
-
-      await updateUserProfile(userProfile);
+  
+      let weight = userProfile.weight ? parseInt(userProfile.weight) : null;
+      if (weight !== null) {
+        if (isNaN(weight) || weight > 300 || weight < 0) {
+          alert('Weight must be a number between 0 and 300');
+          return;
+        }
+      }
+      else {
+        alert('Weight cannot be empty');
+        return;
+      }
+  
+      let height = userProfile.height ? parseInt(userProfile.height) : null;
+      if (height !== null) {
+        if (isNaN(height) || height > 240 || height < 0) {
+          alert('Height must be a number between 0 and 240');
+          return;
+        }
+      }
+      else {
+        alert('Height cannot be empty');
+        return;
+      }
+  
+      const profileData = {
+        ...userProfile,
+        weight: weight,
+        height: height,
+      };
+  
+      await updateUserProfile(profileData);
       setIsEditing(false);
       console.log('Perfil actualizado correctamente');
     } catch (error) {
@@ -163,6 +194,7 @@ export default function ProfilePage() {
               fullWidth
               label="Weight"
               name="weight"
+              type='number'
               value={userProfile.weight}
               onChange={handleChange}
               disabled={!isEditing}
@@ -184,6 +216,7 @@ export default function ProfilePage() {
               fullWidth
               label="Height"
               name="height"
+              type='number'
               value={userProfile.height}
               onChange={handleChange}
               disabled={!isEditing}
