@@ -21,6 +21,8 @@ import ScrollArea from '@mui/material/Box';
 import { getWorkouts, saveWorkout, getWorkoutsCalories } from '../../api/WorkoutsApi';
 import { calculate_calories_per_day } from '../../functions/calculations';
 import { useNavigate } from 'react-router-dom';
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
 
 const exerciseTypes = [
   'Running', 'Weightlifting', 'Cycling', 'Swimming', 'Football', 'Basketball', 'Tennis',
@@ -35,12 +37,13 @@ interface Exercise {
 }
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState('month');
   const [open, setOpen] = useState(false);
   const [exerciseList, setExerciseList] = useState<Exercise[]>([]);
   const [addedExcercise, setAddedExercise] = useState(false);
   const [caloriesPerDay, setCaloriesPerDay] = useState<{ [date: string]: number }>({});
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   const handleAvatarClick = () => {
     navigate('/profile');
@@ -62,6 +65,7 @@ export default function HomePage() {
   useEffect(() => {
     const fetchWorkouts = async () => {
       try {
+        setLoading(true);
         const workouts = await getAllWorkouts();
         const validWorkouts = workouts.filter((exercise: Exercise) => 
           exercise.exercise && exercise.duration && exercise.date && exercise.calories
@@ -69,6 +73,8 @@ export default function HomePage() {
         setExerciseList(validWorkouts);
       } catch (error) {
         console.error('Error al obtener los entrenamientos:', error);
+      } finally {
+        setLoading(false);
       }
     };
   
@@ -101,11 +107,14 @@ export default function HomePage() {
   useEffect(() => {
     const fetchWorkoutsCalories = async () => {
       try {
+        setLoading(true);
         const workouts_calories_and_dates = await getAllWorkoutsCalories();
         const calories_per_day = calculate_calories_per_day(workouts_calories_and_dates);
         setCaloriesPerDay(calories_per_day);
       } catch (error) {
         console.error('Error al obtener toda la data de los entrenamientos:', error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchWorkoutsCalories();
@@ -163,7 +172,7 @@ export default function HomePage() {
         <IconButton aria-label="add" onClick={handleClickOpen}>
           <AddCircleOutlineIcon sx={{ color: grey[50], fontSize: 40 }} className="h-24 w-24" />
           <div>
-            <p className='p-3 text-white'>Add New Excerise</p>
+            <p className='p-3 text-white'>Add New Exercise</p>
           </div>
         </IconButton>
       </header>
@@ -227,66 +236,72 @@ export default function HomePage() {
         </DialogActions>
       </Dialog>
 
-      <main className="p-4 space-y-6">
-        <Card sx={{ backgroundColor: '#333', color: '#fff' }}>
-          <CardHeader
-            title="Progress"
-            // action={
-            //   <Select
-            //     value={timeRange}
-            //     onChange={(e) => setTimeRange(e.target.value)}
-            //     sx={{ color: 'white' }}
-            //   >
-            //     <MenuItem value="week">Last Week</MenuItem>
-            //     <MenuItem value="month">Last Month</MenuItem>
-            //     <MenuItem value="year">Last Year</MenuItem>
-            //   </Select>
-            // }
-          />
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={dataForChart}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" stroke="#fff" tick={{ dy: 13 }} /> {/* Usamos "date" como eje X */}
-                <YAxis stroke="#fff" />
-                <Tooltip />
-                <Line type="monotone" dataKey="calories" stroke="#008000" activeDot={{ r: 10 }} /> {/* "calories" como eje Y */}
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+          <main className="p-4 space-y-6">
+            <Card sx={{ backgroundColor: '#333', color: '#fff' }}>
+              <CardHeader
+                title="Progress"
+                // action={
+                //   <Select
+                //     value={timeRange}
+                //     onChange={(e) => setTimeRange(e.target.value)}
+                //     sx={{ color: 'white' }}
+                //   >
+                //     <MenuItem value="week">Last Week</MenuItem>
+                //     <MenuItem value="month">Last Month</MenuItem>
+                //     <MenuItem value="year">Last Year</MenuItem>
+                //   </Select>
+                // }
+              />
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={dataForChart}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" stroke="#fff" tick={{ dy: 13 }} /> {/* Usamos "date" como eje X */}
+                    <YAxis stroke="#fff" />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="calories" stroke="#008000" activeDot={{ r: 10 }} /> {/* "calories" como eje Y */}
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
 
-        <Card sx={{ backgroundColor: '#333', color: '#fff' }}>
-          <CardHeader title="Recent Exercises" />
-          <CardContent>
-          <ScrollArea sx={{ maxHeight: 300, overflow: 'auto' }}>
-            {Array.isArray(exerciseList) && exerciseList.length > 0 ? (
-              exerciseList.map((exercise: any) => (
-                <div key={exercise.id} className="flex items-center space-x-4 mb-4">
-                  <div className="bg-primary rounded-full p-2">
-                    {exercise.exercise === 'Running' && <Timer className="h-6 w-6" />}
-                    {exercise.exercise === 'Weightlifting' && <Dumbbell className="h-6 w-6" />}
-                    {exercise.exercise === 'Cycling' && <Bike className="h-6 w-6" />}
-                    {(exercise.exercise !== 'Running' && exercise.exercise !== 'Weightlifting' && exercise.exercise !== 'Cycling') && <Trophy className="h-6 w-6" />}
-                  </div>
-                  <div className="flex-1">
-                    <Typography variant="h6">{exercise.exercise}</Typography>
-                    <Typography variant="body2" color="gray">
-                      {exercise.duration} min | {exercise.date}
-                    </Typography>
-                  </div>
-                  <div className="text-right">
-                    <Typography variant="h6">{exercise.calories} kcal</Typography>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <Typography variant="body2" color="gray">No hay entrenamientos disponibles</Typography>
-            )}
-          </ScrollArea>
-        </CardContent>
-        </Card>
-      </main>
+            <Card sx={{ backgroundColor: '#333', color: '#fff' }}>
+              <CardHeader title="Recent Exercises" />
+              <CardContent>
+              <ScrollArea sx={{ maxHeight: 300, overflow: 'auto' }}>
+                {Array.isArray(exerciseList) && exerciseList.length > 0 ? (
+                  exerciseList.map((exercise: any) => (
+                    <div key={exercise.id} className="flex items-center space-x-4 mb-4">
+                      <div className="bg-primary rounded-full p-2">
+                        {exercise.exercise === 'Running' && <Timer className="h-6 w-6" />}
+                        {exercise.exercise === 'Weightlifting' && <Dumbbell className="h-6 w-6" />}
+                        {exercise.exercise === 'Cycling' && <Bike className="h-6 w-6" />}
+                        {(exercise.exercise !== 'Running' && exercise.exercise !== 'Weightlifting' && exercise.exercise !== 'Cycling') && <Trophy className="h-6 w-6" />}
+                      </div>
+                      <div className="flex-1">
+                        <Typography variant="h6">{exercise.exercise}</Typography>
+                        <Typography variant="body2" color="gray">
+                          {exercise.duration} min | {exercise.date}
+                        </Typography>
+                      </div>
+                      <div className="text-right">
+                        <Typography variant="h6">{exercise.calories} kcal</Typography>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <Typography variant="body2" color="gray">No exercises available</Typography>
+                )}
+              </ScrollArea>
+            </CardContent>
+            </Card>
+          </main>
+        )}
     </div>
   );
 }

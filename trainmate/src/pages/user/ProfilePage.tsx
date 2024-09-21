@@ -10,9 +10,16 @@ import { useNavigate } from 'react-router-dom';
 import { getUserProfile, updateUserProfile } from '../../api/UserAPI';
 import { grey } from '@mui/material/colors';
 import { getAuth } from 'firebase/auth';
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
 
 export default function ProfilePage() {
+  const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [alertErrorWeight, setAlertErrorWeight] = useState(false);
+  const [alertErrorHeight, setAlertErrorHeight] = useState(false);
+
   const [userProfile, setUserProfile] = useState({
     full_name: '', 
     gender: '',
@@ -25,12 +32,44 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const auth = getAuth();
 
+  const textFieldStyles = {
+    '& .MuiInputBase-input': {
+      color: grey[100],
+    },
+    '& .MuiInputBase-input.Mui-disabled': {
+      WebkitTextFillColor: grey[500],
+    },
+    '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+      borderColor: grey[100],
+    },
+    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: grey[100],
+    },
+    '& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline': {
+      borderColor: grey[700],
+    },
+    '& .MuiOutlinedInput-root.Mui-disabled': {
+      backgroundColor: 'transparent',
+      opacity: 1,
+    },
+    '& .MuiInputLabel-root': {
+      color: grey[100],
+    },
+    '& .MuiInputLabel-root.Mui-focused': {
+      color: grey[100],
+    },
+    '& .MuiInputLabel-root.Mui-disabled': {
+      color: grey[700],
+    },
+  };
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('Token no encontrado');
         
+        setLoading(true);
         const profileData = await getUserProfile();
 
         const user = auth.currentUser;
@@ -53,6 +92,8 @@ export default function ProfilePage() {
         setUserProfile(formattedData);
       } catch (error) {
         console.error('Error al obtener el perfil del usuario:', error);
+      } finally {
+        setLoading(false);
       }
     };
   
@@ -76,10 +117,16 @@ export default function ProfilePage() {
       if (!token) throw new Error('Token no encontrado');
   
       let weight = userProfile.weight ? parseInt(userProfile.weight) : null;
+      let height = userProfile.height ? parseInt(userProfile.height) : null;
+      let hasError = false;
+
       if (weight !== null) {
         if (isNaN(weight) || weight > 300 || weight < 0) {
-          alert('Weight must be a number between 0 and 300');
-          return;
+          setAlertErrorWeight(true);
+          hasError = true;
+        }
+        else {
+          setAlertErrorWeight(false)
         }
       }
       else {
@@ -87,18 +134,24 @@ export default function ProfilePage() {
         return;
       }
   
-      let height = userProfile.height ? parseInt(userProfile.height) : null;
       if (height !== null) {
         if (isNaN(height) || height > 240 || height < 0) {
-          alert('Height must be a number between 0 and 240');
-          return;
+          setAlertErrorHeight(true);
+          hasError = true;
+        }
+        else {
+          setAlertErrorHeight(false)
         }
       }
       else {
         alert('Height cannot be empty');
         return;
       }
-  
+      
+      if (hasError) {
+        return;
+      }
+
       const profileData = {
         ...userProfile,
         weight: weight,
@@ -129,140 +182,120 @@ export default function ProfilePage() {
         <Avatar alt="User" src={require('../../images/profile_pic_2.jpg')} />
         <IconButton
           aria-label="edit"
-          onClick={() => setIsEditing((prevState) => !prevState)}
+          onClick={() => {setIsEditing((prevState) => !prevState); setAlertErrorWeight(false); setAlertErrorHeight(false)}}
         >
           <EditIcon sx={{ color: 'white', fontSize: 30 }} />
         </IconButton>
       </header>
+        {alertErrorWeight && 
+          <div className='p-4 -mt-3'>
+            <Alert severity="error">
+              Weight must be a number between 0 and 300
+            </Alert>
+          </div>
+        }
+        {alertErrorHeight && 
+          <div className='p-4 -mt-3'>
+            <Alert severity="error">
+              Height must be a number between 0 and 240
+            </Alert>
+          </div>
+        }
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+          <main className="p-4 space-y-6">
+            <Card sx={{ backgroundColor: '#333', color: '#fff' }}>
+              <CardHeader title="User Profile" sx={{color: 'white'}}/>
+              <CardContent>
+              <form style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <TextField
+                  label="Email"
+                  value={userProfile.email}
+                  disabled
+                  sx={textFieldStyles}
+                />
+                <TextField
+                  fullWidth
+                  label="Full Name"
+                  name="full_name"
+                  value={userProfile.full_name}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  sx={textFieldStyles}
+                />
+                {/* <Select
+                  fullWidth
+                  name="gender"
+                  value={userProfile.gender}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  displayEmpty
+                >
+                  {genders.map((gender) => (
+                    <MenuItem key={gender} value={gender}>
+                      {gender.charAt(0).toUpperCase() + gender.slice(1)}
+                    </MenuItem>
+                  ))}
+                </Select> */}
+                <TextField
+                  label="Birthday"
+                  value={userProfile.birthday}
+                  disabled
+                  sx={textFieldStyles}
+                />
+                <TextField
+                  fullWidth
+                  label="Weight"
+                  name="weight"
+                  type='number'
+                  value={userProfile.weight}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  sx={textFieldStyles}
+                />
+                <TextField
+                  fullWidth
+                  label="Height"
+                  name="height"
+                  type='number'
+                  value={userProfile.height}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  sx={textFieldStyles}
+                />
+                {isEditing && (
+                  <Button
+                    variant="contained"
+                    startIcon={<SaveIcon />}
+                    onClick={handleSave}
+                    sx={{ mt: 2, backgroundColor: '#008000' }}
+                  >
+                    Save changes
+                  </Button>
+                )}
+              </form>
+              </CardContent>
+            </Card>
 
-      <main className="p-4 space-y-6">
-        <Card sx={{ backgroundColor: grey[100], color: '#fff' }}>
-          <CardHeader title="User Profile" sx={{color: 'black'}}/>
-          <CardContent>
-          <form style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <TextField
-              label="Email"
-              value={userProfile.email}
-              disabled
-            />
-            <TextField
-              fullWidth
-              label="Full Name"
-              name="full_name"
-              value={userProfile.full_name}
-              onChange={handleChange}
-              disabled={!isEditing}
-              margin="normal"
-              slotProps={{
-                input: {
-                  sx: {
-                    color: 'black',
-                  },
-                },
-                inputLabel: {
-                sx: {
-                    color: 'black',
-                    },
-                }
-              }}
-              // sx = {{
-              //       '&.Mui-disabled': {
-              //   backgroundColor: 'white',
-              // },
-              // }}
-            />
-            {/* <Select
-              fullWidth
-              name="gender"
-              value={userProfile.gender}
-              onChange={handleChange}
-              disabled={!isEditing}
-              displayEmpty
+            <Button
+              variant="outlined"
+              onClick={handleBackToHome}
+              sx={{ mt: 2, color: '#fff', borderColor: '#fff', mr: 2}}
             >
-              {genders.map((gender) => (
-                <MenuItem key={gender} value={gender}>
-                  {gender.charAt(0).toUpperCase() + gender.slice(1)}
-                </MenuItem>
-              ))}
-            </Select> */}
-            <TextField
-              label="Birthday"
-              value={userProfile.birthday}
-              disabled
-            />
-            <TextField
-              fullWidth
-              label="Weight"
-              name="weight"
-              type='number'
-              value={userProfile.weight}
-              onChange={handleChange}
-              disabled={!isEditing}
-              margin="normal"
-              slotProps={{
-                input: {
-                  sx: {
-                    color: 'black',
-                  },
-                },
-                inputLabel: {
-                sx: {
-                    color: 'black',
-                    },
-                }
-              }}
-            />
-            <TextField
-              fullWidth
-              label="Height"
-              name="height"
-              type='number'
-              value={userProfile.height}
-              onChange={handleChange}
-              disabled={!isEditing}
-              margin="normal"
-              slotProps={{
-                input: {
-                  sx: {
-                    color: 'black',
-                  },
-                },
-                inputLabel: {
-                sx: {
-                    color: 'black',
-                    },
-                }
-              }}
-            />
-            {isEditing && (
-              <Button
-                variant="contained"
-                startIcon={<SaveIcon />}
-                onClick={handleSave}
-                sx={{ mt: 2, backgroundColor: '#008000' }}
-              >
-                Save changes
-              </Button>
-            )}
-          </form>
-          </CardContent>
-        </Card>
-
-        <Button
-          variant="outlined"
-          onClick={handleBackToHome}
-          sx={{ mt: 2, color: '#fff', borderColor: '#fff' }}
-        >
-          Back to Home
-        </Button>
-        <Button
-          variant="outlined"
-          onClick={handleLogOut}
-          sx={{ mt: 2, color: '#fff', borderColor: '#fff' }}
-        >
-          Log out
-        </Button>
-      </main>
+              Back to Home
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={handleLogOut}
+              sx={{ mt: 2, color: '#fff', borderColor: '#fff' }}
+            >
+              Log out
+            </Button>
+          </main>
+        )}
     </div>
   );
 }
