@@ -259,6 +259,7 @@ export default function HomePage() {
               />
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
+                {Array.isArray(exerciseList) && exerciseList.length > 0 ? (
                   <LineChart data={dataForChart}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" stroke="#fff" tick={{ dy: 13 }} /> {/* Usamos "date" como eje X */}
@@ -266,6 +267,15 @@ export default function HomePage() {
                     <Tooltip />
                     <Line type="monotone" dataKey="calories" stroke="#008000" activeDot={{ r: 10 }} /> {/* "calories" como eje Y */}
                   </LineChart>
+                  ) : (
+                    <div>
+                      <Typography variant="body2" color="gray">No progress available</Typography>
+                      <a href="#" className="underline" onClick={handleClickOpen}>
+                        <Typography sx={{marginTop: 4}} variant="body2" color="gray">Add new exercises</Typography>
+                      </a>
+                      
+                    </div>
+                  )}
                 </ResponsiveContainer>
               </CardContent>
             </Card>
