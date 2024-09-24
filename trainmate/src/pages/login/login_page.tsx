@@ -13,6 +13,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
+import TopMiddleAlert from '../../personalizedComponents/TopMiddleAlert';
 
 export default function LogIn() {
   const [email, setEmail] = useState('');
@@ -23,6 +24,7 @@ export default function LogIn() {
   const navigate = useNavigate();
   const [loggedIn, setLoggedIn] = useState(false);
   const [errorLoggingIn, setErrorLoggingIn] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value);
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value);
@@ -71,6 +73,8 @@ export default function LogIn() {
         .then(() => {
           console.log(`Password reset email sent to ${forgotEmail}`);
           setIsModalOpen(false);
+          setForgotEmail('')
+          setAlertOpen(true);
         })
         .catch((error) => {
           console.error('Error sending password reset email:', error);
@@ -82,11 +86,13 @@ export default function LogIn() {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    setForgotEmail('')
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
+        <TopMiddleAlert  alertText='Sent email to restore password' open={alertOpen} onClose={() => setAlertOpen(false)}/>
         <div className="bg-white shadow-lg rounded-lg overflow-hidden">
           <div className="bg-black p-4 flex items-center justify-center">
             <Dumbbell className="h-8 w-8 text-white mr-2" />
