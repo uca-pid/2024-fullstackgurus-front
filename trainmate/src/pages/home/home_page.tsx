@@ -23,6 +23,7 @@ import { calculate_calories_per_day } from '../../functions/calculations';
 import { useNavigate } from 'react-router-dom';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
+import TopMiddleAlert from '../../personalizedComponents/TopMiddleAlert';
 
 const exerciseTypes = [
   'Running', 'Weightlifting', 'Cycling', 'Swimming', 'Football', 'Basketball', 'Tennis',
@@ -176,7 +177,7 @@ export default function HomePage() {
           </div>
         </IconButton>
       </header>
-
+      {addedExcercise && <TopMiddleAlert alertText='Added excercise successfully'/>}
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Add New Exercise</DialogTitle>
         <DialogContent>
@@ -271,7 +272,7 @@ export default function HomePage() {
                     <div>
                       <Typography variant="body2" color="gray">No progress available</Typography>
                       <a href="#" className="underline" onClick={handleClickOpen}>
-                        <Typography sx={{marginTop: 4}} variant="body2" color="gray">Add new exercises</Typography>
+                        <Typography sx={{marginTop: 4}} variant="body2" color="gray">Add new exercise</Typography>
                       </a>
                       
                     </div>
