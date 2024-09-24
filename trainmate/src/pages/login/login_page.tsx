@@ -13,6 +13,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
+import TopMiddleAlert from '../../personalizedComponents/TopMiddleAlert';
 
 export default function LogIn() {
   const [email, setEmail] = useState('');
@@ -22,6 +23,8 @@ export default function LogIn() {
   const provider = new GoogleAuthProvider();
   const navigate = useNavigate();
   const [loggedIn, setLoggedIn] = useState(false);
+  const [errorLoggingIn, setErrorLoggingIn] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value);
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value);
@@ -31,10 +34,12 @@ export default function LogIn() {
     try {
       const data: any = await signInWithEmailAndPassword(auth, email, password);
       localStorage.setItem("token", data.user.accessToken);
+      setErrorLoggingIn(false);
       navigate('/homepage');
       window.location.reload();
     } catch (error: any) {
       console.error('Error logging in:', error.message);
+      setErrorLoggingIn(true);
     }
   };
 
@@ -46,6 +51,7 @@ export default function LogIn() {
       localStorage.setItem("token", idToken);
 
       const isFirstLogin = user.metadata.creationTime === user.metadata.lastSignInTime;
+      // Hagamos verificacion por si tiene todos los datos del body cargados o no
 
       if (isFirstLogin) {
         window.location.href = '/profile';
@@ -67,6 +73,8 @@ export default function LogIn() {
         .then(() => {
           console.log(`Password reset email sent to ${forgotEmail}`);
           setIsModalOpen(false);
+          setForgotEmail('')
+          setAlertOpen(true);
         })
         .catch((error) => {
           console.error('Error sending password reset email:', error);
@@ -78,11 +86,13 @@ export default function LogIn() {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    setForgotEmail('')
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
+        <TopMiddleAlert  alertText='Sent email to restore password' open={alertOpen} onClose={() => setAlertOpen(false)}/>
         <div className="bg-white shadow-lg rounded-lg overflow-hidden">
           <div className="bg-black p-4 flex items-center justify-center">
             <Dumbbell className="h-8 w-8 text-white mr-2" />
@@ -120,6 +130,11 @@ export default function LogIn() {
                 Log In
               </Button>
             </form>
+            {errorLoggingIn && (
+              <div className="mt-4 text-center text-red-500 font-medium">
+                Email or Password incorrect
+              </div>
+            )}
             <div className="mt-4 text-center">
               <a href="#" className="text-sm text-primary hover:underline" onClick={handleForgotPasswordClick}>
                 Forgot password?

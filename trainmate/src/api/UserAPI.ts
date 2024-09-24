@@ -56,7 +56,7 @@ export const getUserProfile = async () => {
  * Función para actualizar la información del usuario
  * @param userInfo Objeto que contiene la información actualizada del usuario
  */
-export const updateUserProfile = async (userInfo: { full_name?: string; gender?: string; weight?: string; height?: string }) => {
+export const updateUserProfile = async (userInfo: { full_name?: string; gender?: string; weight?: string | number | null; height?: string| number | null}) => {
   const token = getAuthToken();
   if (!token) throw new Error('Token no encontrado');
 
