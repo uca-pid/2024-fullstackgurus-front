@@ -41,10 +41,11 @@ export default function HomePage() {
   const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState('month');
   const [open, setOpen] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
   const [exerciseList, setExerciseList] = useState<Exercise[]>([]);
-  const [addedExcercise, setAddedExercise] = useState(false);
   const [caloriesPerDay, setCaloriesPerDay] = useState<{ [date: string]: number }>({});
   const [loading, setLoading] = useState(true);
+  const [exerciseCount, setExerciseCount] = useState(0);
 
   const handleAvatarClick = () => {
     navigate('/profile');
@@ -80,7 +81,7 @@ export default function HomePage() {
     };
   
     fetchWorkouts();
-  }, [addedExcercise]);
+  }, [exerciseCount]);
 
   const getAllWorkoutsCalories = async () => {
     try {
@@ -108,18 +109,18 @@ export default function HomePage() {
   useEffect(() => {
     const fetchWorkoutsCalories = async () => {
       try {
-        setLoading(true);
+        //setLoading(true);
         const workouts_calories_and_dates = await getAllWorkoutsCalories();
         const calories_per_day = calculate_calories_per_day(workouts_calories_and_dates);
         setCaloriesPerDay(calories_per_day);
       } catch (error) {
         console.error('Error al obtener toda la data de los entrenamientos:', error);
       } finally {
-        setLoading(false);
+        //setLoading(false);
       }
     };
     fetchWorkoutsCalories();
-  }, [addedExcercise]);
+  }, [exerciseCount]);
 
   const dataForChart = useMemo(() => formatDataForChart(), [caloriesPerDay]);
 
@@ -155,7 +156,8 @@ export default function HomePage() {
             date: newExercise.date,
           });
           console.log('Workout saved successfully');
-          setAddedExercise(true);
+          setExerciseCount((prevCount) => prevCount + 1);
+          setAlertOpen(true)
         } else {
           console.error('No token found, unable to save workout');
         }
@@ -177,7 +179,7 @@ export default function HomePage() {
           </div>
         </IconButton>
       </header>
-      {addedExcercise && <TopMiddleAlert alertText='Added excercise successfully'/>}
+      <TopMiddleAlert alertText='Added excercise successfully' open={alertOpen} onClose={() => setAlertOpen(false)}/>
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Add New Exercise</DialogTitle>
         <DialogContent>

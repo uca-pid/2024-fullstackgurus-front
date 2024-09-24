@@ -1,46 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
-import { SnackbarCloseReason } from '@mui/material';
 
 interface TopMiddleAlertProps {
-    alertText: string;
-  }
+  alertText: string;
+  open: boolean;
+  onClose: () => void;
+}
 
-export default function TopMiddleAlert({ alertText }: TopMiddleAlertProps) {
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    showAlert()
-  }, []);
-
-  const showAlert = () => {
-    setOpen(true);
-
-    setTimeout(() => {
-      setOpen(false);
-    }, 3000);
-  };
-
-  const handleClose = (event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setOpen(false);
-  };
-
+export default function TopMiddleAlert({ alertText, open, onClose }: TopMiddleAlertProps) {
   return (
-    <div>
-      <Snackbar
-        open={open}
-        autoHideDuration={3000}
-        onClose={handleClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
-          {alertText}
-        </Alert>
-      </Snackbar>
-    </div>
+    <Snackbar
+      open={open}
+      autoHideDuration={3000}
+      onClose={onClose}
+      anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+    >
+      <Alert onClose={onClose} severity="success" sx={{ width: '100%' }}>
+        {alertText}
+      </Alert>
+    </Snackbar>
   );
 }

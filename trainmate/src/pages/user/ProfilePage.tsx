@@ -13,10 +13,12 @@ import { getAuth } from 'firebase/auth';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
+import TopMiddleAlert from '../../personalizedComponents/TopMiddleAlert';
 
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
   const [alertErrorWeight, setAlertErrorWeight] = useState(false);
   const [alertErrorHeight, setAlertErrorHeight] = useState(false);
 
@@ -161,6 +163,7 @@ export default function ProfilePage() {
       await updateUserProfile(profileData);
       setIsEditing(false);
       console.log('Perfil actualizado correctamente');
+      setAlertOpen(true);
     } catch (error) {
       console.error('Error al actualizar el perfil:', error);
     }
@@ -187,6 +190,7 @@ export default function ProfilePage() {
           <EditIcon sx={{ color: 'white', fontSize: 30 }} />
         </IconButton>
       </header>
+      <TopMiddleAlert alertText='Modified data successfully' open={alertOpen} onClose={() => setAlertOpen(false)}/>
         {alertErrorWeight && 
           <div className='p-4 -mt-3'>
             <Alert severity="error">
