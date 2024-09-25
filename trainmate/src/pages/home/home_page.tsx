@@ -51,6 +51,11 @@ export default function HomePage() {
     navigate('/profile');
   };
 
+  const formatDate = (dateString: string) => {
+    const [year, month, day] = dateString.split('-');
+    return `${day}/${month}`;
+  };
+
   const getAllWorkouts = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -72,7 +77,8 @@ export default function HomePage() {
         const validWorkouts = workouts.filter((exercise: Exercise) => 
           exercise.exercise && exercise.duration && exercise.date && exercise.calories
         );
-        setExerciseList(validWorkouts);
+        const sortedWorkouts = validWorkouts.sort((a: Exercise, b: Exercise) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setExerciseList(sortedWorkouts);
       } catch (error) {
         console.error('Error al obtener los entrenamientos:', error);
       } finally {
@@ -100,10 +106,10 @@ export default function HomePage() {
   const formatDataForChart = () => {
     return Object.keys(caloriesPerDay)
       .map(date => ({
-        date,
+        date: formatDate(date),
         calories: caloriesPerDay[date],
       }))
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      .sort((b, a) => new Date(b.date.split('/').reverse().join('-')).getTime() - new Date(a.date.split('/').reverse().join('-')).getTime());
   };
 
   useEffect(() => {
@@ -265,10 +271,10 @@ export default function HomePage() {
                 {Array.isArray(exerciseList) && exerciseList.length > 0 ? (
                   <LineChart data={dataForChart}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" stroke="#fff" tick={{ dy: 13 }} /> {/* Usamos "date" como eje X */}
+                    <XAxis dataKey="date" stroke="#fff" tick={{ dy: 13 }} />
                     <YAxis stroke="#fff" />
                     <Tooltip />
-                    <Line type="monotone" dataKey="calories" stroke="#008000" activeDot={{ r: 10 }} /> {/* "calories" como eje Y */}
+                    <Line type="monotone" dataKey="calories" stroke="#008000" activeDot={{ r: 10 }} />
                   </LineChart>
                   ) : (
                     <div>
@@ -299,7 +305,7 @@ export default function HomePage() {
                       <div className="flex-1">
                         <Typography variant="h6">{exercise.exercise}</Typography>
                         <Typography variant="body2" color="gray">
-                          {exercise.duration} min | {exercise.date}
+                          {exercise.duration} min | {formatDate(exercise.date)}
                         </Typography>
                       </div>
                       <div className="text-right">
