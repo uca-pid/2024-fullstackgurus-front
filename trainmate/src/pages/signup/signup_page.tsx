@@ -103,15 +103,12 @@ export default function SignUp() {
               <TextField fullWidth id="name" label="Full Name" placeholder="John Doe" required value={formData.name} onChange={handleChange} />
               <TextField fullWidth id="email" label="Email" placeholder="you@example.com" type="email" required value={formData.email} onChange={handleChange} />
               <TextField fullWidth id="password" label="Password" type="password" required value={formData.password} onChange={handleChange} />
-              <FormControl fullWidth>
-                <InputLabel id="sex-label">Sex</InputLabel>
-                <Select labelId="sex-label" name="sex" value={formData.sex} onChange={handleChange}>
-                  <MenuItem value="male">Male</MenuItem>
-                  <MenuItem value="female">Female</MenuItem>
-                  <MenuItem value="other">Other</MenuItem>
-                </Select>
-              </FormControl>
-              <TextField fullWidth id="birthday" label="Birthday" type="date" InputLabelProps={{ shrink: true }} required value={formData.birthday} onChange={handleChange} />
+              <TextField fullWidth select id="sex-label" label="Sex" name="sex" required value={formData.sex} onChange={handleChange}>
+                <MenuItem value="male">Male</MenuItem>
+                <MenuItem value="female">Female</MenuItem>
+                <MenuItem value="other">Other</MenuItem>
+              </TextField>
+              <TextField fullWidth id="birthday" label="Birthday" type="date" required value={formData.birthday} onChange={handleChange} slotProps={{ htmlInput: { min: '1920-01-01', max: '2020-12-31' }, inputLabel: { shrink: true } }}/>
               <div className="grid grid-cols-2 gap-4">
                 <TextField fullWidth id="weight" label="Weight (kg)" type="number" inputProps={{ min: 40, max: 300, step: 0.5 }} placeholder="70.5" required value={formData.weight} onChange={handleChange} />
                 <TextField fullWidth id="height" label="Height (cm)" type="number" inputProps={{ min: 130, max: 250 }} placeholder="175" required value={formData.height} onChange={handleChange} />

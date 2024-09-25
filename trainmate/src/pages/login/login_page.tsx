@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Button from '@mui/material/Button';
 import Input from '@mui/material/Input';
 import FormLabel from '@mui/material/FormLabel';
@@ -14,6 +14,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 import TopMiddleAlert from '../../personalizedComponents/TopMiddleAlert';
+import { getUserProfile } from '../../api/UserAPI';
 
 export default function LogIn() {
   const [email, setEmail] = useState('');
@@ -22,7 +23,6 @@ export default function LogIn() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const provider = new GoogleAuthProvider();
   const navigate = useNavigate();
-  const [loggedIn, setLoggedIn] = useState(false);
   const [errorLoggingIn, setErrorLoggingIn] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
 
@@ -43,6 +43,34 @@ export default function LogIn() {
     }
   };
 
+  const checkIfAllDataIsCompleted = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Token no encontrado');
+      
+      const profileData = await getUserProfile();
+
+      const user = auth.currentUser;
+
+      if (!user) {
+        throw new Error("No user authenticated");
+      }
+      const requiredFields = ['fullName', 'gender', 'weight', 'height', 'birthday'];
+      const missingField = requiredFields.some(field => !profileData[field]);
+
+      if (missingField) {
+        navigate('/profile');
+        window.location.reload();
+      }
+      else {
+        navigate('/homepage');
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Error al obtener el perfil del usuario:', error);
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
@@ -50,14 +78,9 @@ export default function LogIn() {
       const idToken = await user.getIdToken();
       localStorage.setItem("token", idToken);
 
-      const isFirstLogin = user.metadata.creationTime === user.metadata.lastSignInTime;
-      // Hagamos verificacion por si tiene todos los datos del body cargados o no
+      await checkIfAllDataIsCompleted();
+      console.log('User logged in:', user);
 
-      if (isFirstLogin) {
-        window.location.href = '/profile';
-      } else {
-        window.location.href = '/homepage';
-      }
     } catch (error) {
       console.error('Error en el inicio de sesión con Google:', error);
     }

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import { SelectChangeEvent } from '@mui/material/Select';
-import { Card, CardContent, CardHeader, IconButton } from '@mui/material';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
+import { Card, CardContent, CardHeader, IconButton, InputLabel, MenuItem } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import EditIcon from '@mui/icons-material/Edit';
 import { useNavigate } from 'react-router-dom';
@@ -21,6 +21,7 @@ export default function ProfilePage() {
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertErrorWeight, setAlertErrorWeight] = useState(false);
   const [alertErrorHeight, setAlertErrorHeight] = useState(false);
+  const [missingFields, setMissingFields] = useState(false);
 
   const [userProfile, setUserProfile] = useState({
     full_name: '', 
@@ -80,6 +81,14 @@ export default function ProfilePage() {
           throw new Error("No user authenticated");
         }
 
+      const requiredFields = ['fullName', 'gender', 'weight', 'height', 'birthday'];
+      const missingField = requiredFields.some(field => !profileData[field]);
+
+      if (missingField) {
+        setIsEditing(true);
+        setMissingFields(true);
+      }
+
         const email = user.email;
 
         const formattedData = {
@@ -123,7 +132,7 @@ export default function ProfilePage() {
       let hasError = false;
 
       if (weight !== null) {
-        if (isNaN(weight) || weight > 300 || weight < 0) {
+        if (isNaN(weight) || weight > 300 || weight < 25) {
           setAlertErrorWeight(true);
           hasError = true;
         }
@@ -132,12 +141,13 @@ export default function ProfilePage() {
         }
       }
       else {
-        alert('Weight cannot be empty');
-        return;
+        // No se si tirar error específico para cuando está vacío
+        setAlertErrorWeight(true);
+        hasError = true;
       }
   
       if (height !== null) {
-        if (isNaN(height) || height > 240 || height < 0) {
+        if (isNaN(height) || height > 240 || height < 120) {
           setAlertErrorHeight(true);
           hasError = true;
         }
@@ -146,8 +156,8 @@ export default function ProfilePage() {
         }
       }
       else {
-        alert('Height cannot be empty');
-        return;
+        setAlertErrorHeight(true);
+        hasError = true;
       }
       
       if (hasError) {
@@ -162,7 +172,7 @@ export default function ProfilePage() {
   
       await updateUserProfile(profileData);
       setIsEditing(false);
-      console.log('Perfil actualizado correctamente');
+      console.log('Perfil actualizado correctamente', profileData);
       setAlertOpen(true);
     } catch (error) {
       console.error('Error al actualizar el perfil:', error);
@@ -194,14 +204,14 @@ export default function ProfilePage() {
         {alertErrorWeight && 
           <div className='p-4 -mt-3'>
             <Alert severity="error">
-              Weight must be a number between 0 and 300
+              Weight cannot be empty and must be a number between 25 and 300
             </Alert>
           </div>
         }
         {alertErrorHeight && 
           <div className='p-4 -mt-3'>
             <Alert severity="error">
-              Height must be a number between 0 and 240
+              Height cannot be empty and must be a number between 120 and 240
             </Alert>
           </div>
         }
@@ -230,25 +240,30 @@ export default function ProfilePage() {
                   disabled={!isEditing}
                   sx={textFieldStyles}
                 />
-                {/* <Select
+                <TextField
                   fullWidth
+                  select
+                  label="Sex"
                   name="gender"
                   value={userProfile.gender}
                   onChange={handleChange}
-                  disabled={!isEditing}
-                  displayEmpty
-                >
-                  {genders.map((gender) => (
-                    <MenuItem key={gender} value={gender}>
-                      {gender.charAt(0).toUpperCase() + gender.slice(1)}
-                    </MenuItem>
-                  ))}
-                </Select> */}
-                <TextField
-                  label="Birthday"
-                  value={userProfile.birthday}
-                  disabled
+                  disabled={!missingFields}
                   sx={textFieldStyles}
+                >
+                  <MenuItem value="male">Male</MenuItem>
+                  <MenuItem value="female">Female</MenuItem>
+                  <MenuItem value="other">Other</MenuItem>
+                </TextField>
+                <TextField
+                  fullWidth
+                  label="Birthday"
+                  name="birthday"
+                  type="date"
+                  value={userProfile.birthday}
+                  onChange={handleChange}
+                  disabled={!missingFields}
+                  sx={textFieldStyles}
+                  slotProps={{ htmlInput: { min: '1920-01-01', max: '2020-12-31' }, inputLabel: { shrink: true } }}
                 />
                 <TextField
                   fullWidth
