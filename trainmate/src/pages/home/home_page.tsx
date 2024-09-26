@@ -14,6 +14,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 import { grey } from '@mui/material/colors';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import CloseIcon from '@mui/icons-material/Close';
 import { Dumbbell, Timer, Bike, Trophy } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
 import Typography from '@mui/material/Typography';
@@ -181,12 +182,52 @@ export default function HomePage() {
         <IconButton aria-label="add" onClick={handleClickOpen}>
           <AddCircleOutlineIcon sx={{ color: grey[50], fontSize: 40 }} className="h-24 w-24" />
           <div>
-            <p className='p-3 text-white'>Add New Exercise</p>
+            <p className='p-3 text-white'>Add New</p>
           </div>
         </IconButton>
       </header>
       <TopMiddleAlert alertText='Added excercise successfully' open={alertOpen} onClose={() => setAlertOpen(false)}/>
       <Dialog open={open} onClose={handleClose}>
+        <DialogActions>
+          <IconButton aria-label="add" onClick={handleClose}>
+            <CloseIcon sx={{ color: grey[900], fontSize: 40 }} className="h-12 w-12" />
+          </IconButton>
+        </DialogActions>
+        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', mt:-7 }}>What do you want to add?</DialogTitle>
+        <DialogContent>
+          <Box display="flex" justifyContent="space-around" alignItems="center" mt={2}>
+
+            <Box textAlign="center" mx={3} onClick={() => console.log("New Category or Sport clicked")}>
+              <IconButton>
+                <Avatar
+                  style={{ border: '2px solid black' }}
+                  alt="New Categories"
+                  src={require('../../images/Sports2.png')}
+                  sx={{ width: 150, height: 150 }}
+                />
+              </IconButton>
+              <Typography variant="body1" sx={{ mt: 1, fontWeight: 'bold'}}>
+                New Category or Sport
+              </Typography>
+            </Box>
+
+            <Box textAlign="center" mx={3} onClick={() => console.log("New Training clicked")}>
+              <IconButton>
+                <Avatar
+                  style={{ border: '2px solid black' }}
+                  alt="New Exercise"
+                  src={require('../../images/Exercise2.png')}
+                  sx={{ width: 150, height: 150 }}
+                />
+              </IconButton>
+                <Typography variant="body1" sx={{ mt: 1, fontWeight: 'bold' }}>
+                New Training
+                </Typography>
+            </Box>
+          </Box>
+        </DialogContent>
+      </Dialog>
+      {/* <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Add New Exercise</DialogTitle>
         <DialogContent>
           <Select
@@ -243,7 +284,7 @@ export default function HomePage() {
           <Button onClick={handleClose}>Cancel</Button>
           <Button onClick={handleAddExercise}>Add Exercise</Button>
         </DialogActions>
-      </Dialog>
+      </Dialog> */}
 
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
