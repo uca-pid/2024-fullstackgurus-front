@@ -47,10 +47,15 @@ export default function HomePage() {
   const [caloriesPerDay, setCaloriesPerDay] = useState<{ [date: string]: number }>({});
   const [loading, setLoading] = useState(true);
   const [exerciseCount, setExerciseCount] = useState(0);
+  const [openExerciseAdding, setOpenExerciseAdding] = useState(false);
 
   const handleAvatarClick = () => {
     navigate('/profile');
   };
+
+  const handleCategoriesClick = () => {
+    navigate('/categories');
+  }
 
   const formatDate = (dateString: string) => {
     const [year, month, day] = dateString.split('-');
@@ -145,6 +150,16 @@ export default function HomePage() {
     setOpen(false);
   };
 
+  const handleOpenExerciseAdding = () => {
+    setOpenExerciseAdding(true);
+    setOpen(false);
+  }
+
+  const handleCloseExerciseAdding = () => {
+    setOpenExerciseAdding(false);
+    setOpen(true);
+  }
+
   const handleAddExercise = async () => {
     if (newExercise.type && newExercise.duration && newExercise.date) {
   
@@ -172,7 +187,7 @@ export default function HomePage() {
         console.error('Error saving workout:', error);
       }
   
-      handleClose();
+      handleCloseExerciseAdding();
     }
   };
   return (
@@ -187,7 +202,15 @@ export default function HomePage() {
         </IconButton>
       </header>
       <TopMiddleAlert alertText='Added excercise successfully' open={alertOpen} onClose={() => setAlertOpen(false)}/>
-      <Dialog open={open} onClose={handleClose}>
+      <Dialog open={open} onClose={handleClose}
+        PaperProps={{
+          sx: {
+            backgroundColor: grey[800],
+            color: '#fff',
+            borderRadius: '8px',
+            padding: 2,
+          },
+        }}>
         <DialogActions>
           <IconButton aria-label="add" onClick={handleClose}>
             <CloseIcon sx={{ color: grey[900], fontSize: 40 }} className="h-12 w-12" />
@@ -197,8 +220,8 @@ export default function HomePage() {
         <DialogContent>
           <Box display="flex" justifyContent="space-around" alignItems="center" mt={2}>
 
-            <Box textAlign="center" mx={3} onClick={() => console.log("New Category or Sport clicked")}>
-              <IconButton>
+            <Box textAlign="center" mx={3}>
+              <IconButton onClick={handleCategoriesClick}>
                 <Avatar
                   style={{ border: '2px solid black' }}
                   alt="New Categories"
@@ -211,8 +234,8 @@ export default function HomePage() {
               </Typography>
             </Box>
 
-            <Box textAlign="center" mx={3} onClick={() => console.log("New Training clicked")}>
-              <IconButton>
+            <Box textAlign="center" mx={3}>
+              <IconButton onClick={handleOpenExerciseAdding}>
                 <Avatar
                   style={{ border: '2px solid black' }}
                   alt="New Exercise"
@@ -227,14 +250,34 @@ export default function HomePage() {
           </Box>
         </DialogContent>
       </Dialog>
-      {/* <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Add New Exercise</DialogTitle>
+      <Dialog open={openExerciseAdding} onClose={handleCloseExerciseAdding} 
+        PaperProps={{
+          sx: {
+            backgroundColor: grey[800],
+            color: '#fff',
+            borderRadius: '8px',
+            padding: 2,
+          },
+        }}>
+        <DialogTitle sx={{ color: '#fff', textAlign: 'center' }}>Add New Exercise</DialogTitle>
         <DialogContent>
           <Select
             fullWidth
             value={newExercise.type}
             onChange={(e) => setNewExercise({ ...newExercise, type: e.target.value })}
             displayEmpty
+            MenuProps={{
+              PaperProps: {
+                sx: {
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  maxWidth: 300,
+                  padding: 1,
+                  backgroundColor: '#444',
+                  color: '#fff',
+                },
+              },
+            }}
           >
             <MenuItem value="" disabled>
               Select Exercise Type
@@ -281,10 +324,10 @@ export default function HomePage() {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleCloseExerciseAdding}>Cancel</Button>
           <Button onClick={handleAddExercise}>Add Exercise</Button>
         </DialogActions>
-      </Dialog> */}
+      </Dialog>
 
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
