@@ -230,7 +230,7 @@ export default function CategoriesPage() {
         <Box sx={{ width: 6 }}></Box>
       </Box>
 
-      <Card sx={{ backgroundColor: '#333', color: '#fff' }}>
+      <Card sx={{ backgroundColor: '#333', color: '#fff', height: 'calc(100vh - 200px)' }}>
         <CardHeader
           title="Categories"
           action={
@@ -243,7 +243,7 @@ export default function CategoriesPage() {
           }
         />
         <CardContent>
-          <Box sx={{ height: 300, overflowY: 'auto' }}>
+          <Box sx={{ height: 'calc(100vh - 300px)', overflowY: 'auto' }}>
             {categories.map((category) => (
               <Accordion key={category.id} sx={{ backgroundColor: grey[800], color: 'white' }}>
                 <AccordionSummary
