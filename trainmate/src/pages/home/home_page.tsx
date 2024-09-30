@@ -27,6 +27,7 @@ import Box from '@mui/material/Box';
 import TopMiddleAlert from '../../personalizedComponents/TopMiddleAlert';
 import { getCategories } from '../../api/CategoryApi';
 import { getExerciseFromCategory } from '../../api/ExerciseApi';
+import { getCoaches } from '../../api/CoachesApi_external';
 
 const exerciseTypes = [
   'Running', 'Weightlifting', 'Cycling', 'Swimming', 'Football', 'Basketball', 'Tennis',
@@ -69,6 +70,8 @@ export default function HomePage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [exercisesFromCategory, setExercisesFromCategory] = useState<ExerciseFromCategory[]>([]);
+  const [coaches, setCoaches] = useState([]);
+  const [coachSelected, setCoachSelected] = useState('');
 
   const handleAvatarClick = () => {
     navigate('/profile');
@@ -181,6 +184,7 @@ export default function HomePage() {
     setOpen(true);
     setSelectedCategory(null);
     setExercisesFromCategory([]);
+    setCoachSelected('');
   }
 
   const handleAddExercise = async () => {
@@ -246,6 +250,18 @@ export default function HomePage() {
       return [];
     }
   }
+
+  useEffect(() => {
+    const fetchCoaches = async () => {
+      try {
+        const coaches = await getCoaches();
+        setCoaches(coaches);
+      } catch (error) {
+        console.error('Error al obtener los profesores:', error);
+      }
+    };
+    fetchCoaches();
+  },[]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
@@ -353,6 +369,7 @@ export default function HomePage() {
             value={newExercise.type}
             onChange={(e) => setNewExercise({ ...newExercise, type: e.target.value })}
             displayEmpty
+            sx={{ marginBottom: 1 }}
             MenuProps={{
               PaperProps: {
                 sx: {
@@ -372,6 +389,34 @@ export default function HomePage() {
             {exercisesFromCategory.map((exerciseFromCategory) => (
               <MenuItem key={exerciseFromCategory.name} value={exerciseFromCategory.name}>
                 {exerciseFromCategory.name}
+              </MenuItem>
+            ))}
+          </Select>
+
+          <Select
+            fullWidth
+            value={coachSelected}
+            onChange={(e) => setCoachSelected(e.target.value)}
+            displayEmpty
+            MenuProps={{
+              PaperProps: {
+                sx: {
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  maxWidth: 300,
+                  padding: 1,
+                  backgroundColor: '#444',
+                  color: '#fff',
+                },
+              },
+            }}
+          >
+            <MenuItem value="" disabled>
+              Select Coach
+            </MenuItem>
+            {coaches.map((coach: any) => (
+              <MenuItem key={coach.uid} value={coach.uid}>
+                {coach.fullName}
               </MenuItem>
             ))}
           </Select>
