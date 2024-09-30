@@ -49,7 +49,6 @@ export const saveWorkout = async (token: string, workoutData: { exercise: string
 };
 
 
-
 export const getWorkouts = async (token: string) => {
   try {
     const response = await fetch(`${BASE_URL}/workouts`, {

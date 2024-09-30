@@ -14,6 +14,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 import { grey } from '@mui/material/colors';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import CloseIcon from '@mui/icons-material/Close';
 import { Dumbbell, Timer, Bike, Trophy } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
 import Typography from '@mui/material/Typography';
@@ -24,6 +25,9 @@ import { useNavigate } from 'react-router-dom';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import TopMiddleAlert from '../../personalizedComponents/TopMiddleAlert';
+import { getCategories } from '../../api/CategoryApi';
+import { getExerciseFromCategory } from '../../api/ExerciseApi';
+import { getCoaches } from '../../api/CoachesApi_external';
 
 const exerciseTypes = [
   'Running', 'Weightlifting', 'Cycling', 'Swimming', 'Football', 'Basketball', 'Tennis',
@@ -37,6 +41,22 @@ interface Exercise {
   calories: number;
 }
 
+interface Category {
+  category_id: string;
+  icon: string,
+  name: string;
+  owner: string;
+  isCustom: boolean;
+}
+
+interface ExerciseFromCategory {
+  calories_per_hour: number;
+  category_id: string;
+  name: string;
+  owner: string;
+  public: boolean;
+}
+
 export default function HomePage() {
   const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState('month');
@@ -46,10 +66,20 @@ export default function HomePage() {
   const [caloriesPerDay, setCaloriesPerDay] = useState<{ [date: string]: number }>({});
   const [loading, setLoading] = useState(true);
   const [exerciseCount, setExerciseCount] = useState(0);
+  const [openExerciseAdding, setOpenExerciseAdding] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [exercisesFromCategory, setExercisesFromCategory] = useState<ExerciseFromCategory[]>([]);
+  const [coaches, setCoaches] = useState([]);
+  const [coachSelected, setCoachSelected] = useState('');
 
   const handleAvatarClick = () => {
     navigate('/profile');
   };
+
+  const handleCategoriesClick = () => {
+    navigate('/categories');
+  }
 
   const formatDate = (dateString: string) => {
     const [year, month, day] = dateString.split('-');
@@ -144,6 +174,19 @@ export default function HomePage() {
     setOpen(false);
   };
 
+  const handleOpenExerciseAdding = () => {
+    setOpenExerciseAdding(true);
+    setOpen(false);
+  }
+
+  const handleCloseExerciseAdding = () => {
+    setOpenExerciseAdding(false);
+    setOpen(true);
+    setSelectedCategory(null);
+    setExercisesFromCategory([]);
+    setCoachSelected('');
+  }
+
   const handleAddExercise = async () => {
     if (newExercise.type && newExercise.duration && newExercise.date) {
   
@@ -163,7 +206,7 @@ export default function HomePage() {
           });
           console.log('Workout saved successfully');
           setExerciseCount((prevCount) => prevCount + 1);
-          setAlertOpen(true)
+          setAlertOpen(true);
         } else {
           console.error('No token found, unable to save workout');
         }
@@ -171,9 +214,55 @@ export default function HomePage() {
         console.error('Error saving workout:', error);
       }
   
+      handleCloseExerciseAdding();
       handleClose();
     }
   };
+
+  const getAllCategories = async () => {
+    try {
+      const categories = await getCategories();
+      return Array.isArray(categories) ? categories : [];
+    } catch (error) {
+      console.error('Error al obtener todas las categorías:', error);
+      return [];
+    }
+  }
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categories = await getAllCategories();
+        setCategories(categories);
+      } catch (error) {
+        console.error('Error al obtener las categorías:', error);
+      }
+    };
+    fetchCategories();
+  },[]);
+
+  const getExercisesFromCategory = async (category_id: String) => {
+    try {
+      const categories = await getExerciseFromCategory(category_id);
+      setExercisesFromCategory(Array.isArray(categories) ? categories : []);
+    } catch (error) {
+      console.error('Error al obtener todas las categorías:', error);
+      return [];
+    }
+  }
+
+  useEffect(() => {
+    const fetchCoaches = async () => {
+      try {
+        const coaches = await getCoaches();
+        setCoaches(coaches);
+      } catch (error) {
+        console.error('Error al obtener los profesores:', error);
+      }
+    };
+    fetchCoaches();
+  },[]);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
       <header className="p-4 flex justify-between items-center">
@@ -181,29 +270,157 @@ export default function HomePage() {
         <IconButton aria-label="add" onClick={handleClickOpen}>
           <AddCircleOutlineIcon sx={{ color: grey[50], fontSize: 40 }} className="h-24 w-24" />
           <div>
-            <p className='p-3 text-white'>Add New Exercise</p>
+            <p className='p-3 text-white'>Add New</p>
           </div>
         </IconButton>
       </header>
       <TopMiddleAlert alertText='Added excercise successfully' open={alertOpen} onClose={() => setAlertOpen(false)}/>
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Add New Exercise</DialogTitle>
+      <Dialog open={open} onClose={handleClose}
+        PaperProps={{
+          sx: {
+            backgroundColor: grey[800],
+            color: '#fff',
+            borderRadius: '8px',
+            padding: 2,
+          },
+        }}>
+        <DialogActions>
+          <IconButton aria-label="add" onClick={handleClose}>
+            <CloseIcon sx={{ color: grey[900], fontSize: 40 }} className="h-12 w-12" />
+          </IconButton>
+        </DialogActions>
+        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', mt:-7 }}>What do you want to add?</DialogTitle>
         <DialogContent>
+          <Box display="flex" justifyContent="space-around" alignItems="center" mt={2}>
+
+            <Box textAlign="center" mx={3}>
+              <IconButton onClick={handleCategoriesClick}>
+                <Avatar
+                  style={{ border: '2px solid black' }}
+                  alt="New Categories"
+                  src={require('../../images/Sports2.png')}
+                  sx={{ width: 150, height: 150 }}
+                />
+              </IconButton>
+              <Typography variant="body1" sx={{ mt: 1, fontWeight: 'bold'}}>
+                New Category or Sport
+              </Typography>
+            </Box>
+
+            <Box textAlign="center" mx={3}>
+              <IconButton onClick={handleOpenExerciseAdding}>
+                <Avatar
+                  style={{ border: '2px solid black' }}
+                  alt="New Workout"
+                  src={require('../../images/Exercise2.png')}
+                  sx={{ width: 150, height: 150 }}
+                />
+              </IconButton>
+                <Typography variant="body1" sx={{ mt: 1, fontWeight: 'bold' }}>
+                New Workout
+                </Typography>
+            </Box>
+          </Box>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={openExerciseAdding} onClose={handleCloseExerciseAdding} 
+        PaperProps={{
+          sx: {
+            backgroundColor: grey[800],
+            color: '#fff',
+            borderRadius: '8px',
+            padding: 2,
+          },
+        }}>
+        <DialogTitle sx={{ color: '#fff', textAlign: 'center' }}>Add New Workout</DialogTitle>
+        <DialogContent>
+
+        <Select
+            fullWidth
+            value={selectedCategory?.category_id || ""}
+            onChange={(e) => {setSelectedCategory(categories.find((category) => category.category_id === e.target.value) || null); getExercisesFromCategory(e.target.value)}}
+            displayEmpty
+            sx={{ marginBottom: 1 }}
+            MenuProps={{
+              PaperProps: {
+                sx: {
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  maxWidth: 300,
+                  padding: 1,
+                  backgroundColor: '#444',
+                  color: '#fff',
+                },
+              },
+            }}
+          >
+            <MenuItem value="" disabled>
+              Select Category
+            </MenuItem>
+            {categories.map((category) => (
+              <MenuItem key={category.category_id} value={category.category_id}>
+                {category.name}
+              </MenuItem>
+            ))}
+          </Select>
+
           <Select
             fullWidth
             value={newExercise.type}
             onChange={(e) => setNewExercise({ ...newExercise, type: e.target.value })}
             displayEmpty
+            sx={{ marginBottom: 1 }}
+            MenuProps={{
+              PaperProps: {
+                sx: {
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  maxWidth: 300,
+                  padding: 1,
+                  backgroundColor: '#444',
+                  color: '#fff',
+                },
+              },
+            }}
           >
             <MenuItem value="" disabled>
               Select Exercise Type
             </MenuItem>
-            {exerciseTypes.map((type) => (
-              <MenuItem key={type} value={type}>
-                {type}
+            {exercisesFromCategory.map((exerciseFromCategory) => (
+              <MenuItem key={exerciseFromCategory.name} value={exerciseFromCategory.name}>
+                {exerciseFromCategory.name}
               </MenuItem>
             ))}
           </Select>
+
+          <Select
+            fullWidth
+            value={coachSelected}
+            onChange={(e) => setCoachSelected(e.target.value)}
+            displayEmpty
+            MenuProps={{
+              PaperProps: {
+                sx: {
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  maxWidth: 300,
+                  padding: 1,
+                  backgroundColor: '#444',
+                  color: '#fff',
+                },
+              },
+            }}
+          >
+            <MenuItem value="" disabled>
+              Select Coach
+            </MenuItem>
+            {coaches.map((coach: any) => (
+              <MenuItem key={coach.uid} value={coach.uid}>
+                {coach.fullName}
+              </MenuItem>
+            ))}
+          </Select>
+
           <TextField
             fullWidth
             margin="dense"
@@ -240,8 +457,8 @@ export default function HomePage() {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleAddExercise}>Add Exercise</Button>
+          <Button onClick={handleCloseExerciseAdding}>Cancel</Button>
+          <Button onClick={handleAddExercise}>Add Workout</Button>
         </DialogActions>
       </Dialog>
 
@@ -280,7 +497,7 @@ export default function HomePage() {
                     <div>
                       <Typography variant="body2" color="gray">No progress available</Typography>
                       <a href="#" className="underline" onClick={handleClickOpen}>
-                        <Typography sx={{marginTop: 4}} variant="body2" color="gray">Add new exercise</Typography>
+                        <Typography sx={{marginTop: 4}} variant="body2" color="gray">Add new workout</Typography>
                       </a>
                       
                     </div>
