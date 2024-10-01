@@ -50,6 +50,7 @@ interface Category {
 }
 
 interface ExerciseFromCategory {
+  exercise_id: string;
   calories_per_hour: number;
   category_id: string;
   name: string;
@@ -243,8 +244,8 @@ export default function HomePage() {
 
   const getExercisesFromCategory = async (category_id: String) => {
     try {
-      const categories = await getExerciseFromCategory(category_id);
-      setExercisesFromCategory(Array.isArray(categories) ? categories : []);
+      const exercises = await getExerciseFromCategory(category_id);
+      setExercisesFromCategory(Array.isArray(exercises) ? exercises : []);
     } catch (error) {
       console.error('Error al obtener todas las categorías:', error);
       return [];
@@ -387,7 +388,7 @@ export default function HomePage() {
               Select Exercise Type
             </MenuItem>
             {exercisesFromCategory.map((exerciseFromCategory) => (
-              <MenuItem key={exerciseFromCategory.name} value={exerciseFromCategory.name}>
+              <MenuItem key={exerciseFromCategory.exercise_id} value={exerciseFromCategory.exercise_id}>
                 {exerciseFromCategory.name}
               </MenuItem>
             ))}

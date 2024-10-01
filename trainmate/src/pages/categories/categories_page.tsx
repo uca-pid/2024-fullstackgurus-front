@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Button, Card, CardContent, CardHeader, Typography, TextField, InputLabel, Box, Accordion, AccordionSummary, AccordionDetails, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, MenuItem, Select, FormControl,} from '@mui/material';
 import { Add as PlusIcon, Edit as EditIcon, Delete as DeleteIcon, ArrowBack as ArrowLeftIcon, ExpandMore as ExpandMoreIcon, BorderColor,} from '@mui/icons-material';
 import {FitnessCenter as DumbbellIcon, 
@@ -19,79 +19,115 @@ import {FitnessCenter as DumbbellIcon,
   Favorite as HeartIcon} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { grey } from '@mui/material/colors';
+import { getCategories } from '../../api/CategoryApi';
+import { getExerciseFromCategory } from '../../api/ExerciseApi';
 
-type Activity = {
-    id: string;
-    name: string;
-    isCustom: boolean;
-    categoryId: string;
-  };
-
-type Category = {
-  id: string;
+interface CategoryWithExercises {
+  category_id: string;
+  icon: string,
   name: string;
-  icon: React.ReactNode;
-  activities: Activity[];
+  owner: string;
   isCustom: boolean;
-};
+  exercises: Exercise[];
+}
+
+interface Category {
+  category_id: string;
+  icon: string,
+  name: string;
+  owner: string;
+  isCustom: boolean;
+}
+
+interface Exercise {
+  exercise_id: string;
+  calories_per_hour: number;
+  category_id: string;
+  name: string;
+  owner: string;
+  public: boolean;
+}
+
+interface NewCategory {
+  name: string;
+  icon: string;
+}
+
+interface NewExercise {
+  calories_per_hour: number;
+  category_id: string;
+  name: string;
+}
 
 export default function CategoriesPage() {
 
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const effectRan = useRef(false);
 
-    const [categories, setCategories] = useState<Category[]>([
-        {
-          id: '1',
-          name: 'Strength',
-          icon: <DumbbellIcon />,
-          activities: [
-            { id: '1', name: 'Weightlifting', isCustom: false, categoryId: '1' },
-            { id: '2', name: 'Dumbbell Exercises', isCustom: false, categoryId: '1' },
-          ],
-          isCustom: false,
-        },
-        {
-          id: '2',
-          name: 'Sports',
-          icon: <BallIcon />,
-          activities: [
-            { id: '3', name: 'Football', isCustom: false, categoryId: '2' },
-            { id: '4', name: 'Tennis', isCustom: false, categoryId: '2' },
-          ],
-          isCustom: false,
-        },
-        {
-          id: '3',
-          name: 'Cardio',
-          icon: <HeartIcon />,
-          activities: [
-            { id: '5', name: 'Running', isCustom: false, categoryId: '3' },
-            { id: '6', name: 'Cycling', isCustom: false, categoryId: '3' },
-          ],
-          isCustom: false,
-        },
-      ]);
+  const [categoryWithExercises, setCategoryWithExercises] = useState<CategoryWithExercises[]>([]);
 
-  const [newCategory, setNewCategory] = useState({ name: '', icon: '' });
-  const [newActivity, setNewActivity] = useState({ name: '', categoryId: '' });
+  const [newCategory, setNewCategory] = useState<NewCategory | null>(null);
+  const [newExercise, setNewExercise] = useState<NewExercise | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
 
   const [addCategoryDialogOpen, setAddCategoryDialogOpen] = useState(false);
-  const [addActivityDialogOpen, setAddActivityDialogOpen] = useState(false);
+  const [addExerciseDialogOpen, setAddExerciseDialogOpen] = useState(false);
   const [editCategoryDialogOpen, setEditCategoryDialogOpen] = useState(false);
-  const [editActivityDialogOpen, setEditActivityDialogOpen] = useState(false);
+  const [editExerciseDialogOpen, setEditExerciseDialogOpen] = useState(false);
 
   const handleOpenAddCategoryDialog = () => setAddCategoryDialogOpen(true);
   const handleCloseAddCategoryDialog = () => setAddCategoryDialogOpen(false);
 
-  const handleOpenAddActivityDialog = (categoryId: string) => {
-    setNewActivity({ ...newActivity, categoryId });
-    setAddActivityDialogOpen(true);
+
+  const getAllCategories = async () => {
+    try {
+      const categories = await getCategories();
+      return Array.isArray(categories) ? categories : [];
+    } catch (error) {
+      console.error('Error al obtener todas las categorías:', error);
+      return [];
+    }
   };
-  const handleCloseAddActivityDialog = () => {
-    setAddActivityDialogOpen(false);
-    setNewActivity({ name: '', categoryId: '' });
+
+  useEffect(() => {
+    // El effectRan lo utilizo para que el useEffect se ejecute solo una vez, ya que por default se ejecuta dos veces
+    if (!effectRan.current) {
+      const fetchCategories = async () => {
+        try {
+          const categories = await getAllCategories();
+          for (const category of categories) {
+            await getExercisesFromCategory(category);
+          }
+        } catch (error) {
+          console.error('Error al obtener las categorías:', error);
+        }
+      };
+      fetchCategories();
+      effectRan.current = true;
+    }
+  }, []);
+
+  const getExercisesFromCategory = async (category: Category) => {
+    try {
+      const exercises = await getExerciseFromCategory(category.category_id);
+      console.log("Setting category with exercises", category, exercises);
+      setCategoryWithExercises((prev) => [
+        ...prev,
+        { ...category, exercises }
+      ]);
+    } catch (error) {
+      console.error('Error al obtener todas las categorías:', error);
+    }
+  };
+
+  const handleOpenAddExerciseDialog = (categoryId: string) => {
+    setNewExercise({ ...newExercise, category_id: categoryId, calories_per_hour: newExercise?.calories_per_hour || 0, name: newExercise?.name || '' });
+    setAddExerciseDialogOpen(true);
+  };
+  const handleCloseAddExerciseDialog = () => {
+    setAddExerciseDialogOpen(false);
+    setNewExercise(null);
   };
 
   const handleOpenEditCategoryDialog = (category: Category) => {
@@ -103,38 +139,27 @@ export default function CategoriesPage() {
     setEditingCategory(null);
   };
 
-  const handleOpenEditActivityDialog = (activity: Activity) => {
-    setEditingActivity(activity);
-    setEditActivityDialogOpen(true);
+  const handleOpenEditExerciseDialog = (Exercise: Exercise) => {
+    setEditingExercise(Exercise);
+    setEditExerciseDialogOpen(true);
   };
-  const handleCloseEditActivityDialog = () => {
-    setEditActivityDialogOpen(false);
-    setEditingActivity(null);
+  const handleCloseEditExerciseDialog = () => {
+    setEditExerciseDialogOpen(false);
+    setEditingExercise(null);
   };
 
   const handleAddCategory = () => {
-    if (newCategory.name && newCategory.icon) {
-      const iconComponent = () => {
-        switch (newCategory.icon) {
-          case 'Dumbbell':
-            return <DumbbellIcon />;
-          case 'Ball':
-            return <BallIcon />;
-          case 'Heart':
-            return <HeartIcon />;
-          default:
-            return <DumbbellIcon />;
-        }
-      };
+    if (newCategory && newCategory.name && newCategory.icon) {
 
-      setCategories([
-        ...categories,
+      setCategoryWithExercises([
+        ...categoryWithExercises,
         {
-          id: Date.now().toString(),
           name: newCategory.name,
-          icon: iconComponent(),
-          activities: [],
+          icon: newCategory.icon,
           isCustom: true,
+          owner: 'bybd',
+          category_id: 'bybd',
+          exercises: [],
         },
       ]);
       setNewCategory({ name: '', icon: '' });
@@ -142,20 +167,22 @@ export default function CategoriesPage() {
     }
   };
 
-  const handleAddActivity = () => {
-    if (newActivity.name && newActivity.categoryId) {
-      setCategories(
-        categories.map((category) => {
-          if (category.id === newActivity.categoryId) {
+  const handleAddExercise = () => {
+    if (newExercise && newExercise.name) {
+      setCategoryWithExercises(
+        categoryWithExercises.map((category) => {
+          if (category.category_id === newExercise.category_id) {
             return {
               ...category,
-              activities: [
-                ...category.activities,
+              exercises: [
+                ...category.exercises,
                 {
-                  id: Date.now().toString(),
-                  name: newActivity.name,
-                  isCustom: true,
-                  categoryId: newActivity.categoryId,
+                  exercise_id: Date.now().toString(),
+                  name: newExercise.name,
+                  category_id: newExercise.category_id,
+                  calories_per_hour: newExercise.calories_per_hour,
+                  owner: 'bybd',
+                  public: false,
                 },
               ],
             };
@@ -163,52 +190,52 @@ export default function CategoriesPage() {
           return category;
         })
       );
-      setNewActivity({ name: '', categoryId: '' });
-      handleCloseAddActivityDialog();
+      setNewExercise(null);
+      handleCloseAddExerciseDialog();
     }
   };
 
   const handleEditCategory = () => {
     if (editingCategory) {
-      setCategories(
-        categories.map((category) =>
-          category.id === editingCategory.id ? editingCategory : category
+      setCategoryWithExercises(
+        categoryWithExercises.map((category) =>
+          category.category_id === editingCategory.category_id ? { ...editingCategory, exercises: category.exercises } : category
         )
       );
       handleCloseEditCategoryDialog();
     }
   };
 
-  const handleEditActivity = () => {
-    if (editingActivity) {
-      setCategories(
-        categories.map((category) => {
-          if (category.id === editingActivity.categoryId) {
+  const handleEditExercise = () => {
+    if (editingExercise) {
+      setCategoryWithExercises(
+        categoryWithExercises.map((category) => {
+          if (category.category_id === editingExercise.category_id) {
             return {
               ...category,
-              activities: category.activities.map((activity) =>
-                activity.id === editingActivity.id ? editingActivity : activity
+              exercises: category.exercises.map((exercise) =>
+                exercise.exercise_id === editingExercise.exercise_id ? editingExercise : exercise
               ),
             };
           }
           return category;
         })
       );
-      handleCloseEditActivityDialog();
+      handleCloseEditExerciseDialog();
     }
   };
 
   const handleDeleteCategory = (categoryId: string) => {
-    setCategories(categories.filter((category) => category.id !== categoryId));
+    setCategoryWithExercises(categoryWithExercises.filter((category) => category.category_id !== categoryId));
   };
 
-  const handleDeleteActivity = (activityId: string, categoryId: string) => {
-    setCategories(
-      categories.map((category) => {
-        if (category.id === categoryId) {
+  const handleDeleteExercise = (exerciseId: string, categoryId: string) => {
+    setCategoryWithExercises(
+      categoryWithExercises.map((category) => {
+        if (category.category_id === categoryId) {
           return {
             ...category,
-            activities: category.activities.filter((activity) => activity.id !== activityId),
+            exercises: category.exercises.filter((exercise) => exercise.exercise_id !== exerciseId),
           };
         }
         return category;
@@ -220,13 +247,52 @@ export default function CategoriesPage() {
     navigate('/homepage');
   };
 
+  const handleIcon = (icon: string) => {
+    switch (icon) {
+      case 'Dumbbell':
+        return <DumbbellIcon />;
+      case 'Ball':
+        return <BallIcon />;
+      case 'Heart':
+        return <HeartIcon />;
+      case 'Basketball':
+        return <BasketballIcon />;
+      case 'Tennis':
+        return <TennisIcon />;
+      case 'Fight':
+        return <FightIcon />;
+      case 'Martial':
+        return <MartialIcon />;
+      case 'Mma':
+        return <MmaIcon />;
+      case 'Motorsports':
+        return <MotorsportsIcon />;
+      case 'Hiking':
+        return <HikingIcon />;
+      case 'Sailing':
+        return <SailingIcon />;
+      case 'Skiing':
+        return <SkiingIcon />;
+      case 'Pool':
+        return <PoolIcon />;
+      case 'Skate':
+        return <SkateIcon />;
+      case 'Rugby':
+        return <RugbyIcon />;
+      case 'Volleyball':
+        return <VolleyballIcon />;
+      default:
+        return null;
+    }
+  }
+
   return (
     <Box sx={{ minHeight: '100vh', background: 'linear-gradient(to bottom, #1a202c, #2d3748)', color: 'white', p: 4 }}>
       <Box component="header" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
           <IconButton component="a" sx={{ color: 'white' }} onClick={handleBackToHome}>
             <ArrowLeftIcon />
           </IconButton>
-        <Typography variant="h4">Categories & Activities</Typography>
+        <Typography variant="h4">Categories & Exercises</Typography>
         <Box sx={{ width: 6 }}></Box>
       </Box>
 
@@ -244,15 +310,15 @@ export default function CategoriesPage() {
         />
         <CardContent>
           <Box sx={{ height: 'calc(100vh - 300px)', overflowY: 'auto' }}>
-            {categories.map((category) => (
-              <Accordion key={category.id} sx={{ backgroundColor: grey[800], color: 'white' }}>
+            {categoryWithExercises.map((category) => (
+              <Accordion key={category.category_id} sx={{ backgroundColor: grey[800], color: 'white' }}>
                 <AccordionSummary
                   expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}
-                  aria-controls={`panel-${category.id}-content`}
-                  id={`panel-${category.id}-header`}
+                  aria-controls={`panel-${category.category_id}-content`}
+                  id={`panel-${category.category_id}-header`}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    {category.icon}
+                    {handleIcon(category.icon)}
                     <Typography sx={{ ml: 1, fontWeight: 'bold', fontSize: '1.2rem' }}>{category.name}</Typography>
                   </Box>
                   {category.isCustom && (
@@ -260,7 +326,7 @@ export default function CategoriesPage() {
                       <IconButton size="small" color="inherit" onClick={() => handleOpenEditCategoryDialog(category)}>
                         <EditIcon />
                       </IconButton>
-                      <IconButton size="small" color="inherit" onClick={() => handleDeleteCategory(category.id)}>
+                      <IconButton size="small" color="inherit" onClick={() => handleDeleteCategory(category.category_id)}>
                         <DeleteIcon />
                       </IconButton>
                     </Box>
@@ -268,15 +334,15 @@ export default function CategoriesPage() {
                 </AccordionSummary>
                 <AccordionDetails>
                   <Box sx={{ pl: 4 }}>
-                    {category.activities.map((activity) => (
-                      <Box key={activity.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Typography>{activity.name}</Typography>
-                        {activity.isCustom && (
+                    {category.exercises.map((exercise) => (
+                      <Box key={exercise.exercise_id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Typography>{exercise.name}</Typography>
+                        {!exercise.public && (
                           <Box>
-                            <IconButton size="small" color="inherit" onClick={() => handleOpenEditActivityDialog(activity)}>
+                            <IconButton size="small" color="inherit" onClick={() => handleOpenEditExerciseDialog(exercise)}>
                               <EditIcon />
                             </IconButton>
-                            <IconButton size="small" color="inherit" onClick={() => handleDeleteActivity(activity.id, category.id)}>
+                            <IconButton size="small" color="inherit" onClick={() => handleDeleteExercise(exercise.exercise_id, category.category_id)}>
                               <DeleteIcon />
                             </IconButton>
                           </Box>
@@ -288,9 +354,9 @@ export default function CategoriesPage() {
                       size="small"
                       startIcon={<PlusIcon />}
                       sx={{ mt: 2 }}
-                      onClick={() => handleOpenAddActivityDialog(category.id)}
+                      onClick={() => handleOpenAddExerciseDialog(category.category_id)}
                     >
-                      Add Custom Activity
+                      Add Custom Exercise
                     </Button>
                   </Box>
                 </AccordionDetails>
@@ -323,8 +389,8 @@ export default function CategoriesPage() {
             type="text"
             fullWidth
             variant="standard"
-            value={newCategory.name}
-            onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
+            value={newCategory?.name || ''}
+            onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value, icon: newCategory?.icon || '' })}
             sx={{ mb: 3 }}
           />
           <FormControl fullWidth margin="dense">
@@ -333,8 +399,8 @@ export default function CategoriesPage() {
                 labelId="icon-label"
                 id="icon"
                 label="Icon"
-                value={newCategory.icon}
-                onChange={(e) => setNewCategory({ ...newCategory, icon: e.target.value })}
+                value={newCategory?.icon || ''}
+                onChange={(e) => setNewCategory({ ...newCategory, icon: e.target.value, name: newCategory?.name || '' })}
                 MenuProps={{
                   PaperProps: {
                     sx: {
@@ -376,25 +442,25 @@ export default function CategoriesPage() {
         </DialogActions>
       </Dialog>
 
-      {/* Add Activity Dialog */}
-      <Dialog open={addActivityDialogOpen} onClose={handleCloseAddActivityDialog} fullWidth={true} maxWidth={'xs'}>
-        <DialogTitle>Add New Activity</DialogTitle>
+      {/* Add Exercise Dialog */}
+      <Dialog open={addExerciseDialogOpen} onClose={handleCloseAddExerciseDialog} fullWidth={true} maxWidth={'xs'}>
+        <DialogTitle>Add New Exercise</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             margin="dense"
-            id="activity-name"
+            id="exercise-name"
             label="Name"
             type="text"
             fullWidth
             variant="standard"
-            value={newActivity.name}
-            onChange={(e) => setNewActivity({ ...newActivity, name: e.target.value })}
+            value={newExercise?.name || ''}
+            onChange={(e) => setNewExercise({ ...newExercise, name: e.target.value, calories_per_hour: newExercise?.calories_per_hour || 0, category_id: newExercise?.category_id || '' })}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseAddActivityDialog}>Cancel</Button>
-          <Button onClick={handleAddActivity}>Add Activity</Button>
+          <Button onClick={handleCloseAddExerciseDialog}>Cancel</Button>
+          <Button onClick={handleAddExercise}>Add Exercise</Button>
         </DialogActions>
       </Dialog>
 
@@ -422,27 +488,27 @@ export default function CategoriesPage() {
         </DialogActions>
       </Dialog>
 
-      {/* Edit Activity Dialog */}
-      <Dialog open={editActivityDialogOpen} onClose={handleCloseEditActivityDialog}>
-        <DialogTitle>Edit Activity</DialogTitle>
+      {/* Edit Exercise Dialog */}
+      <Dialog open={editExerciseDialogOpen} onClose={handleCloseEditExerciseDialog}>
+        <DialogTitle>Edit Exercise</DialogTitle>
         <DialogContent>
-          {editingActivity && (
+          {editingExercise && (
             <TextField
               autoFocus
               margin="dense"
-              id="edit-activity-name"
+              id="edit-exercise-name"
               label="Name"
               type="text"
               fullWidth
               variant="standard"
-              value={editingActivity.name}
-              onChange={(e) => setEditingActivity({ ...editingActivity, name: e.target.value })}
+              value={editingExercise.name}
+              onChange={(e) => setEditingExercise({ ...editingExercise, name: e.target.value })}
             />
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseEditActivityDialog}>Cancel</Button>
-          <Button onClick={handleEditActivity}>Save Changes</Button>
+          <Button onClick={handleCloseEditExerciseDialog}>Cancel</Button>
+          <Button onClick={handleEditExercise}>Save Changes</Button>
         </DialogActions>
       </Dialog>
     </Box>
