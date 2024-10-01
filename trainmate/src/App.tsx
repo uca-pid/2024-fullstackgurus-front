@@ -7,6 +7,7 @@ import SignUp from './pages/signup/signup_page';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import ProfilePage from './pages/user/ProfilePage';
 import CategoriesPage from './pages/categories/categories_page';
+import CalendarPage from './pages/calendar/CalendarPage';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -60,6 +61,11 @@ function App() {
         <Route 
           path="/categories" 
           element={isAuthenticated ? <CategoriesPage /> : <Navigate to="/login" />} 
+        />
+
+        <Route 
+          path="/calendar" 
+          element={isAuthenticated ? <CalendarPage /> : <Navigate to="/login" />} 
         />
         
         {/* Redirect any unknown routes to login if not authenticated */}

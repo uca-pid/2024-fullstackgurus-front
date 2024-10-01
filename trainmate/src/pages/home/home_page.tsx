@@ -28,6 +28,8 @@ import TopMiddleAlert from '../../personalizedComponents/TopMiddleAlert';
 import { getCategories } from '../../api/CategoryApi';
 import { getExerciseFromCategory } from '../../api/ExerciseApi';
 import { getCoaches } from '../../api/CoachesApi_external';
+import CalendarModal from '../calendar/CalendarPage';
+import { WorkOff } from '@mui/icons-material';
 
 const exerciseTypes = [
   'Running', 'Weightlifting', 'Cycling', 'Swimming', 'Football', 'Basketball', 'Tennis',
@@ -37,7 +39,7 @@ interface Exercise {
   id: number;
   exercise: string;
   duration: number;
-  date: string;
+  date: string; // This is the date we will now format
   calories: number;
 }
 
@@ -81,8 +83,11 @@ export default function HomePage() {
     navigate('/categories');
   }
 
+  // Convert the date string from the format "Sun, 12 May 2024 00:00:00 GMT"
   const formatDate = (dateString: string) => {
-    const [year, month, day] = dateString.split('-');
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
     return `${day}/${month}`;
   };
 
@@ -90,15 +95,20 @@ export default function HomePage() {
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Token no encontrado');
-  
-      const workouts = await getWorkouts(token);
+
+      // Obtén la fecha actual (hoy) en formato YYYY-MM-DD
+      const today = new Date().toISOString().split('T')[0];
+
+      // Llama a getWorkouts solo con el endDate como hoy
+      const workouts = await getWorkouts(token, undefined, today);
+      console.log(workouts)
       return Array.isArray(workouts) ? workouts : [];
     } catch (error) {
       console.error('Error al obtener todos los entrenamientos:', error);
       return [];
     }
-  };
-  
+};
+
   useEffect(() => {
     const fetchWorkouts = async () => {
       try {
@@ -107,6 +117,7 @@ export default function HomePage() {
         const validWorkouts = workouts.filter((exercise: Exercise) => 
           exercise.exercise && exercise.duration && exercise.date && exercise.calories
         );
+        // Sort the workouts by date (we convert the string to a Date object)
         const sortedWorkouts = validWorkouts.sort((a: Exercise, b: Exercise) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setExerciseList(sortedWorkouts);
       } catch (error) {
@@ -124,7 +135,10 @@ export default function HomePage() {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Token no encontrado');
   
-      const workouts_data = await getWorkoutsCalories(token);
+      // Obtén la fecha actual (hoy) en formato YYYY-MM-DD
+      const today = new Date().toISOString().split('T')[0];
+
+      const workouts_data = await getWorkoutsCalories(token, undefined, today);
       const workouts_calories_and_dates = workouts_data.workouts_calories_and_dates;
       return Array.isArray(workouts_calories_and_dates) ? workouts_calories_and_dates : [];
     } catch (error) {
@@ -136,7 +150,7 @@ export default function HomePage() {
   const formatDataForChart = () => {
     return Object.keys(caloriesPerDay)
       .map(date => ({
-        date: formatDate(date),
+        date: formatDate(date), // Use the formatted date here
         calories: caloriesPerDay[date],
       }))
       .sort((b, a) => new Date(b.date.split('/').reverse().join('-')).getTime() - new Date(a.date.split('/').reverse().join('-')).getTime());
@@ -145,14 +159,11 @@ export default function HomePage() {
   useEffect(() => {
     const fetchWorkoutsCalories = async () => {
       try {
-        //setLoading(true);
         const workouts_calories_and_dates = await getAllWorkoutsCalories();
         const calories_per_day = calculate_calories_per_day(workouts_calories_and_dates);
         setCaloriesPerDay(calories_per_day);
       } catch (error) {
         console.error('Error al obtener toda la data de los entrenamientos:', error);
-      } finally {
-        //setLoading(false);
       }
     };
     fetchWorkoutsCalories();
@@ -267,14 +278,17 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
       <header className="p-4 flex justify-between items-center">
         <Avatar alt="User" src={require('../../images/profile_pic_2.jpg')} onClick={handleAvatarClick} style={{ cursor: 'pointer' }}/>
+        <div>
         <IconButton aria-label="add" onClick={handleClickOpen}>
           <AddCircleOutlineIcon sx={{ color: grey[50], fontSize: 40 }} className="h-24 w-24" />
-          <div>
+          <div style={{display: 'flex', alignItems: 'center', justifyContent:'center'}}>
             <p className='p-3 text-white'>Add New</p>
           </div>
         </IconButton>
+        <CalendarModal />
+        </div>
       </header>
-      <TopMiddleAlert alertText='Added excercise successfully' open={alertOpen} onClose={() => setAlertOpen(false)}/>
+      <TopMiddleAlert alertText='Added exercise successfully' open={alertOpen} onClose={() => setAlertOpen(false)}/>
       <Dialog open={open} onClose={handleClose}
         PaperProps={{
           sx: {
@@ -292,7 +306,6 @@ export default function HomePage() {
         <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', mt:-7 }}>What do you want to add?</DialogTitle>
         <DialogContent>
           <Box display="flex" justifyContent="space-around" alignItems="center" mt={2}>
-
             <Box textAlign="center" mx={3}>
               <IconButton onClick={handleCategoriesClick}>
                 <Avatar
@@ -471,17 +484,6 @@ export default function HomePage() {
             <Card sx={{ backgroundColor: '#333', color: '#fff' }}>
               <CardHeader
                 title="Progress"
-                // action={
-                //   <Select
-                //     value={timeRange}
-                //     onChange={(e) => setTimeRange(e.target.value)}
-                //     sx={{ color: 'white' }}
-                //   >
-                //     <MenuItem value="week">Last Week</MenuItem>
-                //     <MenuItem value="month">Last Month</MenuItem>
-                //     <MenuItem value="year">Last Year</MenuItem>
-                //   </Select>
-                // }
               />
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
