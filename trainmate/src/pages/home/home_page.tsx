@@ -29,10 +29,6 @@ import { getCategories } from '../../api/CategoryApi';
 import { getExerciseFromCategory } from '../../api/ExerciseApi';
 import { getCoaches } from '../../api/CoachesApi_external';
 
-const exerciseTypes = [
-  'Running', 'Weightlifting', 'Cycling', 'Swimming', 'Football', 'Basketball', 'Tennis',
-];
-
 interface Exercise {
   id: number;
   exercise: string;

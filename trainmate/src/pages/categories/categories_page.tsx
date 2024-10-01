@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Button, Card, CardContent, CardHeader, Typography, TextField, InputLabel, Box, Accordion, AccordionSummary, AccordionDetails, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, MenuItem, Select, FormControl,} from '@mui/material';
+import { Button, Card, CardContent, CardHeader, Typography, TextField, InputLabel, Box, Accordion, AccordionSummary, AccordionDetails, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, MenuItem, Select, FormControl, CircularProgress,} from '@mui/material';
 import { Add as PlusIcon, Edit as EditIcon, Delete as DeleteIcon, ArrowBack as ArrowLeftIcon, ExpandMore as ExpandMoreIcon, BorderColor,} from '@mui/icons-material';
 import {FitnessCenter as DumbbellIcon, 
   SportsSoccer as BallIcon, 
@@ -19,7 +19,7 @@ import {FitnessCenter as DumbbellIcon,
   Favorite as HeartIcon} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { grey } from '@mui/material/colors';
-import { getCategories } from '../../api/CategoryApi';
+import { getCategories, saveCategory } from '../../api/CategoryApi';
 import { getExerciseFromCategory } from '../../api/ExerciseApi';
 
 interface CategoryWithExercises {
@@ -63,6 +63,7 @@ export default function CategoriesPage() {
 
   const navigate = useNavigate();
   const effectRan = useRef(false);
+  const [loading, setLoading] = useState(true);
 
   const [categoryWithExercises, setCategoryWithExercises] = useState<CategoryWithExercises[]>([]);
 
@@ -95,12 +96,15 @@ export default function CategoriesPage() {
     if (!effectRan.current) {
       const fetchCategories = async () => {
         try {
+          setLoading(true);
           const categories = await getAllCategories();
           for (const category of categories) {
             await getExercisesFromCategory(category);
           }
         } catch (error) {
           console.error('Error al obtener las categorías:', error);
+        } finally {
+          setLoading(false);
         }
       };
       fetchCategories();
@@ -148,21 +152,20 @@ export default function CategoriesPage() {
     setEditingExercise(null);
   };
 
-  const handleAddCategory = () => {
+  const handleAddCategory = async () => {
     if (newCategory && newCategory.name && newCategory.icon) {
-
-      setCategoryWithExercises([
-        ...categoryWithExercises,
-        {
-          name: newCategory.name,
-          icon: newCategory.icon,
-          isCustom: true,
-          owner: 'bybd',
-          category_id: 'bybd',
-          exercises: [],
-        },
-      ]);
-      setNewCategory({ name: '', icon: '' });
+      // Para evitar recargar la pagina de vuelta, hago un save en el front, mientras igualmente se guarda en el back. Esto es para evitar recarga lenta
+      // y que se muestre inmediatamente la nueva categoría agregada
+      try {
+        const category = await saveCategory(newCategory);
+        setNewCategory({ name: '', icon: '' });
+        setCategoryWithExercises((prev) => [
+          ...prev,
+          { ...category, exercises: [] }
+        ]);
+      } catch (error) {
+        console.error('Error al guardar la categoría:', error)
+      }
       handleCloseAddCategoryDialog();
     }
   };
@@ -295,7 +298,11 @@ export default function CategoriesPage() {
         <Typography variant="h4">Categories & Exercises</Typography>
         <Box sx={{ width: 6 }}></Box>
       </Box>
-
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+          <CircularProgress />
+        </Box>
+      ) : (
       <Card sx={{ backgroundColor: '#333', color: '#fff', height: 'calc(100vh - 200px)' }}>
         <CardHeader
           title="Categories"
@@ -365,6 +372,7 @@ export default function CategoriesPage() {
           </Box>
         </CardContent>
       </Card>
+      )}
 
       {/* Add Category Dialog */}
       <Dialog open={addCategoryDialogOpen} onClose={handleCloseAddCategoryDialog} fullWidth={true} maxWidth={'xs'} 
