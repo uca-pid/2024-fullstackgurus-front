@@ -26,15 +26,15 @@ export const getCategories = async () => {
       }
     });
 
-    // Si la respuesta es 401, intentamos renovar el token
-    if (response.status === 401) {
+    // Si la respuesta es 403, intentamos renovar el token
+    if (response.status === 403) {
         console.log('Token expirado, intentando renovar...');
         const newToken = await refreshAuthToken(); // Renueva el token
         // Intentamos la solicitud de nuevo con el nuevo token
         const retryResponse = await fetch(`${BASE_URL}/api/category/get-categories`, {
           method: 'GET',
           headers: {
-            'Authorization': token,
+            'Authorization': `Bearer ${newToken}`,
           },
         });
   
@@ -44,7 +44,7 @@ export const getCategories = async () => {
         }
   
         const retryData = await retryResponse.json();
-        return retryData.workouts;
+        return retryData.categories;
       }
   
       // Si no es 401, seguimos con el flujo normal
@@ -79,7 +79,7 @@ export const getCategories = async () => {
       });
   
       // Si la respuesta es 401, intentamos renovar el token
-      if (response.status === 401) {
+      if (response.status === 403) {
         console.log('Token expirado, intentando renovar...');
         const newToken = await refreshAuthToken(); // Renueva el token
         // Intentamos la solicitud de nuevo con el nuevo token
@@ -87,7 +87,7 @@ export const getCategories = async () => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': token,
+            'Authorization': `Bearer ${newToken}`,
           },
           body: JSON.stringify(modifiedCategoryData),
         });
@@ -98,7 +98,7 @@ export const getCategories = async () => {
         }
   
         const retryData = await retryResponse.json();
-        return retryData;
+        return retryData.category;
       }
   
       if (!response.ok) {

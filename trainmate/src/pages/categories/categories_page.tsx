@@ -20,7 +20,7 @@ import {FitnessCenter as DumbbellIcon,
 import { useNavigate } from 'react-router-dom';
 import { grey } from '@mui/material/colors';
 import { getCategories, saveCategory } from '../../api/CategoryApi';
-import { getExerciseFromCategory } from '../../api/ExerciseApi';
+import { editExercise, getExerciseFromCategory, saveExercise } from '../../api/ExerciseApi';
 
 interface CategoryWithExercises {
   category_id: string;
@@ -170,30 +170,28 @@ export default function CategoriesPage() {
     }
   };
 
-  const handleAddExercise = () => {
+  const handleAddExercise = async () => {
     if (newExercise && newExercise.name) {
-      setCategoryWithExercises(
-        categoryWithExercises.map((category) => {
-          if (category.category_id === newExercise.category_id) {
-            return {
-              ...category,
-              exercises: [
-                ...category.exercises,
-                {
-                  exercise_id: Date.now().toString(),
-                  name: newExercise.name,
-                  category_id: newExercise.category_id,
-                  calories_per_hour: newExercise.calories_per_hour,
-                  owner: 'bybd',
-                  public: false,
-                },
-              ],
-            };
-          }
-          return category;
-        })
-      );
-      setNewExercise(null);
+      try {
+        const exercise = await saveExercise(newExercise);
+        setCategoryWithExercises(
+          categoryWithExercises.map((category) => {
+            if (category.category_id === newExercise.category_id) {
+              return {
+                ...category,
+                exercises: [
+                  ...category.exercises,
+                  exercise
+                ],
+              };
+            }
+            return category;
+          })
+        );
+        setNewExercise(null);
+      } catch (error) {
+        console.error('Error al guardar el ejercicio:', error);
+      }
       handleCloseAddExerciseDialog();
     }
   };
@@ -209,21 +207,27 @@ export default function CategoriesPage() {
     }
   };
 
-  const handleEditExercise = () => {
+  const handleEditExercise = async () => {
     if (editingExercise) {
-      setCategoryWithExercises(
-        categoryWithExercises.map((category) => {
-          if (category.category_id === editingExercise.category_id) {
-            return {
-              ...category,
-              exercises: category.exercises.map((exercise) =>
-                exercise.exercise_id === editingExercise.exercise_id ? editingExercise : exercise
-              ),
-            };
-          }
-          return category;
-        })
-      );
+      try {
+        await editExercise({ name: editingExercise.name, calories_per_hour: editingExercise.calories_per_hour }, editingExercise.exercise_id);
+        setCategoryWithExercises(
+          categoryWithExercises.map((category) => {
+            if (category.category_id === editingExercise.category_id) {
+              return {
+                ...category,
+                exercises: category.exercises.map((exercise) =>
+                  exercise.exercise_id === editingExercise.exercise_id ? editingExercise : exercise
+                ),
+              };
+            }
+            return category;
+          })
+        );
+      } catch (error) {
+        console.error('Error al editar el ejercicio:', error);
+      }
+      setEditingExercise(null);
       handleCloseEditExerciseDialog();
     }
   };
@@ -343,7 +347,10 @@ export default function CategoriesPage() {
                   <Box sx={{ pl: 4 }}>
                     {category.exercises.map((exercise) => (
                       <Box key={exercise.exercise_id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Typography>{exercise.name}</Typography>
+                        <Box sx={{display: 'flex', alignItems: 'center'}}>
+                            <Typography>{exercise.name}</Typography>
+                            <Typography sx={{ fontSize: '0.7rem', marginLeft: 3 }}>({exercise.calories_per_hour} kcal/h)</Typography>
+                        </Box>
                         {!exercise.public && (
                           <Box>
                             <IconButton size="small" color="inherit" onClick={() => handleOpenEditExerciseDialog(exercise)}>
@@ -463,7 +470,17 @@ export default function CategoriesPage() {
             fullWidth
             variant="standard"
             value={newExercise?.name || ''}
-            onChange={(e) => setNewExercise({ ...newExercise, name: e.target.value, calories_per_hour: newExercise?.calories_per_hour || 0, category_id: newExercise?.category_id || '' })}
+            onChange={(e) => setNewExercise({ ...newExercise, name: e.target.value, calories_per_hour: newExercise?.calories_per_hour || 1, category_id: newExercise?.category_id || '' })}
+          />
+          <TextField
+            margin="dense"
+            id="exercise-calories"
+            label="KCal Per Hour"
+            type="number"
+            fullWidth
+            variant="standard"
+            value={newExercise?.calories_per_hour || 1}
+            onChange={(e) => setNewExercise({ ...newExercise, calories_per_hour: parseInt(e.target.value), name: newExercise?.name || '', category_id: newExercise?.category_id || '' })}
           />
         </DialogContent>
         <DialogActions>
@@ -499,8 +516,8 @@ export default function CategoriesPage() {
       {/* Edit Exercise Dialog */}
       <Dialog open={editExerciseDialogOpen} onClose={handleCloseEditExerciseDialog}>
         <DialogTitle>Edit Exercise</DialogTitle>
-        <DialogContent>
-          {editingExercise && (
+        {editingExercise && (
+          <DialogContent>
             <TextField
               autoFocus
               margin="dense"
@@ -512,8 +529,18 @@ export default function CategoriesPage() {
               value={editingExercise.name}
               onChange={(e) => setEditingExercise({ ...editingExercise, name: e.target.value })}
             />
-          )}
-        </DialogContent>
+            <TextField
+              margin="dense"
+              id="edit-exercise-calories"
+              label="KCal Per Hour"
+              type="number"
+              fullWidth
+              variant="standard"
+              value={editingExercise.calories_per_hour}
+              onChange={(e) => setEditingExercise({ ...editingExercise, calories_per_hour: parseInt(e.target.value) })}
+            />
+          </DialogContent>
+        )}
         <DialogActions>
           <Button onClick={handleCloseEditExerciseDialog}>Cancel</Button>
           <Button onClick={handleEditExercise}>Save Changes</Button>
