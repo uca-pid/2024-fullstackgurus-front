@@ -140,8 +140,8 @@ export const editExercise = async (exerciseData: { name: string, calories_per_ho
             throw new Error(errorData.error || 'Error al editar ejercicio');
             }
     
-            const retryData = await retryResponse.json();
-            return retryData.exercise;
+            const success = await retryResponse.json();
+            return success;
         }
     
         if (!response.ok) {
@@ -156,3 +156,49 @@ export const editExercise = async (exerciseData: { name: string, calories_per_ho
         throw error;
         }
     }
+
+export const deleteExercise = async (exercise_id: string) => {
+    const token = getAuthToken();
+    if (!token) throw new Error('Token no encontrado');
+
+    try {
+    const response = await fetch(`${BASE_URL}/api/exercise/delete-exercise/${exercise_id}`, {
+        method: 'DELETE',
+        headers: {
+        'Authorization': token,
+        },
+    });
+
+    // Si la respuesta es 401, intentamos renovar el token
+    if (response.status === 403) {
+        console.log('Token expirado, intentando renovar...');
+        const newToken = await refreshAuthToken(); // Renueva el token
+        // Intentamos la solicitud de nuevo con el nuevo token
+        const retryResponse = await fetch(`${BASE_URL}/api/exercise/delete-exercise/${exercise_id}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${newToken}`,
+        },
+        });
+
+        if (!retryResponse.ok) {
+        const errorData = await retryResponse.json();
+        throw new Error(errorData.error || 'Error al eliminar ejercicio');
+        }
+
+        const success = await retryResponse.json();
+        return success;
+    }
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al eliminar ejercicio');
+    }
+
+    const success = await response.json();
+    return success;
+    } catch (error) {
+    console.error('Error al eliminar ejercicio:', error);
+    throw error;
+    }
+}

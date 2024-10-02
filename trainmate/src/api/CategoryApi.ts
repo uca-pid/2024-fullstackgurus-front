@@ -113,3 +113,100 @@ export const getCategories = async () => {
       throw error;
     }
   };
+
+  export const editCategory = async (categoryData: { name: string, icon: string }, category_id: string) => {
+        
+    const token = getAuthToken();
+    if (!token) throw new Error('Token no encontrado');
+
+    try {
+    const response = await fetch(`${BASE_URL}/api/category/edit-category/${category_id}`, {
+        method: 'PUT',
+        headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token,
+        },
+        body: JSON.stringify(categoryData),
+    });
+
+    // Si la respuesta es 401, intentamos renovar el token
+    if (response.status === 403) {
+        console.log('Token expirado, intentando renovar...');
+        const newToken = await refreshAuthToken(); // Renueva el token
+        // Intentamos la solicitud de nuevo con el nuevo token
+        const retryResponse = await fetch(`${BASE_URL}/api/category/edit-category/${category_id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${newToken}`,
+        },
+        body: JSON.stringify(categoryData),
+        });
+
+        if (!retryResponse.ok) {
+        const errorData = await retryResponse.json();
+        throw new Error(errorData.error || 'Error al editar categoría');
+        }
+
+        const success = await retryResponse.json();
+        return success;
+    }
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al editar categoría');
+    }
+
+    const success = await response.json();
+    return success;
+    } catch (error) {
+    console.error('Error al editar categoría:', error);
+    throw error;
+    }
+}
+
+export const deleteCategory = async (category_id: string) => {
+    const token = getAuthToken();
+    if (!token) throw new Error('Token no encontrado');
+
+    try {
+    const response = await fetch(`${BASE_URL}/api/category/delete-category/${category_id}`, {
+        method: 'DELETE',
+        headers: {
+        'Authorization': token,
+        },
+    });
+
+    // Si la respuesta es 401, intentamos renovar el token
+    if (response.status === 403) {
+        console.log('Token expirado, intentando renovar...');
+        const newToken = await refreshAuthToken(); // Renueva el token
+        // Intentamos la solicitud de nuevo con el nuevo token
+        const retryResponse = await fetch(`${BASE_URL}/api/category/delete-category/${category_id}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${newToken}`,
+        },
+        });
+
+        if (!retryResponse.ok) {
+        const errorData = await retryResponse.json();
+        throw new Error(errorData.error || 'Error al eliminar categoría');
+        }
+
+        const success = await retryResponse.json();
+        return success;
+    }
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al eliminar categoría');
+    }
+
+    const success = await response.json();
+    return success;
+    } catch (error) {
+    console.error('Error al eliminar categoría:', error);
+    throw error;
+    }
+}

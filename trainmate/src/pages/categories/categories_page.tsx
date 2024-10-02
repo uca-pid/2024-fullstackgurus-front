@@ -19,8 +19,8 @@ import {FitnessCenter as DumbbellIcon,
   Favorite as HeartIcon} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { grey } from '@mui/material/colors';
-import { getCategories, saveCategory } from '../../api/CategoryApi';
-import { editExercise, getExerciseFromCategory, saveExercise } from '../../api/ExerciseApi';
+import { deleteCategory, editCategory, getCategories, saveCategory } from '../../api/CategoryApi';
+import { deleteExercise, editExercise, getExerciseFromCategory, saveExercise } from '../../api/ExerciseApi';
 
 interface CategoryWithExercises {
   category_id: string;
@@ -112,6 +112,8 @@ export default function CategoriesPage() {
     }
   }, []);
 
+  // Pensar quizás en optimizar esta funcionalidad, ya que se hace una llamada a la API por cada categoría, lo cual puede ser ineficiente
+  // Podríamos hacer una unica llamada, mandando todas las categorías y que nos devuelva listas de todas las categorías con todos sus ejercicios
   const getExercisesFromCategory = async (category: Category) => {
     try {
       const exercises = await getExerciseFromCategory(category.category_id);
@@ -196,13 +198,19 @@ export default function CategoriesPage() {
     }
   };
 
-  const handleEditCategory = () => {
+  const handleEditCategory = async () => {
     if (editingCategory) {
-      setCategoryWithExercises(
-        categoryWithExercises.map((category) =>
-          category.category_id === editingCategory.category_id ? { ...editingCategory, exercises: category.exercises } : category
-        )
-      );
+      try {
+        await editCategory({ name: editingCategory.name, icon: editingCategory.icon }, editingCategory.category_id);
+        setCategoryWithExercises(
+          categoryWithExercises.map((category) =>
+            category.category_id === editingCategory.category_id ? { ...editingCategory, exercises: category.exercises } : category
+          )
+        );
+      } catch (error) {
+        console.error('Error al editar la categoría:', error);
+      }
+      setEditingCategory(null);
       handleCloseEditCategoryDialog();
     }
   };
@@ -232,22 +240,32 @@ export default function CategoriesPage() {
     }
   };
 
-  const handleDeleteCategory = (categoryId: string) => {
-    setCategoryWithExercises(categoryWithExercises.filter((category) => category.category_id !== categoryId));
+  const handleDeleteCategory = async (categoryId: string) => {
+    try {
+      await deleteCategory(categoryId);
+      setCategoryWithExercises(categoryWithExercises.filter((category) => category.category_id !== categoryId));
+    } catch (error) {
+      console.error('Error al eliminar la categoría:', error);
+    }
   };
 
-  const handleDeleteExercise = (exerciseId: string, categoryId: string) => {
-    setCategoryWithExercises(
-      categoryWithExercises.map((category) => {
-        if (category.category_id === categoryId) {
-          return {
-            ...category,
-            exercises: category.exercises.filter((exercise) => exercise.exercise_id !== exerciseId),
-          };
-        }
-        return category;
-      })
-    );
+  const handleDeleteExercise = async (exerciseId: string, categoryId: string) => {
+    try {
+      await deleteExercise(exerciseId);
+      setCategoryWithExercises(
+        categoryWithExercises.map((category) => {
+          if (category.category_id === categoryId) {
+            return {
+              ...category,
+              exercises: category.exercises.filter((exercise) => exercise.exercise_id !== exerciseId),
+            };
+          }
+          return category;
+        })
+      );
+    } catch (error) {
+      console.error('Error al eliminar el ejercicio:', error);
+    }
   };
 
   const handleBackToHome = () => {
@@ -458,7 +476,15 @@ export default function CategoriesPage() {
       </Dialog>
 
       {/* Add Exercise Dialog */}
-      <Dialog open={addExerciseDialogOpen} onClose={handleCloseAddExerciseDialog} fullWidth={true} maxWidth={'xs'}>
+      <Dialog open={addExerciseDialogOpen} onClose={handleCloseAddExerciseDialog} fullWidth={true} maxWidth={'xs'}
+        PaperProps={{
+          sx: {
+            backgroundColor: grey[800],
+            color: '#fff',
+            borderRadius: '8px',
+            padding: 2,
+          },
+        }}>
         <DialogTitle>Add New Exercise</DialogTitle>
         <DialogContent>
           <TextField
@@ -490,10 +516,18 @@ export default function CategoriesPage() {
       </Dialog>
 
       {/* Edit Category Dialog */}
-      <Dialog open={editCategoryDialogOpen} onClose={handleCloseEditCategoryDialog} fullWidth={true} maxWidth={'xs'}>
+      <Dialog open={editCategoryDialogOpen} onClose={handleCloseEditCategoryDialog} fullWidth={true} maxWidth={'xs'}
+        PaperProps={{
+          sx: {
+            backgroundColor: grey[800],
+            color: '#fff',
+            borderRadius: '8px',
+            padding: 2,
+          },
+        }}>
         <DialogTitle>Edit Category</DialogTitle>
-        <DialogContent>
-          {editingCategory && (
+        {editingCategory && (
+          <DialogContent>
             <TextField
               autoFocus
               margin="dense"
@@ -504,9 +538,45 @@ export default function CategoriesPage() {
               variant="standard"
               value={editingCategory.name}
               onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
+              sx={{ mb: 3 }}
             />
-          )}
-        </DialogContent>
+            <FormControl fullWidth margin="dense">
+            <InputLabel id="icon-label">Icon</InputLabel>
+            <Select
+              labelId="icon-label"
+              id="icon"
+              label="Icon"
+              value={editingCategory.icon}
+              onChange={(e) => setEditingCategory({ ...editingCategory, icon: e.target.value })}
+              MenuProps={{
+                PaperProps: {
+                  sx: {
+                    backgroundColor: '#444',
+                    color: '#fff',
+                  },
+                },
+              }}
+            >
+              <MenuItem value="Dumbbell"><DumbbellIcon/></MenuItem>
+              <MenuItem value="Ball"><BallIcon/></MenuItem>
+              <MenuItem value="Heart"><HeartIcon/></MenuItem>
+              <MenuItem value="Basketball"><BasketballIcon/></MenuItem>
+              <MenuItem value="Tennis"><TennisIcon/></MenuItem>
+              <MenuItem value="Fight"><FightIcon/></MenuItem>
+              <MenuItem value="Martial"><MartialIcon/></MenuItem>
+              <MenuItem value="Mma"><MmaIcon/></MenuItem>
+              <MenuItem value="Motorsports"><MotorsportsIcon/></MenuItem>
+              <MenuItem value="Hiking"><HikingIcon/></MenuItem>
+              <MenuItem value="Sailing"><SailingIcon/></MenuItem>
+              <MenuItem value="Skiing"><SkiingIcon/></MenuItem>
+              <MenuItem value="Pool"><PoolIcon/></MenuItem>
+              <MenuItem value="Skate"><SkateIcon/></MenuItem>
+              <MenuItem value="Rugby"><RugbyIcon/></MenuItem>
+              <MenuItem value="Volleyball"><VolleyballIcon/></MenuItem>
+            </Select>
+            </FormControl>
+          </DialogContent>
+        )}
         <DialogActions>
           <Button onClick={handleCloseEditCategoryDialog}>Cancel</Button>
           <Button onClick={handleEditCategory}>Save Changes</Button>
@@ -514,7 +584,15 @@ export default function CategoriesPage() {
       </Dialog>
 
       {/* Edit Exercise Dialog */}
-      <Dialog open={editExerciseDialogOpen} onClose={handleCloseEditExerciseDialog}>
+      <Dialog open={editExerciseDialogOpen} onClose={handleCloseEditExerciseDialog} fullWidth={true} maxWidth={'xs'}
+        PaperProps={{
+          sx: {
+            backgroundColor: grey[800],
+            color: '#fff',
+            borderRadius: '8px',
+            padding: 2,
+          },
+        }}>
         <DialogTitle>Edit Exercise</DialogTitle>
         {editingExercise && (
           <DialogContent>
