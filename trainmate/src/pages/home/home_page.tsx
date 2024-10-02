@@ -14,6 +14,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 import { grey } from '@mui/material/colors';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import CloseIcon from '@mui/icons-material/Close';
 import { Dumbbell, Timer, Bike, Trophy } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
@@ -30,9 +31,13 @@ import { getExerciseFromCategory } from '../../api/ExerciseApi';
 import { getCoaches } from '../../api/CoachesApi_external';
 import CalendarModal from '../calendar/CalendarPage';
 import { WorkOff } from '@mui/icons-material';
+import { FilterDateDialog } from './filter_date';
+import { FilterCategoryDialog } from './filter_category';
+import { FilterExerciseDialog } from './filter_exercise';
 
-interface Exercise {
+interface Workout {
   id: number;
+  exercise_id: string;
   exercise: string;
   duration: number;
   date: string;
@@ -41,13 +46,13 @@ interface Exercise {
 
 interface Category {
   category_id: string;
-  icon: string,
+  icon: string;
   name: string;
   owner: string;
   isCustom: boolean;
 }
 
-interface ExerciseFromCategory {
+interface Exercise {
   exercise_id: string;
   calories_per_hour: number;
   category_id: string;
@@ -61,16 +66,20 @@ export default function HomePage() {
   const [timeRange, setTimeRange] = useState('month');
   const [open, setOpen] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
-  const [exerciseList, setExerciseList] = useState<Exercise[]>([]);
+  const [workoutList, setWorkoutList] = useState<Workout[]>([]);
   const [caloriesPerDay, setCaloriesPerDay] = useState<{ [date: string]: number }>({});
   const [loading, setLoading] = useState(true);
-  const [exerciseCount, setExerciseCount] = useState(0);
-  const [openExerciseAdding, setOpenExerciseAdding] = useState(false);
+  const [workoutsCount, setWorkoutsCount] = useState(0);
+  const [openWorkoutAdding, setOpenWorkoutAdding] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-  const [exercisesFromCategory, setExercisesFromCategory] = useState<ExerciseFromCategory[]>([]);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [coaches, setCoaches] = useState([]);
   const [coachSelected, setCoachSelected] = useState('');
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filterDateOpen, setFilterDateOpen] = useState(false);
+  const [filterCategoryOpen, setFilterCategoryOpen] = useState(false);
+  const [filterExerciseOpen, setFilterExerciseOpen] = useState(false);
 
   const handleAvatarClick = () => {
     navigate('/profile');
@@ -111,12 +120,12 @@ export default function HomePage() {
       try {
         setLoading(true);
         const workouts = await getAllWorkouts();
-        const validWorkouts = workouts.filter((exercise: Exercise) =>
+        const validWorkouts = workouts.filter((exercise: Workout) =>
           exercise.exercise && exercise.duration && exercise.date && exercise.calories
         );
         // Sort the workouts by date (we convert the string to a Date object)
-        const sortedWorkouts = validWorkouts.sort((a: Exercise, b: Exercise) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        setExerciseList(sortedWorkouts);
+        const sortedWorkouts = validWorkouts.sort((a: Workout, b: Workout) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setWorkoutList(sortedWorkouts);
       } catch (error) {
         console.error('Error al obtener los entrenamientos:', error);
       } finally {
@@ -125,7 +134,7 @@ export default function HomePage() {
     };
 
     fetchWorkouts();
-  }, [exerciseCount]);
+  }, [workoutsCount]);
 
   const getAllWorkoutsCalories = async () => {
     try {
@@ -164,11 +173,11 @@ export default function HomePage() {
       }
     };
     fetchWorkoutsCalories();
-  }, [exerciseCount]);
+  }, [workoutsCount]);
 
   const dataForChart = useMemo(() => formatDataForChart(), [caloriesPerDay]);
 
-  const [newExercise, setNewExercise] = useState({
+  const [newWorkout, setNewWorkout] = useState({
     exercise_id: '',
     duration: '',
     exercise: '',
@@ -183,24 +192,32 @@ export default function HomePage() {
     setOpen(false);
   };
 
-  const handleOpenExerciseAdding = () => {
-    setOpenExerciseAdding(true);
+  const handleFilterOpen = () => {
+    setFilterOpen(true);
+  }
+
+  const handleFilterClose = () => {
+    setFilterOpen(false);
+  }
+
+  const handleOpenWorkoutAdding = () => {
+    setOpenWorkoutAdding(true);
     setOpen(false);
   }
 
-  const handleCloseExerciseAdding = () => {
-    setOpenExerciseAdding(false);
+  const handleCloseWorkoutAdding = () => {
+    setOpenWorkoutAdding(false);
     setOpen(true);
     setSelectedCategory(null);
-    setExercisesFromCategory([]);
+    setExercises([]);
     setCoachSelected('');
   }
 
-  const handleAddExercise = async () => {
-    console.log(newExercise);
-    if (newExercise.exercise_id && newExercise.exercise && newExercise.duration && newExercise.date) {
+  const handleAddWorkout = async () => {
+    console.log(newWorkout);
+    if (newWorkout.exercise_id && newWorkout.exercise && newWorkout.duration && newWorkout.date) {
 
-      setNewExercise({
+      setNewWorkout({
         exercise_id: '',
         exercise: '',
         duration: '',
@@ -211,13 +228,13 @@ export default function HomePage() {
         const token = localStorage.getItem('token');
         if (token) {
           await saveWorkout(token, {
-            exercise_id: newExercise.exercise_id,
-            exercise: newExercise.exercise,
-            duration: parseInt(newExercise.duration, 10),
-            date: newExercise.date,
+            exercise_id: newWorkout.exercise_id,
+            exercise: newWorkout.exercise,
+            duration: parseInt(newWorkout.duration, 10),
+            date: newWorkout.date,
           });
           console.log('Workout saved successfully');
-          setExerciseCount((prevCount) => prevCount + 1);
+          setWorkoutsCount((prevCount) => prevCount + 1);
           setAlertOpen(true);
         } else {
           console.error('No token found, unable to save workout');
@@ -226,7 +243,7 @@ export default function HomePage() {
         console.error('Error saving workout:', error);
       }
 
-      handleCloseExerciseAdding();
+      handleCloseWorkoutAdding();
       handleClose();
     }
   };
@@ -256,7 +273,7 @@ export default function HomePage() {
   const getExercisesFromCategory = async (category_id: String) => {
     try {
       const exercises = await getExerciseFromCategory(category_id);
-      setExercisesFromCategory(Array.isArray(exercises) ? exercises : []);
+      setExercises(Array.isArray(exercises) ? exercises : []);
     } catch (error) {
       console.error('Error al obtener todas las categorías:', error);
       return [];
@@ -280,6 +297,12 @@ export default function HomePage() {
       <header className="p-4 flex justify-between items-center">
         <Avatar alt="User" src={require('../../images/profile_pic_2.jpg')} onClick={handleAvatarClick} style={{ cursor: 'pointer' }} />
         <div>
+          <IconButton aria-label="add" onClick={handleFilterOpen}>
+            <FilterAltIcon sx={{ color: grey[50], fontSize: 40 }} className="h-24 w-24" />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <p className='p-3 text-white'>Filter By</p>
+            </div>
+          </IconButton>
           <IconButton aria-label="add" onClick={handleClickOpen}>
             <AddCircleOutlineIcon sx={{ color: grey[50], fontSize: 40 }} className="h-24 w-24" />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -289,7 +312,38 @@ export default function HomePage() {
           <CalendarModal />
         </div>
       </header>
-      <TopMiddleAlert alertText='Added exercise successfully' open={alertOpen} onClose={() => setAlertOpen(false)} />
+      <TopMiddleAlert alertText='Added workout successfully' open={alertOpen} onClose={() => setAlertOpen(false)} />
+
+      {/* FILTER PRINCIPAL */}
+      <Dialog open={filterOpen} onClose={handleFilterClose}
+        PaperProps={{
+          sx: {
+            backgroundColor: grey[800],
+            color: '#fff',
+            borderRadius: '8px',
+            padding: 2,
+          },
+        }}>
+        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }}>Filter By</DialogTitle>
+        <DialogContent>
+          <Box display="flex" justifyContent="space-around" alignItems="center" mt={2} >
+            <Box textAlign="center" mx={3}>
+              <Button sx={{ backgroundColor: grey[700], borderColor: grey[900]}} onClick={() => setFilterDateOpen(true)} variant="contained">Dates</Button>
+            </Box>
+            <Box textAlign="center" mx={3}>
+              <Button sx={{ backgroundColor: grey[700], borderColor: grey[900]}} onClick={() => setFilterCategoryOpen(true)} variant="contained">Category</Button>
+            </Box>
+            <Box textAlign="center" mx={3}>
+              <Button sx={{ backgroundColor: grey[700], borderColor: grey[900]}} onClick={() => setFilterExerciseOpen(true)} variant="contained">Exercise</Button>
+            </Box>
+          </Box>
+        </DialogContent>
+      </Dialog>
+
+      <FilterDateDialog filterDateOpen={filterDateOpen} setFilterDateOpen={setFilterDateOpen}/>
+      <FilterCategoryDialog filterCategoryOpen={filterCategoryOpen} setFilterCategoryOpen={setFilterCategoryOpen}/>
+      <FilterExerciseDialog filterExerciseOpen={filterExerciseOpen} setFilterExerciseOpen={setFilterExerciseOpen}/>
+
       <Dialog open={open} onClose={handleClose}
         PaperProps={{
           sx: {
@@ -322,7 +376,7 @@ export default function HomePage() {
             </Box>
 
             <Box textAlign="center" mx={3}>
-              <IconButton onClick={handleOpenExerciseAdding}>
+              <IconButton onClick={handleOpenWorkoutAdding}>
                 <Avatar
                   style={{ border: '2px solid black' }}
                   alt="New Workout"
@@ -337,7 +391,7 @@ export default function HomePage() {
           </Box>
         </DialogContent>
       </Dialog>
-      <Dialog open={openExerciseAdding} onClose={handleCloseExerciseAdding}
+      <Dialog open={openWorkoutAdding} onClose={handleCloseWorkoutAdding}
         PaperProps={{
           sx: {
             backgroundColor: grey[800],
@@ -380,8 +434,8 @@ export default function HomePage() {
 
           <Select
             fullWidth
-            value={newExercise.exercise_id}
-            onChange={(e) => setNewExercise({ ...newExercise, exercise_id: e.target.value, exercise: exercisesFromCategory.find((exercise) => exercise.exercise_id === e.target.value)?.name || '' })}
+            value={newWorkout.exercise_id}
+            onChange={(e) => setNewWorkout({ ...newWorkout, exercise_id: e.target.value, exercise: exercises.find((exercise) => exercise.exercise_id === e.target.value)?.name || '' })}
             displayEmpty
             sx={{ marginBottom: 1 }}
             MenuProps={{
@@ -400,7 +454,7 @@ export default function HomePage() {
             <MenuItem value="" disabled>
               Select Exercise Type
             </MenuItem>
-            {exercisesFromCategory.map((exerciseFromCategory) => (
+            {exercises.map((exerciseFromCategory) => (
               <MenuItem key={exerciseFromCategory.exercise_id} value={exerciseFromCategory.exercise_id}>
                 {exerciseFromCategory.name}
               </MenuItem>
@@ -439,19 +493,19 @@ export default function HomePage() {
             fullWidth
             margin="dense"
             label="Duration"
-            value={newExercise.duration}
+            value={newWorkout.duration}
             onChange={(e) => {
               const value = e.target.value;
               if (value === "") {
-                setNewExercise({ ...newExercise, duration: "" });
+                setNewWorkout({ ...newWorkout, duration: "" });
               } else {
                 const numericValue = parseInt(value, 10);
                 if (numericValue >= 1 && numericValue <= 1000) {
-                  setNewExercise({ ...newExercise, duration: value });
+                  setNewWorkout({ ...newWorkout, duration: value });
                 } else if (numericValue < 1) {
-                  setNewExercise({ ...newExercise, duration: "1" });
+                  setNewWorkout({ ...newWorkout, duration: "1" });
                 } else if (numericValue > 1000) {
-                  setNewExercise({ ...newExercise, duration: "1000" });
+                  setNewWorkout({ ...newWorkout, duration: "1000" });
                 }
               }
             }}
@@ -466,13 +520,13 @@ export default function HomePage() {
             margin="dense"
             label="Date"
             type="date"
-            value={newExercise.date}
-            onChange={(e) => setNewExercise({ ...newExercise, date: e.target.value })}
+            value={newWorkout.date}
+            onChange={(e) => setNewWorkout({ ...newWorkout, date: e.target.value })}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseExerciseAdding}>Cancel</Button>
-          <Button onClick={handleAddExercise}>Add Workout</Button>
+          <Button onClick={handleCloseWorkoutAdding}>Cancel</Button>
+          <Button onClick={handleAddWorkout}>Add Workout</Button>
         </DialogActions>
       </Dialog>
 
@@ -488,7 +542,7 @@ export default function HomePage() {
             />
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                {Array.isArray(exerciseList) && exerciseList.length > 0 ? (
+                {Array.isArray(workoutList) && workoutList.length > 0 ? (
                   <LineChart data={dataForChart}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" stroke="#fff" tick={{ dy: 13 }} />
@@ -513,15 +567,15 @@ export default function HomePage() {
             <CardHeader title="Recent Exercises" />
             <CardContent>
               <ScrollArea sx={{ maxHeight: 300, overflow: 'auto' }}>
-                {Array.isArray(exerciseList) && exerciseList.length > 0 ? (
-                  exerciseList.map((exercise: any) => (
+                {Array.isArray(workoutList) && workoutList.length > 0 ? (
+                  workoutList.map((exercise: any) => (
                     <div key={exercise.id} className="flex items-center space-x-4 mb-4">
-                      <div className="bg-primary rounded-full p-2">
+                      {/* <div className="bg-primary rounded-full p-2">
                         {exercise.exercise === 'Running' && <Timer className="h-6 w-6" />}
                         {exercise.exercise === 'Weightlifting' && <Dumbbell className="h-6 w-6" />}
                         {exercise.exercise === 'Cycling' && <Bike className="h-6 w-6" />}
                         {(exercise.exercise !== 'Running' && exercise.exercise !== 'Weightlifting' && exercise.exercise !== 'Cycling') && <Trophy className="h-6 w-6" />}
-                      </div>
+                      </div> */}
                       <div className="flex-1">
                         <Typography variant="h6">{exercise.exercise}</Typography>
                         <Typography variant="body2" color="gray">
