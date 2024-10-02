@@ -35,7 +35,7 @@ interface Exercise {
   id: number;
   exercise: string;
   duration: number;
-  date: string; // This is the date we will now format
+  date: string;
   calories: number;
 }
 
@@ -169,9 +169,9 @@ export default function HomePage() {
   const dataForChart = useMemo(() => formatDataForChart(), [caloriesPerDay]);
 
   const [newExercise, setNewExercise] = useState({
-    id: '',
-    type: '',
+    exercise_id: '',
     duration: '',
+    exercise: '',
     date: new Date().toISOString().split('T')[0],
   });
 
@@ -197,12 +197,12 @@ export default function HomePage() {
   }
 
   const handleAddExercise = async () => {
-
-    if (newExercise.id && newExercise.type && newExercise.duration && newExercise.date) {
+    console.log(newExercise);
+    if (newExercise.exercise_id && newExercise.exercise && newExercise.duration && newExercise.date) {
 
       setNewExercise({
-        id: '',
-        type: '',
+        exercise_id: '',
+        exercise: '',
         duration: '',
         date: new Date().toISOString().split('T')[0],
       });
@@ -211,8 +211,8 @@ export default function HomePage() {
         const token = localStorage.getItem('token');
         if (token) {
           await saveWorkout(token, {
-            exercise_id: newExercise.id,
-            exercise: newExercise.type,
+            exercise_id: newExercise.exercise_id,
+            exercise: newExercise.exercise,
             duration: parseInt(newExercise.duration, 10),
             date: newExercise.date,
           });
@@ -274,17 +274,6 @@ export default function HomePage() {
     };
     fetchCoaches();
   }, []);
-
-  const handleExerciseSelect = (event: any) => {
-    const selectedExercise = exercisesFromCategory.find((exercise) => exercise.id === event.target.value);
-    if (selectedExercise) {
-      setNewExercise({
-        ...newExercise,
-        id: selectedExercise.id, // Set exercise id
-        type: selectedExercise.name, // Set exercise type
-      });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
@@ -391,8 +380,8 @@ export default function HomePage() {
 
           <Select
             fullWidth
-            value={newExercise.type}
-            onChange={(e) => setNewExercise({ ...newExercise, type: e.target.value })}
+            value={newExercise.exercise_id}
+            onChange={(e) => setNewExercise({ ...newExercise, exercise_id: e.target.value, exercise: exercisesFromCategory.find((exercise) => exercise.exercise_id === e.target.value)?.name || '' })}
             displayEmpty
             sx={{ marginBottom: 1 }}
             MenuProps={{
