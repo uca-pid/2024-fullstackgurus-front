@@ -80,6 +80,7 @@ export default function HomePage() {
   const [filterDateOpen, setFilterDateOpen] = useState(false);
   const [filterCategoryOpen, setFilterCategoryOpen] = useState(false);
   const [filterExerciseOpen, setFilterExerciseOpen] = useState(false);
+  const [selectedCategoryInFilter, setSelectedCategoryInFilter] = useState<Category | null>(null);
 
   const handleAvatarClick = () => {
     navigate('/profile');
@@ -119,9 +120,13 @@ export default function HomePage() {
     const fetchWorkouts = async () => {
       try {
         setLoading(true);
-        const workouts = await getAllWorkouts();
-        const validWorkouts = workouts.filter((exercise: Workout) =>
-          exercise.exercise && exercise.duration && exercise.date && exercise.calories
+        var workouts = await getAllWorkouts();
+        if (selectedCategoryInFilter) {
+          const exercises = await getExerciseFromCategory(selectedCategoryInFilter.category_id);
+          workouts = workouts.filter((workout) => exercises.find((exercise: Exercise) => exercise.exercise_id === workout.exercise_id));
+        }
+        const validWorkouts = workouts.filter((workout: Workout) =>
+          workout.exercise && workout.duration && workout.date && workout.calories
         );
         // Sort the workouts by date (we convert the string to a Date object)
         const sortedWorkouts = validWorkouts.sort((a: Workout, b: Workout) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -134,7 +139,7 @@ export default function HomePage() {
     };
 
     fetchWorkouts();
-  }, [workoutsCount]);
+  }, [workoutsCount, selectedCategoryInFilter]);
 
   const getAllWorkoutsCalories = async () => {
     try {
@@ -165,15 +170,24 @@ export default function HomePage() {
   useEffect(() => {
     const fetchWorkoutsCalories = async () => {
       try {
-        const workouts_calories_and_dates = await getAllWorkoutsCalories();
+        var workouts_calories_and_dates = await getAllWorkoutsCalories();
+        console.log("Calories graph", workouts_calories_and_dates);
+  
+        if (selectedCategoryInFilter) {
+          const exercises = await getExerciseFromCategory(selectedCategoryInFilter.category_id);
+          workouts_calories_and_dates = workouts_calories_and_dates.filter((workout) =>
+            exercises.find((exercise: Exercise) => exercise.exercise_id === workout.exercise_id)
+          );
+        }
         const calories_per_day = calculate_calories_per_day(workouts_calories_and_dates);
         setCaloriesPerDay(calories_per_day);
       } catch (error) {
-        console.error('Error al obtener toda la data de los entrenamientos:', error);
+        console.error('Error fetching workout calories data:', error);
       }
     };
+  
     fetchWorkoutsCalories();
-  }, [workoutsCount]);
+  }, [workoutsCount, selectedCategoryInFilter]);
 
   const dataForChart = useMemo(() => formatDataForChart(), [caloriesPerDay]);
 
@@ -198,6 +212,30 @@ export default function HomePage() {
 
   const handleFilterClose = () => {
     setFilterOpen(false);
+  }
+
+  const handleFilterDateOpen = () => {
+    setFilterDateOpen(true);
+  }
+
+  const handleFilterCategoryOpen = () => {
+    setFilterCategoryOpen(true);
+  }
+
+  const handleFilterExerciseOpen = () => {
+    setFilterExerciseOpen(true);
+  }
+
+  const handleFilterDateClose = () => {
+    setFilterDateOpen(false);
+  }
+
+  const handleFilterCategoryClose = () => {
+    setFilterCategoryOpen(false);
+  }
+
+  const handleFilterExerciseClose = () => {
+    setFilterExerciseOpen(false);
   }
 
   const handleOpenWorkoutAdding = () => {
@@ -341,7 +379,10 @@ export default function HomePage() {
       </Dialog>
 
       <FilterDateDialog filterDateOpen={filterDateOpen} setFilterDateOpen={setFilterDateOpen}/>
-      <FilterCategoryDialog filterCategoryOpen={filterCategoryOpen} setFilterCategoryOpen={setFilterCategoryOpen}/>
+
+      <FilterCategoryDialog filterCategoryOpen={filterCategoryOpen} handleFilterCategoryClose={handleFilterCategoryClose} selectedCategoryInFilter={selectedCategoryInFilter} 
+      setSelectedCategoryInFilter={setSelectedCategoryInFilter} categories={categories} handleFilterClose={handleFilterClose}/>
+
       <FilterExerciseDialog filterExerciseOpen={filterExerciseOpen} setFilterExerciseOpen={setFilterExerciseOpen}/>
 
       <Dialog open={open} onClose={handleClose}
@@ -541,6 +582,30 @@ export default function HomePage() {
               title="Progress"
             />
             <CardContent>
+
+              {(selectedCategoryInFilter && selectedCategoryInFilter.name) ? (
+                <Box 
+                  sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  alignItems: 'center', 
+                  backgroundColor: grey[700], 
+                  borderRadius: '8px', 
+                  padding: 2, 
+                  marginBottom: 2,
+                  height: 50,
+                  width: 130
+                  }}
+                >
+                  <Typography variant="h6">{selectedCategoryInFilter?.name}</Typography>
+                  <IconButton aria-label="add" onClick={() => setSelectedCategoryInFilter(null)}>
+                    <CloseIcon sx={{ color: grey[900], fontSize: 20 }} className="h-12 w-12" />
+                  </IconButton>
+                </Box>
+              ) : (
+                <Box></Box>
+              )}
+
               <ResponsiveContainer width="100%" height={300}>
                 {Array.isArray(workoutList) && workoutList.length > 0 ? (
                   <LineChart data={dataForChart}>
@@ -564,7 +629,7 @@ export default function HomePage() {
           </Card>
 
           <Card sx={{ backgroundColor: '#333', color: '#fff' }}>
-            <CardHeader title="Recent Exercises" />
+            <CardHeader title="Recent Workouts" />
             <CardContent>
               <ScrollArea sx={{ maxHeight: 300, overflow: 'auto' }}>
                 {Array.isArray(workoutList) && workoutList.length > 0 ? (
