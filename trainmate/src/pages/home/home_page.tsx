@@ -14,6 +14,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 import { grey } from '@mui/material/colors';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import CloseIcon from '@mui/icons-material/Close';
 import { Dumbbell, Timer, Bike, Trophy } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
@@ -30,6 +31,9 @@ import { getExerciseFromCategory } from '../../api/ExerciseApi';
 import { getCoaches } from '../../api/CoachesApi_external';
 import CalendarModal from '../calendar/CalendarPage';
 import { WorkOff } from '@mui/icons-material';
+import { FilterDateDialog } from './filter_date';
+import { FilterCategoryDialog } from './filter_category';
+import { FilterExerciseDialog } from './filter_exercise';
 
 interface Workout {
   id: number;
@@ -66,12 +70,16 @@ export default function HomePage() {
   const [caloriesPerDay, setCaloriesPerDay] = useState<{ [date: string]: number }>({});
   const [loading, setLoading] = useState(true);
   const [workoutsCount, setWorkoutsCount] = useState(0);
-  const [openExerciseAdding, setOpenExerciseAdding] = useState(false);
+  const [openWorkoutAdding, setOpenWorkoutAdding] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [coaches, setCoaches] = useState([]);
   const [coachSelected, setCoachSelected] = useState('');
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filterDateOpen, setFilterDateOpen] = useState(false);
+  const [filterCategoryOpen, setFilterCategoryOpen] = useState(false);
+  const [filterExerciseOpen, setFilterExerciseOpen] = useState(false);
 
   const handleAvatarClick = () => {
     navigate('/profile');
@@ -184,13 +192,21 @@ export default function HomePage() {
     setOpen(false);
   };
 
+  const handleFilterOpen = () => {
+    setFilterOpen(true);
+  }
+
+  const handleFilterClose = () => {
+    setFilterOpen(false);
+  }
+
   const handleOpenWorkoutAdding = () => {
-    setOpenExerciseAdding(true);
+    setOpenWorkoutAdding(true);
     setOpen(false);
   }
 
   const handleCloseWorkoutAdding = () => {
-    setOpenExerciseAdding(false);
+    setOpenWorkoutAdding(false);
     setOpen(true);
     setSelectedCategory(null);
     setExercises([]);
@@ -281,6 +297,12 @@ export default function HomePage() {
       <header className="p-4 flex justify-between items-center">
         <Avatar alt="User" src={require('../../images/profile_pic_2.jpg')} onClick={handleAvatarClick} style={{ cursor: 'pointer' }} />
         <div>
+          <IconButton aria-label="add" onClick={handleFilterOpen}>
+            <FilterAltIcon sx={{ color: grey[50], fontSize: 40 }} className="h-24 w-24" />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <p className='p-3 text-white'>Filter By</p>
+            </div>
+          </IconButton>
           <IconButton aria-label="add" onClick={handleClickOpen}>
             <AddCircleOutlineIcon sx={{ color: grey[50], fontSize: 40 }} className="h-24 w-24" />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -291,6 +313,37 @@ export default function HomePage() {
         </div>
       </header>
       <TopMiddleAlert alertText='Added workout successfully' open={alertOpen} onClose={() => setAlertOpen(false)} />
+
+      {/* FILTER PRINCIPAL */}
+      <Dialog open={filterOpen} onClose={handleFilterClose}
+        PaperProps={{
+          sx: {
+            backgroundColor: grey[800],
+            color: '#fff',
+            borderRadius: '8px',
+            padding: 2,
+          },
+        }}>
+        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }}>Filter By</DialogTitle>
+        <DialogContent>
+          <Box display="flex" justifyContent="space-around" alignItems="center" mt={2} >
+            <Box textAlign="center" mx={3}>
+              <Button sx={{ backgroundColor: grey[700], borderColor: grey[900]}} onClick={() => setFilterDateOpen(true)} variant="contained">Dates</Button>
+            </Box>
+            <Box textAlign="center" mx={3}>
+              <Button sx={{ backgroundColor: grey[700], borderColor: grey[900]}} onClick={() => setFilterCategoryOpen(true)} variant="contained">Category</Button>
+            </Box>
+            <Box textAlign="center" mx={3}>
+              <Button sx={{ backgroundColor: grey[700], borderColor: grey[900]}} onClick={() => setFilterExerciseOpen(true)} variant="contained">Exercise</Button>
+            </Box>
+          </Box>
+        </DialogContent>
+      </Dialog>
+
+      <FilterDateDialog filterDateOpen={filterDateOpen} setFilterDateOpen={setFilterDateOpen}/>
+      <FilterCategoryDialog filterCategoryOpen={filterCategoryOpen} setFilterCategoryOpen={setFilterCategoryOpen}/>
+      <FilterExerciseDialog filterExerciseOpen={filterExerciseOpen} setFilterExerciseOpen={setFilterExerciseOpen}/>
+
       <Dialog open={open} onClose={handleClose}
         PaperProps={{
           sx: {
@@ -338,7 +391,7 @@ export default function HomePage() {
           </Box>
         </DialogContent>
       </Dialog>
-      <Dialog open={openExerciseAdding} onClose={handleCloseWorkoutAdding}
+      <Dialog open={openWorkoutAdding} onClose={handleCloseWorkoutAdding}
         PaperProps={{
           sx: {
             backgroundColor: grey[800],
