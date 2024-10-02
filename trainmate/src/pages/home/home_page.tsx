@@ -31,10 +31,6 @@ import { getCoaches } from '../../api/CoachesApi_external';
 import CalendarModal from '../calendar/CalendarPage';
 import { WorkOff } from '@mui/icons-material';
 
-const exerciseTypes = [
-  'Running', 'Weightlifting', 'Cycling', 'Swimming', 'Football', 'Basketball', 'Tennis',
-];
-
 interface Exercise {
   id: number;
   exercise: string;
@@ -52,7 +48,7 @@ interface Category {
 }
 
 interface ExerciseFromCategory {
-  id: string;
+  exercise_id: string;
   calories_per_hour: number;
   category_id: string;
   name: string;
@@ -260,7 +256,6 @@ export default function HomePage() {
   const getExercisesFromCategory = async (category_id: String) => {
     try {
       const exercises = await getExerciseFromCategory(category_id);
-      console.log(exercises)
       setExercisesFromCategory(Array.isArray(exercises) ? exercises : []);
     } catch (error) {
       console.error('Error al obtener todas las categorías:', error);
@@ -394,9 +389,33 @@ export default function HomePage() {
             ))}
           </Select>
 
-          <Select fullWidth value={newExercise.id} onChange={handleExerciseSelect} displayEmpty sx={{ marginBottom: 1 }}>
-            <MenuItem value="" disabled>Select Exercise Type</MenuItem>
-            {exercisesFromCategory.map((exerciseFromCategory) => <MenuItem key={exerciseFromCategory.id} value={exerciseFromCategory.id}>{exerciseFromCategory.name}</MenuItem>)}
+          <Select
+            fullWidth
+            value={newExercise.type}
+            onChange={(e) => setNewExercise({ ...newExercise, type: e.target.value })}
+            displayEmpty
+            sx={{ marginBottom: 1 }}
+            MenuProps={{
+              PaperProps: {
+                sx: {
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  maxWidth: 300,
+                  padding: 1,
+                  backgroundColor: '#444',
+                  color: '#fff',
+                },
+              },
+            }}
+          >
+            <MenuItem value="" disabled>
+              Select Exercise Type
+            </MenuItem>
+            {exercisesFromCategory.map((exerciseFromCategory) => (
+              <MenuItem key={exerciseFromCategory.exercise_id} value={exerciseFromCategory.exercise_id}>
+                {exerciseFromCategory.name}
+              </MenuItem>
+            ))}
           </Select>
 
           <Select
