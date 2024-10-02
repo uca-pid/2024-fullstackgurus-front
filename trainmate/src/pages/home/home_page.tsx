@@ -52,6 +52,7 @@ interface Category {
 }
 
 interface ExerciseFromCategory {
+  id: string;
   calories_per_hour: number;
   category_id: string;
   name: string;
@@ -107,14 +108,14 @@ export default function HomePage() {
       console.error('Error al obtener todos los entrenamientos:', error);
       return [];
     }
-};
+  };
 
   useEffect(() => {
     const fetchWorkouts = async () => {
       try {
         setLoading(true);
         const workouts = await getAllWorkouts();
-        const validWorkouts = workouts.filter((exercise: Exercise) => 
+        const validWorkouts = workouts.filter((exercise: Exercise) =>
           exercise.exercise && exercise.duration && exercise.date && exercise.calories
         );
         // Sort the workouts by date (we convert the string to a Date object)
@@ -126,7 +127,7 @@ export default function HomePage() {
         setLoading(false);
       }
     };
-  
+
     fetchWorkouts();
   }, [exerciseCount]);
 
@@ -134,7 +135,7 @@ export default function HomePage() {
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Token no encontrado');
-  
+
       // Obtén la fecha actual (hoy) en formato YYYY-MM-DD
       const today = new Date().toISOString().split('T')[0];
 
@@ -172,6 +173,7 @@ export default function HomePage() {
   const dataForChart = useMemo(() => formatDataForChart(), [caloriesPerDay]);
 
   const [newExercise, setNewExercise] = useState({
+    id: '',
     type: '',
     duration: '',
     date: new Date().toISOString().split('T')[0],
@@ -199,9 +201,11 @@ export default function HomePage() {
   }
 
   const handleAddExercise = async () => {
-    if (newExercise.type && newExercise.duration && newExercise.date) {
-  
+
+    if (newExercise.id && newExercise.type && newExercise.duration && newExercise.date) {
+
       setNewExercise({
+        id: '',
         type: '',
         duration: '',
         date: new Date().toISOString().split('T')[0],
@@ -211,6 +215,7 @@ export default function HomePage() {
         const token = localStorage.getItem('token');
         if (token) {
           await saveWorkout(token, {
+            exercise_id: newExercise.id,
             exercise: newExercise.type,
             duration: parseInt(newExercise.duration, 10),
             date: newExercise.date,
@@ -224,7 +229,7 @@ export default function HomePage() {
       } catch (error) {
         console.error('Error saving workout:', error);
       }
-  
+
       handleCloseExerciseAdding();
       handleClose();
     }
@@ -250,12 +255,13 @@ export default function HomePage() {
       }
     };
     fetchCategories();
-  },[]);
+  }, []);
 
   const getExercisesFromCategory = async (category_id: String) => {
     try {
-      const categories = await getExerciseFromCategory(category_id);
-      setExercisesFromCategory(Array.isArray(categories) ? categories : []);
+      const exercises = await getExerciseFromCategory(category_id);
+      console.log(exercises)
+      setExercisesFromCategory(Array.isArray(exercises) ? exercises : []);
     } catch (error) {
       console.error('Error al obtener todas las categorías:', error);
       return [];
@@ -272,23 +278,34 @@ export default function HomePage() {
       }
     };
     fetchCoaches();
-  },[]);
+  }, []);
+
+  const handleExerciseSelect = (event: any) => {
+    const selectedExercise = exercisesFromCategory.find((exercise) => exercise.id === event.target.value);
+    if (selectedExercise) {
+      setNewExercise({
+        ...newExercise,
+        id: selectedExercise.id, // Set exercise id
+        type: selectedExercise.name, // Set exercise type
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
       <header className="p-4 flex justify-between items-center">
-        <Avatar alt="User" src={require('../../images/profile_pic_2.jpg')} onClick={handleAvatarClick} style={{ cursor: 'pointer' }}/>
+        <Avatar alt="User" src={require('../../images/profile_pic_2.jpg')} onClick={handleAvatarClick} style={{ cursor: 'pointer' }} />
         <div>
-        <IconButton aria-label="add" onClick={handleClickOpen}>
-          <AddCircleOutlineIcon sx={{ color: grey[50], fontSize: 40 }} className="h-24 w-24" />
-          <div style={{display: 'flex', alignItems: 'center', justifyContent:'center'}}>
-            <p className='p-3 text-white'>Add New</p>
-          </div>
-        </IconButton>
-        <CalendarModal />
+          <IconButton aria-label="add" onClick={handleClickOpen}>
+            <AddCircleOutlineIcon sx={{ color: grey[50], fontSize: 40 }} className="h-24 w-24" />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <p className='p-3 text-white'>Add New</p>
+            </div>
+          </IconButton>
+          <CalendarModal />
         </div>
       </header>
-      <TopMiddleAlert alertText='Added exercise successfully' open={alertOpen} onClose={() => setAlertOpen(false)}/>
+      <TopMiddleAlert alertText='Added exercise successfully' open={alertOpen} onClose={() => setAlertOpen(false)} />
       <Dialog open={open} onClose={handleClose}
         PaperProps={{
           sx: {
@@ -303,7 +320,7 @@ export default function HomePage() {
             <CloseIcon sx={{ color: grey[900], fontSize: 40 }} className="h-12 w-12" />
           </IconButton>
         </DialogActions>
-        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', mt:-7 }}>What do you want to add?</DialogTitle>
+        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', mt: -7 }}>What do you want to add?</DialogTitle>
         <DialogContent>
           <Box display="flex" justifyContent="space-around" alignItems="center" mt={2}>
             <Box textAlign="center" mx={3}>
@@ -315,7 +332,7 @@ export default function HomePage() {
                   sx={{ width: 150, height: 150 }}
                 />
               </IconButton>
-              <Typography variant="body1" sx={{ mt: 1, fontWeight: 'bold'}}>
+              <Typography variant="body1" sx={{ mt: 1, fontWeight: 'bold' }}>
                 New Category or Sport
               </Typography>
             </Box>
@@ -329,14 +346,14 @@ export default function HomePage() {
                   sx={{ width: 150, height: 150 }}
                 />
               </IconButton>
-                <Typography variant="body1" sx={{ mt: 1, fontWeight: 'bold' }}>
+              <Typography variant="body1" sx={{ mt: 1, fontWeight: 'bold' }}>
                 New Workout
-                </Typography>
+              </Typography>
             </Box>
           </Box>
         </DialogContent>
       </Dialog>
-      <Dialog open={openExerciseAdding} onClose={handleCloseExerciseAdding} 
+      <Dialog open={openExerciseAdding} onClose={handleCloseExerciseAdding}
         PaperProps={{
           sx: {
             backgroundColor: grey[800],
@@ -348,10 +365,10 @@ export default function HomePage() {
         <DialogTitle sx={{ color: '#fff', textAlign: 'center' }}>Add New Workout</DialogTitle>
         <DialogContent>
 
-        <Select
+          <Select
             fullWidth
             value={selectedCategory?.category_id || ""}
-            onChange={(e) => {setSelectedCategory(categories.find((category) => category.category_id === e.target.value) || null); getExercisesFromCategory(e.target.value)}}
+            onChange={(e) => { setSelectedCategory(categories.find((category) => category.category_id === e.target.value) || null); getExercisesFromCategory(e.target.value) }}
             displayEmpty
             sx={{ marginBottom: 1 }}
             MenuProps={{
@@ -377,33 +394,9 @@ export default function HomePage() {
             ))}
           </Select>
 
-          <Select
-            fullWidth
-            value={newExercise.type}
-            onChange={(e) => setNewExercise({ ...newExercise, type: e.target.value })}
-            displayEmpty
-            sx={{ marginBottom: 1 }}
-            MenuProps={{
-              PaperProps: {
-                sx: {
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  maxWidth: 300,
-                  padding: 1,
-                  backgroundColor: '#444',
-                  color: '#fff',
-                },
-              },
-            }}
-          >
-            <MenuItem value="" disabled>
-              Select Exercise Type
-            </MenuItem>
-            {exercisesFromCategory.map((exerciseFromCategory) => (
-              <MenuItem key={exerciseFromCategory.name} value={exerciseFromCategory.name}>
-                {exerciseFromCategory.name}
-              </MenuItem>
-            ))}
+          <Select fullWidth value={newExercise.id} onChange={handleExerciseSelect} displayEmpty sx={{ marginBottom: 1 }}>
+            <MenuItem value="" disabled>Select Exercise Type</MenuItem>
+            {exercisesFromCategory.map((exerciseFromCategory) => <MenuItem key={exerciseFromCategory.id} value={exerciseFromCategory.id}>{exerciseFromCategory.name}</MenuItem>)}
           </Select>
 
           <Select
@@ -480,13 +473,13 @@ export default function HomePage() {
           <CircularProgress />
         </Box>
       ) : (
-          <main className="p-4 space-y-6">
-            <Card sx={{ backgroundColor: '#333', color: '#fff' }}>
-              <CardHeader
-                title="Progress"
-              />
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
+        <main className="p-4 space-y-6">
+          <Card sx={{ backgroundColor: '#333', color: '#fff' }}>
+            <CardHeader
+              title="Progress"
+            />
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
                 {Array.isArray(exerciseList) && exerciseList.length > 0 ? (
                   <LineChart data={dataForChart}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -495,22 +488,22 @@ export default function HomePage() {
                     <Tooltip />
                     <Line type="monotone" dataKey="calories" stroke="#008000" activeDot={{ r: 10 }} />
                   </LineChart>
-                  ) : (
-                    <div>
-                      <Typography variant="body2" color="gray">No progress available</Typography>
-                      <a href="#" className="underline" onClick={handleClickOpen}>
-                        <Typography sx={{marginTop: 4}} variant="body2" color="gray">Add new workout</Typography>
-                      </a>
-                      
-                    </div>
-                  )}
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+                ) : (
+                  <div>
+                    <Typography variant="body2" color="gray">No progress available</Typography>
+                    <a href="#" className="underline" onClick={handleClickOpen}>
+                      <Typography sx={{ marginTop: 4 }} variant="body2" color="gray">Add new workout</Typography>
+                    </a>
 
-            <Card sx={{ backgroundColor: '#333', color: '#fff' }}>
-              <CardHeader title="Recent Exercises" />
-              <CardContent>
+                  </div>
+                )}
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card sx={{ backgroundColor: '#333', color: '#fff' }}>
+            <CardHeader title="Recent Exercises" />
+            <CardContent>
               <ScrollArea sx={{ maxHeight: 300, overflow: 'auto' }}>
                 {Array.isArray(exerciseList) && exerciseList.length > 0 ? (
                   exerciseList.map((exercise: any) => (
@@ -537,9 +530,9 @@ export default function HomePage() {
                 )}
               </ScrollArea>
             </CardContent>
-            </Card>
-          </main>
-        )}
+          </Card>
+        </main>
+      )}
     </div>
   );
 }
