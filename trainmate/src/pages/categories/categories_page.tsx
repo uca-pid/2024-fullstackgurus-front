@@ -21,6 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import { grey } from '@mui/material/colors';
 import { deleteCategory, editCategory, getCategories, saveCategory } from '../../api/CategoryApi';
 import { deleteExercise, editExercise, getExerciseFromCategory, saveExercise } from '../../api/ExerciseApi';
+import TopMiddleAlert from '../../personalizedComponents/TopMiddleAlert';
 
 interface CategoryWithExercises {
   category_id: string;
@@ -79,6 +80,13 @@ export default function CategoriesPage() {
 
   const handleOpenAddCategoryDialog = () => setAddCategoryDialogOpen(true);
   const handleCloseAddCategoryDialog = () => setAddCategoryDialogOpen(false);
+
+  const [alertCategoryAddedOpen, setAlertCategoryAddedOpen] = useState(false);
+  const [alertExerciseAddedOpen, setAlertExerciseAddedOpen] = useState(false);
+  const [alertCategoryEditedOpen, setAlertCategoryEditedOpen] = useState(false);
+  const [alertExerciseEditedOpen, setAlertExerciseEditedOpen] = useState(false);
+  const [alertCategoryDeletedOpen, setAlertCategoryDeletedOpen] = useState(false);
+  const [alertExerciseDeletedOpen, setAlertExerciseDeletedOpen] = useState(false);
 
 
   const getAllCategories = async () => {
@@ -165,6 +173,7 @@ export default function CategoriesPage() {
           ...prev,
           { ...category, exercises: [] }
         ]);
+        setAlertCategoryAddedOpen(true);
       } catch (error) {
         console.error('Error al guardar la categoría:', error)
       }
@@ -191,6 +200,7 @@ export default function CategoriesPage() {
           })
         );
         setNewExercise(null);
+        setAlertExerciseAddedOpen(true);
       } catch (error) {
         console.error('Error al guardar el ejercicio:', error);
       }
@@ -207,6 +217,7 @@ export default function CategoriesPage() {
             category.category_id === editingCategory.category_id ? { ...editingCategory, exercises: category.exercises } : category
           )
         );
+        setAlertCategoryEditedOpen(true);
       } catch (error) {
         console.error('Error al editar la categoría:', error);
       }
@@ -232,6 +243,7 @@ export default function CategoriesPage() {
             return category;
           })
         );
+        setAlertExerciseEditedOpen(true);
       } catch (error) {
         console.error('Error al editar el ejercicio:', error);
       }
@@ -244,6 +256,7 @@ export default function CategoriesPage() {
     try {
       await deleteCategory(categoryId);
       setCategoryWithExercises(categoryWithExercises.filter((category) => category.category_id !== categoryId));
+      setAlertCategoryDeletedOpen(true);
     } catch (error) {
       console.error('Error al eliminar la categoría:', error);
     }
@@ -263,6 +276,7 @@ export default function CategoriesPage() {
           return category;
         })
       );
+      setAlertExerciseDeletedOpen(true);
     } catch (error) {
       console.error('Error al eliminar el ejercicio:', error);
     }
@@ -320,6 +334,14 @@ export default function CategoriesPage() {
         <Typography variant="h4">Categories & Exercises</Typography>
         <Box sx={{ width: 6 }}></Box>
       </Box>
+
+      <TopMiddleAlert alertText='Added category successfully' open={alertCategoryAddedOpen} onClose={() => setAlertCategoryAddedOpen(false)} />
+      <TopMiddleAlert alertText='Added exercise successfully' open={alertExerciseAddedOpen} onClose={() => setAlertExerciseAddedOpen(false)} />
+      <TopMiddleAlert alertText='Edited category successfully' open={alertCategoryEditedOpen} onClose={() => setAlertCategoryEditedOpen(false)} />
+      <TopMiddleAlert alertText='Edited exercise successfully' open={alertExerciseEditedOpen} onClose={() => setAlertExerciseEditedOpen(false)} />
+      <TopMiddleAlert alertText='Deleted category successfully' open={alertCategoryDeletedOpen} onClose={() => setAlertCategoryDeletedOpen(false)} />
+      <TopMiddleAlert alertText='Deleted exercise successfully' open={alertExerciseDeletedOpen} onClose={() => setAlertExerciseDeletedOpen(false)} />
+
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
           <CircularProgress />
