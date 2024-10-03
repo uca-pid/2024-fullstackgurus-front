@@ -42,7 +42,7 @@ interface Category {
 
 interface Exercise {
   exercise_id: string;
-  calories_per_hour: number;
+  calories_per_hour: number | string;
   category_id: string;
   name: string;
   owner: string;
@@ -55,7 +55,7 @@ interface NewCategory {
 }
 
 interface NewExercise {
-  calories_per_hour: number;
+  calories_per_hour: number | string;
   category_id: string;
   name: string;
 }
@@ -523,12 +523,50 @@ export default function CategoriesPage() {
           <TextField
             margin="dense"
             id="exercise-calories"
-            label="KCal Per Hour"
+            label="Kcal per Hour"
             type="number"
             fullWidth
             variant="standard"
-            value={newExercise?.calories_per_hour || 1}
-            onChange={(e) => setNewExercise({ ...newExercise, calories_per_hour: parseInt(e.target.value), name: newExercise?.name || '', category_id: newExercise?.category_id || '' })}
+            value={newExercise?.calories_per_hour ?? ''}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === "") {
+                setNewExercise({ 
+                  ...newExercise, 
+                  calories_per_hour: "", 
+                  name: newExercise?.name || '', 
+                  category_id: newExercise?.category_id || '' 
+                });
+              } else {
+                const numericValue = parseInt(value, 10);
+                if (numericValue >= 1 && numericValue <= 4000) {
+                  setNewExercise({ 
+                    ...newExercise, 
+                    calories_per_hour: numericValue, 
+                    name: newExercise?.name || '', 
+                    category_id: newExercise?.category_id || '' 
+                  });
+                } else if (numericValue < 1) {
+                  setNewExercise({ 
+                    ...newExercise, 
+                    calories_per_hour: 1, 
+                    name: newExercise?.name || '', 
+                    category_id: newExercise?.category_id || '' 
+                  });
+                } else if (numericValue > 4000) {
+                  setNewExercise({ 
+                    ...newExercise, 
+                    calories_per_hour: 4000, 
+                    name: newExercise?.name || '', 
+                    category_id: newExercise?.category_id || '' 
+                  });
+                }
+              }
+            }}
+            placeholder="Kcal per Hour"
+            slotProps={{
+              htmlInput: { min: 1, max: 4000 }
+            }}
           />
         </DialogContent>
         <DialogActions>
@@ -636,8 +674,38 @@ export default function CategoriesPage() {
               type="number"
               fullWidth
               variant="standard"
-              value={editingExercise.calories_per_hour}
-              onChange={(e) => setEditingExercise({ ...editingExercise, calories_per_hour: parseInt(e.target.value) })}
+              value={editingExercise.calories_per_hour ?? ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === "") {
+                  setEditingExercise({ 
+                    ...editingExercise, 
+                    calories_per_hour: "" 
+                  });
+                } else {
+                  const numericValue = parseInt(value, 10);
+                  if (numericValue >= 1 && numericValue <= 4000) {
+                    setEditingExercise({ 
+                      ...editingExercise, 
+                      calories_per_hour: numericValue 
+                    });
+                  } else if (numericValue < 1) {
+                    setEditingExercise({ 
+                      ...editingExercise, 
+                      calories_per_hour: 1 
+                    });
+                  } else if (numericValue > 4000) {
+                    setEditingExercise({ 
+                      ...editingExercise, 
+                      calories_per_hour: 4000 
+                    });
+                  }
+                }
+              }}
+              placeholder="KCal Per Hour"
+              slotProps={{
+                htmlInput: { min: 1, max: 4000 }
+              }}
             />
           </DialogContent>
         )}
