@@ -34,6 +34,7 @@ import { WorkOff } from '@mui/icons-material';
 import { FilterDateDialog } from './filter_date';
 import { FilterCategoryDialog } from './filter_category';
 import { FilterExerciseDialog } from './filter_exercise';
+import handleCategoryIcon from '../../personalizedComponents/handleCategoryIcon';
 
 interface Workout {
   id: number;
@@ -474,7 +475,7 @@ export default function HomePage() {
             </MenuItem>
             {categories.map((category) => (
               <MenuItem key={category.category_id} value={category.category_id}>
-                {category.name}
+                {handleCategoryIcon(category.icon)}{category.name}
               </MenuItem>
             ))}
           </Select>
