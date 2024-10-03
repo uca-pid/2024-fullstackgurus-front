@@ -22,6 +22,7 @@ import { grey } from '@mui/material/colors';
 import { deleteCategory, editCategory, getCategories, saveCategory } from '../../api/CategoryApi';
 import { deleteExercise, editExercise, getExerciseFromCategory, saveExercise } from '../../api/ExerciseApi';
 import TopMiddleAlert from '../../personalizedComponents/TopMiddleAlert';
+import handleCategoryIcon from '../../personalizedComponents/handleCategoryIcon';
 
 interface CategoryWithExercises {
   category_id: string;
@@ -286,45 +287,6 @@ export default function CategoriesPage() {
     navigate('/homepage');
   };
 
-  const handleIcon = (icon: string) => {
-    switch (icon) {
-      case 'Dumbbell':
-        return <DumbbellIcon />;
-      case 'Ball':
-        return <BallIcon />;
-      case 'Heart':
-        return <HeartIcon />;
-      case 'Basketball':
-        return <BasketballIcon />;
-      case 'Tennis':
-        return <TennisIcon />;
-      case 'Fight':
-        return <FightIcon />;
-      case 'Martial':
-        return <MartialIcon />;
-      case 'Mma':
-        return <MmaIcon />;
-      case 'Motorsports':
-        return <MotorsportsIcon />;
-      case 'Hiking':
-        return <HikingIcon />;
-      case 'Sailing':
-        return <SailingIcon />;
-      case 'Skiing':
-        return <SkiingIcon />;
-      case 'Pool':
-        return <PoolIcon />;
-      case 'Skate':
-        return <SkateIcon />;
-      case 'Rugby':
-        return <RugbyIcon />;
-      case 'Volleyball':
-        return <VolleyballIcon />;
-      default:
-        return null;
-    }
-  }
-
   return (
     <Box sx={{ minHeight: '100vh', background: 'linear-gradient(to bottom, #1a202c, #2d3748)', color: 'white', p: 4 }}>
       <Box component="header" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
@@ -369,7 +331,7 @@ export default function CategoriesPage() {
                   id={`panel-${category.category_id}-header`}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    {handleIcon(category.icon)}
+                    {handleCategoryIcon(category.icon)}
                     <Typography sx={{ ml: 1, fontWeight: 'bold', fontSize: '1.2rem' }}>{category.name}</Typography>
                   </Box>
                   {category.isCustom && (
