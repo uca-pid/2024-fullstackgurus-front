@@ -370,9 +370,9 @@ export default function HomePage() {
         <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }}>Filter By</DialogTitle>
         <DialogContent>
           <Box display="flex" justifyContent="space-around" alignItems="center" mt={2} >
-            <Box textAlign="center" mx={3}>
+            {/* <Box textAlign="center" mx={3}>
               <Button sx={{ backgroundColor: grey[700], borderColor: grey[900]}} onClick={() => setFilterDateOpen(true)} variant="contained">Dates</Button>
-            </Box>
+            </Box> */}
             <Box textAlign="center" mx={3}>
               <Button sx={{ backgroundColor: grey[700], borderColor: grey[900]}} onClick={() => setFilterCategoryOpen(true)} variant="contained">Category</Button>
             </Box>
@@ -383,7 +383,7 @@ export default function HomePage() {
         </DialogContent>
       </Dialog>
 
-      <FilterDateDialog filterDateOpen={filterDateOpen} setFilterDateOpen={setFilterDateOpen}/>
+      {/* <FilterDateDialog filterDateOpen={filterDateOpen} setFilterDateOpen={setFilterDateOpen}/> */}
 
       <FilterCategoryDialog filterCategoryOpen={filterCategoryOpen} handleFilterCategoryClose={handleFilterCategoryClose} selectedCategoryInFilter={selectedCategoryInFilter} 
       setSelectedCategoryInFilter={setSelectedCategoryInFilter} categories={categories} handleFilterClose={handleFilterClose}/>
