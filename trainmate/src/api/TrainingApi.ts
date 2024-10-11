@@ -52,3 +52,58 @@ export const getTrainings = async () => {
       throw error;
     }
   };
+
+  export const saveTraining = async (trainingData: { exercises: any, name: string}) => {
+    
+    const token = getAuthToken();
+    if (!token) throw new Error('Token no encontrado');
+
+    const exercisesIds = trainingData.exercises.map((ex: { exercise_id: string, calories_per_hour: number }) => ({ exercise_id: ex.exercise_id, calories_per_hour: ex.calories_per_hour }));
+    const modifiedTrainingData = {'exercises': exercisesIds, 'name': trainingData.name}
+    console.log(modifiedTrainingData)
+
+    try {
+      const response = await fetch(`${BASE_URL}/api/trainings/save-training`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token,
+        },
+        body: JSON.stringify(modifiedTrainingData),
+      });
+  
+      // Si la respuesta es 401, intentamos renovar el token
+      if (response.status === 403) {
+        console.log('Token expirado, intentando renovar...');
+        const newToken = await refreshAuthToken(); // Renueva el token
+        // Intentamos la solicitud de nuevo con el nuevo token
+        const retryResponse = await fetch(`${BASE_URL}/api/trainings/save-training`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${newToken}`,
+          },
+          body: JSON.stringify(modifiedTrainingData),
+        });
+  
+        if (!retryResponse.ok) {
+          const errorData = await retryResponse.json();
+          throw new Error(errorData.error || 'Error al guardar el entrenamiento');
+        }
+  
+        const retryData = await retryResponse.json();
+        return retryData.training;
+      }
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al guardar el entrenamiento');
+      }
+  
+      const data = await response.json();
+      return data.training;
+    } catch (error) {
+      console.error('Error al guardar el entrenamiento:', error);
+      throw error;
+    }
+  };

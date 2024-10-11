@@ -101,6 +101,7 @@ export default function CategoriesPage() {
 
   const [alertCategoryAddedOpen, setAlertCategoryAddedOpen] = useState(false);
   const [alertExerciseAddedOpen, setAlertExerciseAddedOpen] = useState(false);
+  const [alertTrainingAddedOpen, setAlertTrainingAddedOpen] = useState(false);
   const [alertCategoryEditedOpen, setAlertCategoryEditedOpen] = useState(false);
   const [alertExerciseEditedOpen, setAlertExerciseEditedOpen] = useState(false);
   const [alertCategoryDeletedOpen, setAlertCategoryDeletedOpen] = useState(false);
@@ -332,6 +333,7 @@ export default function CategoriesPage() {
 
       <TopMiddleAlert alertText='Added category successfully' open={alertCategoryAddedOpen} onClose={() => setAlertCategoryAddedOpen(false)} />
       <TopMiddleAlert alertText='Added exercise successfully' open={alertExerciseAddedOpen} onClose={() => setAlertExerciseAddedOpen(false)} />
+      <TopMiddleAlert alertText='Added training successfully' open={alertTrainingAddedOpen} onClose={() => setAlertTrainingAddedOpen(false)} />
       <TopMiddleAlert alertText='Edited category successfully' open={alertCategoryEditedOpen} onClose={() => setAlertCategoryEditedOpen(false)} />
       <TopMiddleAlert alertText='Edited exercise successfully' open={alertExerciseEditedOpen} onClose={() => setAlertExerciseEditedOpen(false)} />
       <TopMiddleAlert alertText='Deleted category successfully' open={alertCategoryDeletedOpen} onClose={() => setAlertCategoryDeletedOpen(false)} />
@@ -761,7 +763,7 @@ export default function CategoriesPage() {
       </Dialog>
 
       {/* Create Training Dialog */}
-      <CreateTrainingDialog createNewTraining={createNewTraining} handleCloseAddTrainingDialog={handleCloseAddTrainingDialog} categoryWithExercises={categoryWithExercises} />
+      <CreateTrainingDialog createNewTraining={createNewTraining} handleCloseAddTrainingDialog={handleCloseAddTrainingDialog} categoryWithExercises={categoryWithExercises} setTrainings={setTrainings} setAlertTrainingAddedOpen={setAlertTrainingAddedOpen}/>
     </Box>
   );
 }

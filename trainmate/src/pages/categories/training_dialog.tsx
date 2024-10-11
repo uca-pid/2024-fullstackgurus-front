@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Select, MenuItem, InputLabel, FormControl, Checkbox, ListItemText, SelectChangeEvent } from '@mui/material';
 import grey from '@mui/material/colors/grey';
+import { saveTraining } from '../../api/TrainingApi';
 
 // Definición de interfaces basadas en tu estructura
 interface Exercise {
@@ -10,6 +11,7 @@ interface Exercise {
   name: string;
   owner: string;
   public: boolean;
+  training_muscle: string;
 }
 
 interface CategoryWithExercises {
@@ -21,24 +23,32 @@ interface CategoryWithExercises {
   exercises: Exercise[];
 }
 
+interface Trainings {
+    id: string;
+    name: string;
+    owner: string;
+    calories_per_hour_mean: number;
+    exercises: Exercise[];
+  }
+
 interface CreateTrainingDialogProps {
   createNewTraining: boolean;
   handleCloseAddTrainingDialog: () => void;
   categoryWithExercises: CategoryWithExercises[];
+  setTrainings: React.Dispatch<React.SetStateAction<Trainings[]>>;
+  setAlertTrainingAddedOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const CreateTrainingDialog: React.FC<CreateTrainingDialogProps> = ({ createNewTraining, handleCloseAddTrainingDialog, categoryWithExercises }) => {
+const CreateTrainingDialog: React.FC<CreateTrainingDialogProps> = ({ createNewTraining, handleCloseAddTrainingDialog, categoryWithExercises, setTrainings, setAlertTrainingAddedOpen }) => {
   const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
   const [selectedExercises, setSelectedExercises] = React.useState<{ [key: string]: string[] }>({});
   const [trainingName, setTrainingName] = React.useState<string>('');
 
-  // Maneja la selección de categorías
   const handleCategoryChange = (event: SelectChangeEvent<string[]>) => {
     const { value } = event.target;
     setSelectedCategories(value as string[]);
   };
 
-  // Maneja la selección de ejercicios por categoría
   const handleExerciseChange = (categoryId: string) => (event: SelectChangeEvent<string[]>) => {
     const { value } = event.target;
     setSelectedExercises((prevState) => ({
@@ -47,7 +57,7 @@ const CreateTrainingDialog: React.FC<CreateTrainingDialogProps> = ({ createNewTr
     }));
   };
 
-  const handleCreateTraining = () => {
+  const handleCreateTraining = async () => {
     const newTraining = {
       name: trainingName,
       exercises: Object.keys(selectedExercises).reduce((allExercises, categoryId) => {
@@ -56,8 +66,17 @@ const CreateTrainingDialog: React.FC<CreateTrainingDialogProps> = ({ createNewTr
         return [...allExercises, ...selectedExerciseObjects];
       }, [] as Exercise[]),
     };
-    console.log(newTraining); // Aquí puedes reemplazarlo con la lógica para guardar el entrenamiento
-    handleClose();
+    if (newTraining && newTraining.name) {
+        try {
+          const training = await saveTraining(newTraining);
+          const trainingWithId = { ...newTraining, id: training.id, calories_per_hour_mean: training.calories_per_hour_mean, owner: training.owner };
+          setTrainings((prevTrainings) => [...prevTrainings, trainingWithId]);
+          setAlertTrainingAddedOpen(true);
+        } catch (error) {
+          console.error('Error al guardar el entrenamiento:', error);
+        }
+        handleClose();
+      }
   };
 
   const handleClose = () => {
