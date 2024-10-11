@@ -344,16 +344,17 @@ export default function CategoriesPage() {
           <CircularProgress />
         </Box>
       ) : (
-      <Box sx={{ display: 'flex', gap: 2, height: '100vh' }}>
+      <Box sx={{ display: 'flex', gap: 2, height: '100vh', flexDirection: { xs: 'column', sm: 'row' } }}>
           {/* Card de Categorías */}
-          <Card sx={{ backgroundColor: '#333', color: '#fff', width: '50%', height: 'calc(100vh - 200px)' }}>
+          <Card sx={{ flex: 1, backgroundColor: '#333', color: '#fff', width: '100%', height: 'calc(100vh - 200px)' }}>
               <CardHeader
                   title="Categories"
+                  titleTypographyProps={{ fontSize: { xs: '1.2rem', sm: '1.3rem', md: '1.5rem' }, variant: 'h6'}}
                   action={
                       <IconButton aria-label="add" onClick={handleOpenAddCategoryDialog}>
                           <PlusIcon sx={{ color: grey[50], fontSize: 25 }} />
                           <div>
-                              <p className='p-1 text-white text-lg'>Add New Category</p>
+                              <Typography className='p-1 text-white text-lg'>Add New Category</Typography>
                           </div>
                       </IconButton>
                   }
@@ -388,7 +389,7 @@ export default function CategoriesPage() {
                                           <Box key={exercise.exercise_id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                                   <Typography>{exercise.name}</Typography>
-                                                  <Typography sx={{ fontSize: '0.7rem', marginLeft: 3 }}>({exercise.calories_per_hour} kcal/h)</Typography>
+                                                  <Typography sx={{  fontSize:  '0.7rem', marginLeft: 3 }}>({exercise.calories_per_hour} kcal/h)</Typography>
                                               </Box>
                                               {!exercise.public && (
                                                   <Box>
@@ -420,14 +421,15 @@ export default function CategoriesPage() {
           </Card>
 
           {/* Nueva Card de Trainings */}
-          <Card sx={{ backgroundColor: '#333', color: '#fff', width: '50%', height: 'calc(100vh - 200px)' }}>
+          <Card sx={{flex: 1, backgroundColor: '#333', color: '#fff', width: '100%', height: 'calc(100vh - 200px)' }}>
               <CardHeader
                   title="Trainings"
+                  titleTypographyProps={{ fontSize: { xs: '1.2rem', sm: '1.3rem', md: '1.5rem' }, variant: 'h6'}}
                   action={
                     <IconButton aria-label="add" onClick={handleOpenAddTrainingDialog}>
                         <PlusIcon sx={{ color: grey[50], fontSize: 25 }} />
                         <div>
-                            <p className='p-1 text-white text-lg'>Create new Training</p>
+                            <Typography className='p-1 text-white text-lg'>Create new Training</Typography>
                         </div>
                     </IconButton>
                 }
