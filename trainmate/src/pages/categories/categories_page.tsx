@@ -21,8 +21,10 @@ import { useNavigate } from 'react-router-dom';
 import { grey } from '@mui/material/colors';
 import { deleteCategory, editCategory, getCategories, saveCategory } from '../../api/CategoryApi';
 import { deleteExercise, editExercise, getExerciseFromCategory, saveExercise } from '../../api/ExerciseApi';
+import { getTrainings } from '../../api/TrainingApi';
 import TopMiddleAlert from '../../personalizedComponents/TopMiddleAlert';
 import handleCategoryIcon from '../../personalizedComponents/handleCategoryIcon';
+import CreateTrainingDialog from './training_dialog';
 
 interface CategoryWithExercises {
   category_id: string;
@@ -48,6 +50,7 @@ interface Exercise {
   name: string;
   owner: string;
   public: boolean;
+  training_muscle: string;
 }
 
 interface NewCategory {
@@ -61,6 +64,14 @@ interface NewExercise {
   name: string;
 }
 
+interface Trainings {
+  id: string;
+  name: string;
+  owner: string;
+  calories_per_hour_mean: number;
+  exercises: Exercise[];
+}
+
 export default function CategoriesPage() {
 
   const navigate = useNavigate();
@@ -68,6 +79,7 @@ export default function CategoriesPage() {
   const [loading, setLoading] = useState(true);
 
   const [categoryWithExercises, setCategoryWithExercises] = useState<CategoryWithExercises[]>([]);
+  const [trainings, setTrainings] = useState<Trainings[]>([]);
 
   const [newCategory, setNewCategory] = useState<NewCategory | null>(null);
   const [newExercise, setNewExercise] = useState<NewExercise | null>(null);
@@ -81,6 +93,11 @@ export default function CategoriesPage() {
 
   const handleOpenAddCategoryDialog = () => setAddCategoryDialogOpen(true);
   const handleCloseAddCategoryDialog = () => setAddCategoryDialogOpen(false);
+
+  const [createNewTraining, setCreateNewTraining] = useState(false);
+
+  const handleOpenAddTrainingDialog = () => setCreateNewTraining(true);
+  const handleCloseAddTrainingDialog = () => setCreateNewTraining(false);
 
   const [alertCategoryAddedOpen, setAlertCategoryAddedOpen] = useState(false);
   const [alertExerciseAddedOpen, setAlertExerciseAddedOpen] = useState(false);
@@ -100,12 +117,28 @@ export default function CategoriesPage() {
     }
   };
 
+  const getAllTrainings = async () => {
+    try {
+      const trainings = await getTrainings();
+      console.log('Trainings:', trainings);
+      return Array.isArray(trainings) ? trainings : [];
+    } catch (error) {
+      console.error('Error al obtener los entrenamientos:', error);
+    }
+  }
+
   useEffect(() => {
     // El effectRan lo utilizo para que el useEffect se ejecute solo una vez, ya que por default se ejecuta dos veces
     if (!effectRan.current) {
       const fetchCategories = async () => {
         try {
           setLoading(true);
+          
+          const trainings = await getAllTrainings();
+          if (trainings) {
+            setTrainings(trainings);
+          }
+
           const categories = await getAllCategories();
           for (const category of categories) {
             await getExercisesFromCategory(category);
@@ -309,79 +342,129 @@ export default function CategoriesPage() {
           <CircularProgress />
         </Box>
       ) : (
-      <Card sx={{ backgroundColor: '#333', color: '#fff', height: 'calc(100vh - 200px)' }}>
-        <CardHeader
-          title="Categories"
-          action={
-            <IconButton aria-label="add" onClick={handleOpenAddCategoryDialog}>
-              <PlusIcon sx={{ color: grey[50], fontSize: 25 }}/>
-              <div>
-                <p className='p-1 text-white text-lg'>Add New Category</p>
-              </div>
-            </IconButton>
-          }
-        />
-        <CardContent>
-          <Box sx={{ height: 'calc(100vh - 300px)', overflowY: 'auto' }}>
-            {categoryWithExercises.map((category) => (
-              <Accordion key={category.category_id} sx={{ backgroundColor: grey[800], color: 'white' }}>
-                <AccordionSummary
-                  expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}
-                  aria-controls={`panel-${category.category_id}-content`}
-                  id={`panel-${category.category_id}-header`}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    {handleCategoryIcon(category.icon)}
-                    <Typography sx={{ ml: 1, fontWeight: 'bold', fontSize: '1.2rem' }}>{category.name}</Typography>
+      <Box sx={{ display: 'flex', gap: 2, height: '100vh' }}>
+          {/* Card de Categorías */}
+          <Card sx={{ backgroundColor: '#333', color: '#fff', width: '50%', height: 'calc(100vh - 200px)' }}>
+              <CardHeader
+                  title="Categories"
+                  action={
+                      <IconButton aria-label="add" onClick={handleOpenAddCategoryDialog}>
+                          <PlusIcon sx={{ color: grey[50], fontSize: 25 }} />
+                          <div>
+                              <p className='p-1 text-white text-lg'>Add New Category</p>
+                          </div>
+                      </IconButton>
+                  }
+              />
+              <CardContent>
+                  <Box sx={{ height: 'calc(100vh - 300px)', overflowY: 'auto' }}>
+                      {categoryWithExercises.map((category) => (
+                          <Accordion key={category.category_id} sx={{ backgroundColor: grey[800], color: 'white' }}>
+                              <AccordionSummary
+                                  expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}
+                                  aria-controls={`panel-${category.category_id}-content`}
+                                  id={`panel-${category.category_id}-header`}
+                              >
+                                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                      {handleCategoryIcon(category.icon)}
+                                      <Typography sx={{ ml: 1, fontWeight: 'bold', fontSize: '1.2rem' }}>{category.name}</Typography>
+                                  </Box>
+                                  {category.isCustom && (
+                                      <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center' }}>
+                                          <IconButton size="small" color="inherit" onClick={() => handleOpenEditCategoryDialog(category)}>
+                                              <EditIcon />
+                                          </IconButton>
+                                          <IconButton size="small" color="inherit" onClick={() => handleDeleteCategory(category.category_id)}>
+                                              <DeleteIcon />
+                                          </IconButton>
+                                      </Box>
+                                  )}
+                              </AccordionSummary>
+                              <AccordionDetails>
+                                  <Box sx={{ pl: 4 }}>
+                                      {category.exercises.map((exercise) => (
+                                          <Box key={exercise.exercise_id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                  <Typography>{exercise.name}</Typography>
+                                                  <Typography sx={{ fontSize: '0.7rem', marginLeft: 3 }}>({exercise.calories_per_hour} kcal/h)</Typography>
+                                              </Box>
+                                              {!exercise.public && (
+                                                  <Box>
+                                                      <IconButton size="small" color="inherit" onClick={() => handleOpenEditExerciseDialog(exercise)}>
+                                                          <EditIcon />
+                                                      </IconButton>
+                                                      <IconButton size="small" color="inherit" onClick={() => handleDeleteExercise(exercise.exercise_id, category.category_id)}>
+                                                          <DeleteIcon />
+                                                      </IconButton>
+                                                  </Box>
+                                              )}
+                                          </Box>
+                                      ))}
+                                      <Button
+                                          variant="outlined"
+                                          size="small"
+                                          startIcon={<PlusIcon />}
+                                          sx={{ mt: 2 }}
+                                          onClick={() => handleOpenAddExerciseDialog(category.category_id)}
+                                      >
+                                          Add Custom Exercise
+                                      </Button>
+                                  </Box>
+                              </AccordionDetails>
+                          </Accordion>
+                      ))}
                   </Box>
-                  {category.isCustom && (
-                    <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center' }}>
-                      <IconButton size="small" color="inherit" onClick={() => handleOpenEditCategoryDialog(category)}>
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton size="small" color="inherit" onClick={() => handleDeleteCategory(category.category_id)}>
-                        <DeleteIcon />
-                      </IconButton>
+              </CardContent>
+          </Card>
+
+          {/* Nueva Card de Trainings */}
+          <Card sx={{ backgroundColor: '#333', color: '#fff', width: '50%', height: 'calc(100vh - 200px)' }}>
+              <CardHeader
+                  title="Trainings"
+                  action={
+                    <IconButton aria-label="add" onClick={handleOpenAddTrainingDialog}>
+                        <PlusIcon sx={{ color: grey[50], fontSize: 25 }} />
+                        <div>
+                            <p className='p-1 text-white text-lg'>Create new Training</p>
+                        </div>
+                    </IconButton>
+                }
+              />
+              <CardContent>
+                    <Box sx={{ height: 'calc(100vh - 300px)', overflowY: 'auto' }}>
+                        {trainings.map((training) => (
+                            <Accordion key={training.id} sx={{ backgroundColor: grey[800], color: 'white' }}>
+                                <AccordionSummary
+                                    expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}
+                                    aria-controls={`panel-${training.id}-content`}
+                                    id={`panel-${training.id}-header`}
+                                >
+                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                        <Typography sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}>{training.name}</Typography>
+                                    </Box>
+                                    <Typography sx={{ ml: 'auto', fontWeight: 'bold', fontSize: '1rem' }}>
+                                        {training.calories_per_hour_mean} kcal/h
+                                    </Typography>
+                                </AccordionSummary>
+                                {<AccordionDetails>
+                                    <Box sx={{ pl: 4 }}>
+                                        {training.exercises.map((exercise) => (
+                                            <Box key={exercise.exercise_id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                    <Typography>{exercise.name}</Typography>
+                                                    <Typography sx={{ fontSize: '0.7rem', marginLeft: 3 }}>({exercise.calories_per_hour} kcal/h)</Typography>
+                                                </Box>
+                                            </Box>
+                                        ))}
+                                    </Box>
+                                </AccordionDetails>}
+                            </Accordion>
+                        ))}
                     </Box>
-                  )}
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Box sx={{ pl: 4 }}>
-                    {category.exercises.map((exercise) => (
-                      <Box key={exercise.exercise_id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Box sx={{display: 'flex', alignItems: 'center'}}>
-                            <Typography>{exercise.name}</Typography>
-                            <Typography sx={{ fontSize: '0.7rem', marginLeft: 3 }}>({exercise.calories_per_hour} kcal/h)</Typography>
-                        </Box>
-                        {!exercise.public && (
-                          <Box>
-                            <IconButton size="small" color="inherit" onClick={() => handleOpenEditExerciseDialog(exercise)}>
-                              <EditIcon />
-                            </IconButton>
-                            <IconButton size="small" color="inherit" onClick={() => handleDeleteExercise(exercise.exercise_id, category.category_id)}>
-                              <DeleteIcon />
-                            </IconButton>
-                          </Box>
-                        )}
-                      </Box>
-                    ))}
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<PlusIcon />}
-                      sx={{ mt: 2 }}
-                      onClick={() => handleOpenAddExerciseDialog(category.category_id)}
-                    >
-                      Add Custom Exercise
-                    </Button>
-                  </Box>
-                </AccordionDetails>
-              </Accordion>
-            ))}
-          </Box>
-        </CardContent>
-      </Card>
-      )}
+                </CardContent>
+          </Card>
+      </Box>
+    )}
 
       {/* Add Category Dialog */}
       <Dialog open={addCategoryDialogOpen} onClose={handleCloseAddCategoryDialog} fullWidth={true} maxWidth={'xs'} 
@@ -676,6 +759,9 @@ export default function CategoriesPage() {
           <Button onClick={handleEditExercise}>Save Changes</Button>
         </DialogActions>
       </Dialog>
+
+      {/* Create Training Dialog */}
+      <CreateTrainingDialog createNewTraining={createNewTraining} handleCloseAddTrainingDialog={handleCloseAddTrainingDialog} categoryWithExercises={categoryWithExercises} />
     </Box>
   );
 }

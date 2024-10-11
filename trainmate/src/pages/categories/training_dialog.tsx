@@ -1,0 +1,152 @@
+import * as React from 'react';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Select, MenuItem, InputLabel, FormControl, Checkbox, ListItemText, SelectChangeEvent } from '@mui/material';
+import grey from '@mui/material/colors/grey';
+
+// Definición de interfaces basadas en tu estructura
+interface Exercise {
+  exercise_id: string;
+  calories_per_hour: number | string;
+  category_id: string;
+  name: string;
+  owner: string;
+  public: boolean;
+}
+
+interface CategoryWithExercises {
+  category_id: string;
+  icon: string;
+  name: string;
+  owner: string;
+  isCustom: boolean;
+  exercises: Exercise[];
+}
+
+interface CreateTrainingDialogProps {
+  createNewTraining: boolean;
+  handleCloseAddTrainingDialog: () => void;
+  categoryWithExercises: CategoryWithExercises[];
+}
+
+const CreateTrainingDialog: React.FC<CreateTrainingDialogProps> = ({ createNewTraining, handleCloseAddTrainingDialog, categoryWithExercises }) => {
+  const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
+  const [selectedExercises, setSelectedExercises] = React.useState<{ [key: string]: string[] }>({});
+  const [trainingName, setTrainingName] = React.useState<string>('');
+
+  // Maneja la selección de categorías
+  const handleCategoryChange = (event: SelectChangeEvent<string[]>) => {
+    const { value } = event.target;
+    setSelectedCategories(value as string[]);
+  };
+
+  // Maneja la selección de ejercicios por categoría
+  const handleExerciseChange = (categoryId: string) => (event: SelectChangeEvent<string[]>) => {
+    const { value } = event.target;
+    setSelectedExercises((prevState) => ({
+      ...prevState,
+      [categoryId]: value as string[],
+    }));
+  };
+
+  const handleCreateTraining = () => {
+    const newTraining = {
+      name: trainingName,
+      exercises: Object.keys(selectedExercises).reduce((allExercises, categoryId) => {
+        const exercisesInCategory = categoryWithExercises.find(cat => cat.category_id === categoryId)?.exercises || [];
+        const selectedExerciseObjects = selectedExercises[categoryId].map(exId => exercisesInCategory.find(ex => ex.exercise_id === exId)!);
+        return [...allExercises, ...selectedExerciseObjects];
+      }, [] as Exercise[]),
+    };
+    console.log(newTraining); // Aquí puedes reemplazarlo con la lógica para guardar el entrenamiento
+    handleClose();
+  };
+
+  const handleClose = () => {
+    setSelectedCategories([]);
+    setSelectedExercises({});
+    setTrainingName('');
+    handleCloseAddTrainingDialog();
+  };
+
+  return (
+    <Dialog
+      open={createNewTraining}
+      onClose={handleClose}
+      fullWidth={true}
+      maxWidth={'xs'}
+      PaperProps={{
+        sx: {
+          backgroundColor: grey[800],
+          color: '#fff',
+          borderRadius: '8px',
+          padding: 2,
+        },
+      }}
+    >
+      <DialogTitle>Create New Training</DialogTitle>
+      <DialogContent>
+        <TextField
+          autoFocus
+          margin="dense"
+          id="training-name"
+          label="Name"
+          type="text"
+          fullWidth
+          variant="standard"
+          value={trainingName}
+          onChange={(e) => setTrainingName(e.target.value)}
+        />
+
+        {/* MultiSelect para categorías */}
+        <FormControl fullWidth sx={{ mt: 2 }}>
+          <InputLabel>Categories</InputLabel>
+          <Select
+            multiple
+            value={selectedCategories}
+            onChange={handleCategoryChange}
+            renderValue={(selected) => (selected as string[]).map(catId => {
+              const category = categoryWithExercises.find(c => c.category_id === catId);
+              return category ? category.name : '';
+            }).join(', ')}
+          >
+            {categoryWithExercises.map((category) => (
+              <MenuItem key={category.category_id} value={category.category_id}>
+                <Checkbox checked={selectedCategories.indexOf(category.category_id) > -1} />
+                <ListItemText primary={category.name} />
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {/* Mostrar MultiSelect de ejercicios según las categorías seleccionadas */}
+        {selectedCategories.map((categoryId) => (
+          <FormControl key={categoryId} fullWidth sx={{ mt: 2 }}>
+            <InputLabel>Exercises from {categoryWithExercises.find(cat => cat.category_id === categoryId)?.name}</InputLabel>
+            <Select
+              multiple
+              value={selectedExercises[categoryId] || []}
+              onChange={handleExerciseChange(categoryId)}
+              renderValue={(selected) => (selected as string[]).map(exerciseId => {
+                const category = categoryWithExercises.find(cat => cat.category_id === categoryId);
+                const exercise = category?.exercises.find(ex => ex.exercise_id === exerciseId);
+                return exercise ? exercise.name : '';
+              }).join(', ')}
+            >
+              {categoryWithExercises.find(cat => cat.category_id === categoryId)?.exercises.map((exercise) => (
+                <MenuItem key={exercise.exercise_id} value={exercise.exercise_id}>
+                  <Checkbox checked={selectedExercises[categoryId]?.indexOf(exercise.exercise_id) > -1} />
+                  <ListItemText primary={`${exercise.name} (${exercise.calories_per_hour} kcal/h)`} />
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        ))}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose}>Cancel</Button>
+        <Button onClick={handleCreateTraining}>Create Training</Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+export default CreateTrainingDialog;
