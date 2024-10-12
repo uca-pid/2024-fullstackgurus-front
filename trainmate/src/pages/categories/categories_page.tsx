@@ -27,7 +27,7 @@ import handleCategoryIcon from '../../personalizedComponents/handleCategoryIcon'
 import CreateTrainingDialog from './training_dialog';
 
 interface CategoryWithExercises {
-  category_id: string;
+  id: string;
   icon: string,
   name: string;
   owner: string;
@@ -36,7 +36,7 @@ interface CategoryWithExercises {
 }
 
 interface Category {
-  category_id: string;
+  id: string;
   icon: string,
   name: string;
   owner: string;
@@ -44,7 +44,7 @@ interface Category {
 }
 
 interface Exercise {
-  exercise_id: string;
+  id: string;
   calories_per_hour: number | string;
   category_id: string;
   name: string;
@@ -60,7 +60,7 @@ interface NewCategory {
 
 interface NewExercise {
   calories_per_hour: number | string;
-  category_id: string;
+  id: string;
   name: string;
 }
 
@@ -159,7 +159,7 @@ export default function CategoriesPage() {
   // Podríamos hacer una unica llamada, mandando todas las categorías y que nos devuelva listas de todas las categorías con todos sus ejercicios
   const getExercisesFromCategory = async (category: Category) => {
     try {
-      const exercises = await getExerciseFromCategory(category.category_id);
+      const exercises = await getExerciseFromCategory(category.id);
       console.log("Setting category with exercises", category, exercises);
       setCategoryWithExercises((prev) => [
         ...prev,
@@ -171,7 +171,7 @@ export default function CategoriesPage() {
   };
 
   const handleOpenAddExerciseDialog = (categoryId: string) => {
-    setNewExercise({ ...newExercise, category_id: categoryId, calories_per_hour: newExercise?.calories_per_hour || 0, name: newExercise?.name || '' });
+    setNewExercise({ ...newExercise, id: categoryId, calories_per_hour: newExercise?.calories_per_hour || 0, name: newExercise?.name || '' });
     setAddExerciseDialogOpen(true);
   };
   const handleCloseAddExerciseDialog = () => {
@@ -222,7 +222,7 @@ export default function CategoriesPage() {
         const exercise = await saveExercise(newExercise);
         setCategoryWithExercises(
           categoryWithExercises.map((category) => {
-            if (category.category_id === newExercise.category_id) {
+            if (category.id === newExercise.id) {
               return {
                 ...category,
                 exercises: [
@@ -246,10 +246,10 @@ export default function CategoriesPage() {
   const handleEditCategory = async () => {
     if (editingCategory) {
       try {
-        await editCategory({ name: editingCategory.name, icon: editingCategory.icon }, editingCategory.category_id);
+        await editCategory({ name: editingCategory.name, icon: editingCategory.icon }, editingCategory.id);
         setCategoryWithExercises(
           categoryWithExercises.map((category) =>
-            category.category_id === editingCategory.category_id ? { ...editingCategory, exercises: category.exercises } : category
+            category.id === editingCategory.id ? { ...editingCategory, exercises: category.exercises } : category
           )
         );
         setAlertCategoryEditedOpen(true);
@@ -264,14 +264,14 @@ export default function CategoriesPage() {
   const handleEditExercise = async () => {
     if (editingExercise) {
       try {
-        await editExercise({ name: editingExercise.name, calories_per_hour: editingExercise.calories_per_hour }, editingExercise.exercise_id);
+        await editExercise({ name: editingExercise.name, calories_per_hour: editingExercise.calories_per_hour }, editingExercise.id);
         setCategoryWithExercises(
           categoryWithExercises.map((category) => {
-            if (category.category_id === editingExercise.category_id) {
+            if (category.id === editingExercise.id) {
               return {
                 ...category,
                 exercises: category.exercises.map((exercise) =>
-                  exercise.exercise_id === editingExercise.exercise_id ? editingExercise : exercise
+                  exercise.id === editingExercise.id ? editingExercise : exercise
                 ),
               };
             }
@@ -290,7 +290,7 @@ export default function CategoriesPage() {
   const handleDeleteCategory = async (categoryId: string) => {
     try {
       await deleteCategory(categoryId);
-      setCategoryWithExercises(categoryWithExercises.filter((category) => category.category_id !== categoryId));
+      setCategoryWithExercises(categoryWithExercises.filter((category) => category.id !== categoryId));
       setAlertCategoryDeletedOpen(true);
     } catch (error) {
       console.error('Error al eliminar la categoría:', error);
@@ -302,10 +302,10 @@ export default function CategoriesPage() {
       await deleteExercise(exerciseId);
       setCategoryWithExercises(
         categoryWithExercises.map((category) => {
-          if (category.category_id === categoryId) {
+          if (category.id === categoryId) {
             return {
               ...category,
-              exercises: category.exercises.filter((exercise) => exercise.exercise_id !== exerciseId),
+              exercises: category.exercises.filter((exercise) => exercise.id !== exerciseId),
             };
           }
           return category;
@@ -362,11 +362,11 @@ export default function CategoriesPage() {
               <CardContent>
                   <Box sx={{ height: 'calc(100vh - 300px)', overflowY: 'auto' }}>
                       {categoryWithExercises.map((category) => (
-                          <Accordion key={category.category_id} sx={{ backgroundColor: grey[800], color: 'white' }}>
+                          <Accordion key={category.id} sx={{ backgroundColor: grey[800], color: 'white' }}>
                               <AccordionSummary
                                   expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}
-                                  aria-controls={`panel-${category.category_id}-content`}
-                                  id={`panel-${category.category_id}-header`}
+                                  aria-controls={`panel-${category.id}-content`}
+                                  id={`panel-${category.id}-header`}
                               >
                                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                       {handleCategoryIcon(category.icon)}
@@ -377,7 +377,7 @@ export default function CategoriesPage() {
                                           <IconButton size="small" color="inherit" onClick={() => handleOpenEditCategoryDialog(category)}>
                                               <EditIcon />
                                           </IconButton>
-                                          <IconButton size="small" color="inherit" onClick={() => handleDeleteCategory(category.category_id)}>
+                                          <IconButton size="small" color="inherit" onClick={() => handleDeleteCategory(category.id)}>
                                               <DeleteIcon />
                                           </IconButton>
                                       </Box>
@@ -386,7 +386,7 @@ export default function CategoriesPage() {
                               <AccordionDetails>
                                   <Box sx={{ pl: 4 }}>
                                       {category.exercises.map((exercise) => (
-                                          <Box key={exercise.exercise_id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                          <Box key={exercise.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                                   <Typography>{exercise.name}</Typography>
                                                   <Typography sx={{  fontSize:  '0.7rem', marginLeft: 3 }}>({exercise.calories_per_hour} kcal/h)</Typography>
@@ -396,7 +396,7 @@ export default function CategoriesPage() {
                                                       <IconButton size="small" color="inherit" onClick={() => handleOpenEditExerciseDialog(exercise)}>
                                                           <EditIcon />
                                                       </IconButton>
-                                                      <IconButton size="small" color="inherit" onClick={() => handleDeleteExercise(exercise.exercise_id, category.category_id)}>
+                                                      <IconButton size="small" color="inherit" onClick={() => handleDeleteExercise(exercise.id, category.id)}>
                                                           <DeleteIcon />
                                                       </IconButton>
                                                   </Box>
@@ -408,7 +408,7 @@ export default function CategoriesPage() {
                                           size="small"
                                           startIcon={<PlusIcon />}
                                           sx={{ mt: 2 }}
-                                          onClick={() => handleOpenAddExerciseDialog(category.category_id)}
+                                          onClick={() => handleOpenAddExerciseDialog(category.id)}
                                       >
                                           Add Custom Exercise
                                       </Button>
@@ -453,7 +453,7 @@ export default function CategoriesPage() {
                                 {<AccordionDetails>
                                     <Box sx={{ pl: 4 }}>
                                         {training.exercises.map((exercise) => (
-                                            <Box key={exercise.exercise_id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <Box key={exercise.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                                     <Typography>{exercise.name}</Typography>
                                                     <Typography sx={{ fontSize: '0.7rem', marginLeft: 3 }}>({exercise.calories_per_hour} kcal/h)</Typography>
@@ -567,7 +567,7 @@ export default function CategoriesPage() {
             fullWidth
             variant="standard"
             value={newExercise?.name || ''}
-            onChange={(e) => setNewExercise({ ...newExercise, name: e.target.value, calories_per_hour: newExercise?.calories_per_hour || 1, category_id: newExercise?.category_id || '' })}
+            onChange={(e) => setNewExercise({ ...newExercise, name: e.target.value, calories_per_hour: newExercise?.calories_per_hour || 1, id: newExercise?.id || '' })}
           />
           <TextField
             margin="dense"
@@ -584,7 +584,7 @@ export default function CategoriesPage() {
                   ...newExercise, 
                   calories_per_hour: "", 
                   name: newExercise?.name || '', 
-                  category_id: newExercise?.category_id || '' 
+                  id: newExercise?.id || '' 
                 });
               } else {
                 const numericValue = parseInt(value, 10);
@@ -593,21 +593,21 @@ export default function CategoriesPage() {
                     ...newExercise, 
                     calories_per_hour: numericValue, 
                     name: newExercise?.name || '', 
-                    category_id: newExercise?.category_id || '' 
+                    id: newExercise?.id || '' 
                   });
                 } else if (numericValue < 1) {
                   setNewExercise({ 
                     ...newExercise, 
                     calories_per_hour: 1, 
                     name: newExercise?.name || '', 
-                    category_id: newExercise?.category_id || '' 
+                    id: newExercise?.id || '' 
                   });
                 } else if (numericValue > 4000) {
                   setNewExercise({ 
                     ...newExercise, 
                     calories_per_hour: 4000, 
                     name: newExercise?.name || '', 
-                    category_id: newExercise?.category_id || '' 
+                    id: newExercise?.id || '' 
                   });
                 }
               }

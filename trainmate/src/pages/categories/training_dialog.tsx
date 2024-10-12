@@ -5,7 +5,7 @@ import { saveTraining } from '../../api/TrainingApi';
 
 // Definición de interfaces basadas en tu estructura
 interface Exercise {
-  exercise_id: string;
+  id: string;
   calories_per_hour: number | string;
   category_id: string;
   name: string;
@@ -15,7 +15,7 @@ interface Exercise {
 }
 
 interface CategoryWithExercises {
-  category_id: string;
+  id: string;
   icon: string;
   name: string;
   owner: string;
@@ -61,8 +61,8 @@ const CreateTrainingDialog: React.FC<CreateTrainingDialogProps> = ({ createNewTr
     const newTraining = {
       name: trainingName,
       exercises: Object.keys(selectedExercises).reduce((allExercises, categoryId) => {
-        const exercisesInCategory = categoryWithExercises.find(cat => cat.category_id === categoryId)?.exercises || [];
-        const selectedExerciseObjects = selectedExercises[categoryId].map(exId => exercisesInCategory.find(ex => ex.exercise_id === exId)!);
+        const exercisesInCategory = categoryWithExercises.find(cat => cat.id === categoryId)?.exercises || [];
+        const selectedExerciseObjects = selectedExercises[categoryId].map(exId => exercisesInCategory.find(ex => ex.id === exId)!);
         return [...allExercises, ...selectedExerciseObjects];
       }, [] as Exercise[]),
     };
@@ -123,13 +123,13 @@ const CreateTrainingDialog: React.FC<CreateTrainingDialogProps> = ({ createNewTr
             value={selectedCategories}
             onChange={handleCategoryChange}
             renderValue={(selected) => (selected as string[]).map(catId => {
-              const category = categoryWithExercises.find(c => c.category_id === catId);
+              const category = categoryWithExercises.find(c => c.id === catId);
               return category ? category.name : '';
             }).join(', ')}
           >
             {categoryWithExercises.map((category) => (
-              <MenuItem key={category.category_id} value={category.category_id}>
-                <Checkbox checked={selectedCategories.indexOf(category.category_id) > -1} />
+              <MenuItem key={category.id} value={category.id}>
+                <Checkbox checked={selectedCategories.indexOf(category.id) > -1} />
                 <ListItemText primary={category.name} />
               </MenuItem>
             ))}
@@ -139,20 +139,20 @@ const CreateTrainingDialog: React.FC<CreateTrainingDialogProps> = ({ createNewTr
         {/* Mostrar MultiSelect de ejercicios según las categorías seleccionadas */}
         {selectedCategories.map((categoryId) => (
           <FormControl key={categoryId} fullWidth sx={{ mt: 2 }}>
-            <InputLabel>Exercises from {categoryWithExercises.find(cat => cat.category_id === categoryId)?.name}</InputLabel>
+            <InputLabel>Exercises from {categoryWithExercises.find(cat => cat.id === categoryId)?.name}</InputLabel>
             <Select
               multiple
               value={selectedExercises[categoryId] || []}
               onChange={handleExerciseChange(categoryId)}
               renderValue={(selected) => (selected as string[]).map(exerciseId => {
-                const category = categoryWithExercises.find(cat => cat.category_id === categoryId);
-                const exercise = category?.exercises.find(ex => ex.exercise_id === exerciseId);
+                const category = categoryWithExercises.find(cat => cat.id === categoryId);
+                const exercise = category?.exercises.find(ex => ex.id === exerciseId);
                 return exercise ? exercise.name : '';
               }).join(', ')}
             >
-              {categoryWithExercises.find(cat => cat.category_id === categoryId)?.exercises.map((exercise) => (
-                <MenuItem key={exercise.exercise_id} value={exercise.exercise_id}>
-                  <Checkbox checked={selectedExercises[categoryId]?.indexOf(exercise.exercise_id) > -1} />
+              {categoryWithExercises.find(cat => cat.id === categoryId)?.exercises.map((exercise) => (
+                <MenuItem key={exercise.id} value={exercise.id}>
+                  <Checkbox checked={selectedExercises[categoryId]?.indexOf(exercise.id) > -1} />
                   <ListItemText primary={`${exercise.name} (${exercise.calories_per_hour} kcal/h)`} />
                 </MenuItem>
               ))}

@@ -47,7 +47,7 @@ interface Workout {
 }
 
 interface Category {
-  category_id: string;
+  id: string;
   icon: string;
   name: string;
   owner: string;
@@ -62,6 +62,15 @@ interface Exercise {
   owner: string;
   public: boolean;
   training_muscle: string;
+}
+
+interface CategoryWithExercises {
+  id: string;
+  icon: string,
+  name: string;
+  owner: string;
+  isCustom: boolean;
+  exercises: Exercise[];
 }
 
 export default function HomePage() {
@@ -85,6 +94,7 @@ export default function HomePage() {
   const [filterExerciseOpen, setFilterExerciseOpen] = useState(false);
   const [selectedCategoryInFilter, setSelectedCategoryInFilter] = useState<Category | null>(null);
   const [selectedExerciseInFilter, setSelectedExerciseInFilter] = useState<Workout | null>(null);
+  const [categoryWithExercises, setCategoryWithExercises] = useState<CategoryWithExercises[]>([]);
 
   const handleAvatarClick = () => {
     navigate('/profile');
@@ -321,8 +331,24 @@ export default function HomePage() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const categories = await getAllCategories();
-        setCategories(categories);
+        const categories_from_local_storage = JSON.parse(localStorage.getItem('categories') || '[]');
+        const exercises_from_local_storage = JSON.parse(localStorage.getItem('exercises') || '[]');
+        if (categories_from_local_storage.length > 0 && exercises_from_local_storage.length > 0) {
+          setCategories(categories_from_local_storage);
+          setCategoryWithExercises(exercises_from_local_storage);
+          console.log('Workouts and calories per day loaded from local storage');
+        }
+        else {
+          const categories = await getAllCategories();
+          var all_exercises: CategoryWithExercises[] = [];
+          for (const category of categories) {
+            const exercises = await getExerciseFromCategory(category.id);
+            all_exercises = [...all_exercises, ...exercises];
+          }
+          setCategories(categories);
+          localStorage.setItem('exercises', JSON.stringify(all_exercises));
+          localStorage.setItem('categories', JSON.stringify(categories));
+        }
       } catch (error) {
         console.error('Error al obtener las categorías:', error);
       }
@@ -330,7 +356,7 @@ export default function HomePage() {
     fetchCategories();
   }, []);
 
-  const getExercisesFromCategory = async (category_id: String) => {
+  const getExercisesFromCategoryById = async (category_id: String) => {
     try {
       const exercises = await getExerciseFromCategory(category_id);
       setExercises(Array.isArray(exercises) ? exercises : []);
@@ -339,6 +365,18 @@ export default function HomePage() {
       return [];
     }
   }
+
+  // const getExercisesFromCategory = async (category: Category) => {
+  //   try {
+  //     const exercises = await getExerciseFromCategory(category.id);
+  //     setCategoryWithExercises((prev) => [
+  //       ...prev,
+  //       { ...category, exercises }
+  //     ]);
+  //   } catch (error) {
+  //     console.error('Error al obtener todas las categorías:', error);
+  //   }
+  // };
 
   useEffect(() => {
     const fetchCoaches = async () => {
@@ -469,8 +507,8 @@ export default function HomePage() {
 
           <Select
             fullWidth
-            value={selectedCategory?.category_id || ""}
-            onChange={(e) => { setSelectedCategory(categories.find((category) => category.category_id === e.target.value) || null); getExercisesFromCategory(e.target.value) }}
+            value={selectedCategory?.id || ""}
+            onChange={(e) => { setSelectedCategory(categories.find((category) => category.id === e.target.value) || null); getExercisesFromCategoryById(e.target.value) }}
             displayEmpty
             sx={{ marginBottom: 1 }}
             MenuProps={{
@@ -490,7 +528,7 @@ export default function HomePage() {
               Select Category
             </MenuItem>
             {categories.map((category) => (
-              <MenuItem key={category.category_id} value={category.category_id}>
+              <MenuItem key={category.id} value={category.id}>
                 {handleCategoryIcon(category.icon)}{category.name}
               </MenuItem>
             ))}
