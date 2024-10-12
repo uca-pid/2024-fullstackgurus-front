@@ -51,7 +51,6 @@ export const saveWorkout = async (token: string, workoutData: { exercise_id: str
 
 export const getWorkouts = async (token: string, startDate?: string, endDate?: string) => {
   try {
-    // Build the query string based on the presence of startDate and endDate
     let query = '';
     if (startDate && endDate) {
       query = `?startDate=${startDate}&endDate=${endDate}`;

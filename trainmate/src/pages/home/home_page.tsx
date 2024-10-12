@@ -35,14 +35,15 @@ import { FilterDateDialog } from './filter_date';
 import { FilterCategoryDialog } from './filter_category';
 import { FilterExerciseDialog } from './filter_exercise';
 import handleCategoryIcon from '../../personalizedComponents/handleCategoryIcon';
+import { Divider } from '@mui/material';
 
 interface Workout {
   id: number;
-  exercise_id: string;
-  exercise: string;
   duration: number;
   date: string;
-  calories: number;
+  total_calories: number;
+  coach: string;
+  training: Exercise;
 }
 
 interface Category {
@@ -54,12 +55,13 @@ interface Category {
 }
 
 interface Exercise {
-  exercise_id: string;
+  id: string;
   calories_per_hour: number;
   category_id: string;
   name: string;
   owner: string;
   public: boolean;
+  training_muscle: string;
 }
 
 export default function HomePage() {
@@ -107,7 +109,6 @@ export default function HomePage() {
 
       // Obtén la fecha actual (hoy) en formato YYYY-MM-DD
       const today = new Date().toISOString().split('T')[0];
-
       // Llama a getWorkouts solo con el endDate como hoy
       const workouts = await getWorkouts(token, undefined, today);
       return Array.isArray(workouts) ? workouts : [];
@@ -121,20 +122,35 @@ export default function HomePage() {
     const fetchWorkouts = async () => {
       try {
         setLoading(true);
-        var workouts = await getAllWorkouts();
-        if (selectedCategoryInFilter) {
-          const exercises = await getExerciseFromCategory(selectedCategoryInFilter.category_id);
-          workouts = workouts.filter((workout) => exercises.find((exercise: Exercise) => exercise.exercise_id === workout.exercise_id));
+        const workouts_from_local_storage = JSON.parse(localStorage.getItem('workouts') || '[]');
+        const calories_per_day_from_local_storage = JSON.parse(localStorage.getItem('calories_per_day') || '{}');
+        console.log(workouts_from_local_storage);
+        console.log(calories_per_day_from_local_storage);
+        if (workouts_from_local_storage.length > 0 && Object.keys(calories_per_day_from_local_storage).length > 0) {
+          setWorkoutList(workouts_from_local_storage);
+          setCaloriesPerDay(calories_per_day_from_local_storage);
+          console.log('Workouts and calories per day loaded from local storage');
         }
-        if (selectedExerciseInFilter) {
-          workouts = workouts.filter((workout) => workout.exercise === selectedExerciseInFilter.exercise);
+        else {
+          var workouts = await getAllWorkouts();
+          // if (selectedCategoryInFilter) {
+          //   const exercises = await getExerciseFromCategory(selectedCategoryInFilter.category_id);
+          //   workouts = workouts.filter((workout) => exercises.find((exercise: Exercise) => exercise.exercise_id === workout.exercise_id));
+          // }
+          // if (selectedExerciseInFilter) {
+          //   workouts = workouts.filter((workout) => workout.exercise === selectedExerciseInFilter.exercise);
+          // }
+          const validWorkouts = workouts.filter((workout: Workout) =>
+            workout.duration && workout.date && workout.total_calories && workout.coach
+          );
+          // Sort the workouts by date (we convert the string to a Date object)
+          const sortedWorkouts = validWorkouts.sort((a: Workout, b: Workout) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          setWorkoutList(sortedWorkouts);
+          const calories_per_day = calculate_calories_per_day(sortedWorkouts);
+          setCaloriesPerDay(calories_per_day);
+          localStorage.setItem('workouts', JSON.stringify(sortedWorkouts));
+          localStorage.setItem('calories_per_day', JSON.stringify(calories_per_day));
         }
-        const validWorkouts = workouts.filter((workout: Workout) =>
-          workout.exercise && workout.duration && workout.date && workout.calories
-        );
-        // Sort the workouts by date (we convert the string to a Date object)
-        const sortedWorkouts = validWorkouts.sort((a: Workout, b: Workout) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        setWorkoutList(sortedWorkouts);
       } catch (error) {
         console.error('Error al obtener los entrenamientos:', error);
       } finally {
@@ -143,24 +159,24 @@ export default function HomePage() {
     };
 
     fetchWorkouts();
-  }, [workoutsCount, selectedCategoryInFilter, selectedExerciseInFilter]);
+  }, [workoutsCount/* , selectedCategoryInFilter, selectedExerciseInFilter */]);
 
-  const getAllWorkoutsCalories = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('Token no encontrado');
+  // const getAllWorkoutsCalories = async () => {
+  //   try {
+  //     const token = localStorage.getItem('token');
+  //     if (!token) throw new Error('Token no encontrado');
 
-      // Obtén la fecha actual (hoy) en formato YYYY-MM-DD
-      const today = new Date().toISOString().split('T')[0];
+  //     // Obtén la fecha actual (hoy) en formato YYYY-MM-DD
+  //     const today = new Date().toISOString().split('T')[0];
 
-      const workouts_data = await getWorkoutsCalories(token, undefined, today);
-      const workouts_calories_and_dates = workouts_data.workouts_calories_and_dates;
-      return Array.isArray(workouts_calories_and_dates) ? workouts_calories_and_dates : [];
-    } catch (error) {
-      console.error('Error al obtener toda la data de los entrenamientos:', error);
-      return [];
-    }
-  };
+  //     const workouts_data = await getWorkoutsCalories(token, undefined, today);
+  //     const workouts_calories_and_dates = workouts_data.workouts_calories_and_dates;
+  //     return Array.isArray(workouts_calories_and_dates) ? workouts_calories_and_dates : [];
+  //   } catch (error) {
+  //     console.error('Error al obtener toda la data de los entrenamientos:', error);
+  //     return [];
+  //   }
+  // };
 
   const formatDataForChart = () => {
     return Object.keys(caloriesPerDay)
@@ -171,29 +187,29 @@ export default function HomePage() {
       .sort((b, a) => new Date(b.date.split('/').reverse().join('-')).getTime() - new Date(a.date.split('/').reverse().join('-')).getTime());
   };
 
-  useEffect(() => {
-    const fetchWorkoutsCalories = async () => {
-      try {
-        var workouts_calories_and_dates = await getAllWorkoutsCalories();
+  // useEffect(() => {
+  //   const fetchWorkoutsCalories = async () => {
+  //     try {
+  //       // var workouts_calories_and_dates = await getAllWorkoutsCalories();
   
-        if (selectedCategoryInFilter) {
-          const exercises = await getExerciseFromCategory(selectedCategoryInFilter.category_id);
-          workouts_calories_and_dates = workouts_calories_and_dates.filter((workout) =>
-            exercises.find((exercise: Exercise) => exercise.exercise_id === workout.exercise_id)
-          );
-        }
-        if (selectedExerciseInFilter) {
-          workouts_calories_and_dates = workouts_calories_and_dates.filter((workout) => workout.exercise_id === selectedExerciseInFilter.exercise_id);
-        }
-        const calories_per_day = calculate_calories_per_day(workouts_calories_and_dates);
-        setCaloriesPerDay(calories_per_day);
-      } catch (error) {
-        console.error('Error fetching workout calories data:', error);
-      }
-    };
+  //       // if (selectedCategoryInFilter) {
+  //       //   const exercises = await getExerciseFromCategory(selectedCategoryInFilter.category_id);
+  //       //   workouts_calories_and_dates = workouts_calories_and_dates.filter((workout) =>
+  //       //     exercises.find((exercise: Exercise) => exercise.exercise_id === workout.exercise_id)
+  //       //   );
+  //       // }
+  //       // if (selectedExerciseInFilter) {
+  //       //   workouts_calories_and_dates = workouts_calories_and_dates.filter((workout) => workout.exercise_id === selectedExerciseInFilter.exercise_id);
+  //       // }
+  //       const calories_per_day = calculate_calories_per_day(workouts_calories_and_dates);
+  //       setCaloriesPerDay(calories_per_day);
+  //     } catch (error) {
+  //       console.error('Error fetching workout calories data:', error);
+  //     }
+  //   };
   
-    fetchWorkoutsCalories();
-  }, [workoutsCount, selectedCategoryInFilter, selectedExerciseInFilter]);
+  //   fetchWorkoutsCalories();
+  // }, [workoutsCount, selectedCategoryInFilter, selectedExerciseInFilter]);
 
   const dataForChart = useMemo(() => formatDataForChart(), [caloriesPerDay]);
 
@@ -483,7 +499,7 @@ export default function HomePage() {
           <Select
             fullWidth
             value={newWorkout.exercise_id}
-            onChange={(e) => setNewWorkout({ ...newWorkout, exercise_id: e.target.value, exercise: exercises.find((exercise) => exercise.exercise_id === e.target.value)?.name || '' })}
+            onChange={(e) => setNewWorkout({ ...newWorkout, exercise_id: e.target.value, exercise: exercises.find((exercise) => exercise.id === e.target.value)?.name || '' })}
             displayEmpty
             sx={{ marginBottom: 1 }}
             MenuProps={{
@@ -503,7 +519,7 @@ export default function HomePage() {
               Select Exercise Type
             </MenuItem>
             {exercises.map((exerciseFromCategory) => (
-              <MenuItem key={exerciseFromCategory.exercise_id} value={exerciseFromCategory.exercise_id}>
+              <MenuItem key={exerciseFromCategory.id} value={exerciseFromCategory.id}>
                 {exerciseFromCategory.name}
               </MenuItem>
             ))}
@@ -627,7 +643,7 @@ export default function HomePage() {
                   width: 130
                   }}
                 >
-                  <Typography variant="h6">{selectedExerciseInFilter?.exercise}</Typography>
+                  {/* <Typography variant="h6">{selectedExerciseInFilter?.exercise}</Typography> */}
                   <IconButton aria-label="add" onClick={() => setSelectedExerciseInFilter(null)}>
                     <CloseIcon sx={{ color: grey[900], fontSize: 20 }} className="h-12 w-12" />
                   </IconButton>
@@ -643,7 +659,7 @@ export default function HomePage() {
                     <XAxis dataKey="date" stroke="#fff" tick={{ dy: 13 }} />
                     <YAxis stroke="#fff" />
                     <Tooltip />
-                    <Line type="monotone" dataKey="calories" stroke="#008000" activeDot={{ r: 10 }} />
+                    <Line type="monotone" dataKey="calories" stroke="red" activeDot={{ r: 10 }} />
                   </LineChart>
                 ) : (
                   <div>
@@ -658,32 +674,35 @@ export default function HomePage() {
             </CardContent>
           </Card>
 
-          <Card sx={{ backgroundColor: '#333', color: '#fff' }}>
+          <Card sx={{ backgroundColor: '#333', color: '#fff', width: '33%' }}>
             <CardHeader title="Recent Workouts" />
             <CardContent>
               <ScrollArea sx={{ maxHeight: 300, overflow: 'auto' }}>
                 {Array.isArray(workoutList) && workoutList.length > 0 ? (
-                  workoutList.map((exercise: any) => (
-                    <div key={exercise.id} className="flex items-center space-x-4 mb-4">
-                      {/* <div className="bg-primary rounded-full p-2">
-                        {exercise.exercise === 'Running' && <Timer className="h-6 w-6" />}
-                        {exercise.exercise === 'Weightlifting' && <Dumbbell className="h-6 w-6" />}
-                        {exercise.exercise === 'Cycling' && <Bike className="h-6 w-6" />}
-                        {(exercise.exercise !== 'Running' && exercise.exercise !== 'Weightlifting' && exercise.exercise !== 'Cycling') && <Trophy className="h-6 w-6" />}
-                      </div> */}
+                  workoutList.map((workout: any) => (
+                    <div key={workout.id} className="flex items-center space-x-4 mb-4">
                       <div className="flex-1">
-                        <Typography variant="h6">{exercise.exercise}</Typography>
-                        <Typography variant="body2" color="gray">
-                          {exercise.duration} min | {formatDate(exercise.date)}
+                        <Divider sx={{ backgroundColor: 'gray', marginY: 1 }} />
+                        <Box sx={{ display: 'flex', flexDirection: { xs: 'row', sm: 'row' }, justifyContent: 'space-between', width: '100%', marginBottom: 1 }}>
+                          <Typography variant="h6" color="#81d8d0" sx={{ flex: 1 }}>{workout.training.name}</Typography>
+                          <Typography variant="h6" color='#44f814' sx={{ flex: 1, textAlign: 'left' }}>{workout.duration} min</Typography>
+                          <Typography variant="h6" color='red' sx={{ flex: 1, textAlign: 'left' }}>{workout.total_calories} kcal</Typography>
+                          <Typography variant="subtitle1" color='gray' sx={{ flex: 1, textAlign: 'right' }}>{formatDate(workout.date)} </Typography>
+                        </Box>
+                        <Typography variant="body2">
+                          {workout.training.exercises.map((exercise: any, index: number) => (
+                          <span key={exercise.id}>
+                            {exercise.name}
+                            {index < workout.training.exercises.length - 1 && ' - '}
+                          </span>
+                          ))}
                         </Typography>
-                      </div>
-                      <div className="text-right">
-                        <Typography variant="h6">{exercise.calories} kcal</Typography>
+                        <Typography variant="body2" color="gray">Coach: {workout.coach}</Typography>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <Typography variant="body2" color="gray">No exercises available</Typography>
+                  <Typography variant="body2" color="gray">No workouts available</Typography>
                 )}
               </ScrollArea>
             </CardContent>
