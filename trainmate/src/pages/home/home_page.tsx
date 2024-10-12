@@ -200,24 +200,7 @@ export default function HomePage() {
     };
 
     fetchWorkouts();
-  }, [workoutsCount/* , selectedCategoryInFilter, selectedExerciseInFilter */]);
-
-  // const getAllWorkoutsCalories = async () => {
-  //   try {
-  //     const token = localStorage.getItem('token');
-  //     if (!token) throw new Error('Token no encontrado');
-
-  //     // Obtén la fecha actual (hoy) en formato YYYY-MM-DD
-  //     const today = new Date().toISOString().split('T')[0];
-
-  //     const workouts_data = await getWorkoutsCalories(token, undefined, today);
-  //     const workouts_calories_and_dates = workouts_data.workouts_calories_and_dates;
-  //     return Array.isArray(workouts_calories_and_dates) ? workouts_calories_and_dates : [];
-  //   } catch (error) {
-  //     console.error('Error al obtener toda la data de los entrenamientos:', error);
-  //     return [];
-  //   }
-  // };
+  }, [workoutsCount]);
 
   const formatDataForChart = () => {
     return Object.keys(caloriesPerDay)
@@ -227,30 +210,6 @@ export default function HomePage() {
       }))
       .sort((b, a) => new Date(b.date.split('/').reverse().join('-')).getTime() - new Date(a.date.split('/').reverse().join('-')).getTime());
   };
-
-  // useEffect(() => {
-  //   const fetchWorkoutsCalories = async () => {
-  //     try {
-  //       // var workouts_calories_and_dates = await getAllWorkoutsCalories();
-  
-  //       // if (selectedCategoryInFilter) {
-  //       //   const exercises = await getExerciseFromCategory(selectedCategoryInFilter.category_id);
-  //       //   workouts_calories_and_dates = workouts_calories_and_dates.filter((workout) =>
-  //       //     exercises.find((exercise: Exercise) => exercise.exercise_id === workout.exercise_id)
-  //       //   );
-  //       // }
-  //       // if (selectedExerciseInFilter) {
-  //       //   workouts_calories_and_dates = workouts_calories_and_dates.filter((workout) => workout.exercise_id === selectedExerciseInFilter.exercise_id);
-  //       // }
-  //       const calories_per_day = calculate_calories_per_day(workouts_calories_and_dates);
-  //       setCaloriesPerDay(calories_per_day);
-  //     } catch (error) {
-  //       console.error('Error fetching workout calories data:', error);
-  //     }
-  //   };
-  
-  //   fetchWorkoutsCalories();
-  // }, [workoutsCount, selectedCategoryInFilter, selectedExerciseInFilter]);
 
   const dataForChart = useMemo(() => formatDataForChart(), [caloriesPerDay]);
 
@@ -356,6 +315,8 @@ export default function HomePage() {
       handleClose();
       localStorage.removeItem('workouts');
       localStorage.removeItem('calories_per_day');
+      localStorage.removeItem('categories_with_exercises');
+      localStorage.removeItem('categories');
     }
   };
 
@@ -403,17 +364,6 @@ export default function HomePage() {
     setTopExercisesDone(top_exercises_done_for_graph.topCategoriesWithExercises);
   },[workoutList, categoryWithExercises]);
 
-
-  // const getExercisesFromCategoryById = async (category_id: String) => {
-  //   try {
-  //     const exercises = await getExerciseFromCategory(category_id);
-  //     setExercises(Array.isArray(exercises) ? exercises : []);
-  //   } catch (error) {
-  //     console.error('Error al obtener todas las categorías:', error);
-  //     return [];
-  //   }
-  // }
-
   const getAllTrainings = async () => {
     try {
       const trainings = await getTrainings();
@@ -422,19 +372,7 @@ export default function HomePage() {
     } catch (error) {
       console.error('Error al obtener los entrenamientos:', error);
     }
-  }
-
-  // const getExercisesFromCategory = async (category: Category) => {
-  //   try {
-  //     const exercises = await getExerciseFromCategory(category.id);
-  //     setCategoryWithExercises((prev) => [
-  //       ...prev,
-  //       { ...category, exercises }
-  //     ]);
-  //   } catch (error) {
-  //     console.error('Error al obtener todas las categorías:', error);
-  //   }
-  // };
+  };
 
   useEffect(() => {
     const fetchCoaches = async () => {

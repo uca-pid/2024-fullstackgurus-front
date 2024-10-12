@@ -60,8 +60,8 @@ interface NewCategory {
 
 interface NewExercise {
   calories_per_hour: number | string;
-  id: string;
   name: string;
+  category_id: string;
 }
 
 interface Trainings {
@@ -171,7 +171,7 @@ export default function CategoriesPage() {
   };
 
   const handleOpenAddExerciseDialog = (categoryId: string) => {
-    setNewExercise({ ...newExercise, id: categoryId, calories_per_hour: newExercise?.calories_per_hour || 0, name: newExercise?.name || '' });
+    setNewExercise({ ...newExercise, category_id: categoryId, calories_per_hour: newExercise?.calories_per_hour || 0, name: newExercise?.name || '' });
     setAddExerciseDialogOpen(true);
   };
   const handleCloseAddExerciseDialog = () => {
@@ -222,7 +222,7 @@ export default function CategoriesPage() {
         const exercise = await saveExercise(newExercise);
         setCategoryWithExercises(
           categoryWithExercises.map((category) => {
-            if (category.id === newExercise.id) {
+            if (category.id === newExercise.category_id) {
               return {
                 ...category,
                 exercises: [
@@ -567,7 +567,7 @@ export default function CategoriesPage() {
             fullWidth
             variant="standard"
             value={newExercise?.name || ''}
-            onChange={(e) => setNewExercise({ ...newExercise, name: e.target.value, calories_per_hour: newExercise?.calories_per_hour || 1, id: newExercise?.id || '' })}
+            onChange={(e) => setNewExercise({ ...newExercise, name: e.target.value, calories_per_hour: newExercise?.calories_per_hour || 1, category_id: newExercise?.category_id || '' })}
           />
           <TextField
             margin="dense"
@@ -584,7 +584,7 @@ export default function CategoriesPage() {
                   ...newExercise, 
                   calories_per_hour: "", 
                   name: newExercise?.name || '', 
-                  id: newExercise?.id || '' 
+                  category_id: newExercise?.category_id || '' 
                 });
               } else {
                 const numericValue = parseInt(value, 10);
@@ -593,21 +593,21 @@ export default function CategoriesPage() {
                     ...newExercise, 
                     calories_per_hour: numericValue, 
                     name: newExercise?.name || '', 
-                    id: newExercise?.id || '' 
+                    category_id: newExercise?.category_id || '' 
                   });
                 } else if (numericValue < 1) {
                   setNewExercise({ 
                     ...newExercise, 
                     calories_per_hour: 1, 
                     name: newExercise?.name || '', 
-                    id: newExercise?.id || '' 
+                    category_id: newExercise?.category_id || '' 
                   });
                 } else if (numericValue > 4000) {
                   setNewExercise({ 
                     ...newExercise, 
                     calories_per_hour: 4000, 
                     name: newExercise?.name || '', 
-                    id: newExercise?.id || '' 
+                    category_id: newExercise?.category_id || '' 
                   });
                 }
               }
