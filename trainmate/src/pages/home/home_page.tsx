@@ -36,6 +36,8 @@ import { FilterCategoryDialog } from './filter_category';
 import { FilterExerciseDialog } from './filter_exercise';
 import handleCategoryIcon from '../../personalizedComponents/handleCategoryIcon';
 import { Divider } from '@mui/material';
+import { top_exercises_done } from '../../functions/top_exercises_done';
+import DynamicBarChart from './bars_graph';
 
 interface Workout {
   id: number;
@@ -43,7 +45,14 @@ interface Workout {
   date: string;
   total_calories: number;
   coach: string;
-  training: Exercise;
+  training: Training;
+}
+
+interface Training {
+  calories_per_hour_mean: number;
+  exercises: Exercise[];
+  name: string;
+  owner: string;
 }
 
 interface Category {
@@ -73,6 +82,19 @@ interface CategoryWithExercises {
   exercises: Exercise[];
 }
 
+interface ExerciseCount {
+  exerciseId: string;
+  name: string;
+  count: number;
+}
+
+interface topCategoriesWithExercises {
+  categoryId: string;
+  categoryName: string;
+  totalCount: number;
+  exercises: ExerciseCount[];
+}
+
 export default function HomePage() {
   const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState('month');
@@ -95,6 +117,7 @@ export default function HomePage() {
   const [selectedCategoryInFilter, setSelectedCategoryInFilter] = useState<Category | null>(null);
   const [selectedExerciseInFilter, setSelectedExerciseInFilter] = useState<Workout | null>(null);
   const [categoryWithExercises, setCategoryWithExercises] = useState<CategoryWithExercises[]>([]);
+  const [topExercisesDone, setTopExercisesDone] = useState<topCategoriesWithExercises[]>([]);
 
   const handleAvatarClick = () => {
     navigate('/profile');
@@ -332,7 +355,7 @@ export default function HomePage() {
     const fetchCategories = async () => {
       try {
         const categories_from_local_storage = JSON.parse(localStorage.getItem('categories') || '[]');
-        const exercises_from_local_storage = JSON.parse(localStorage.getItem('exercises') || '[]');
+        const exercises_from_local_storage = JSON.parse(localStorage.getItem('categories_with_exercises') || '[]');
         if (categories_from_local_storage.length > 0 && exercises_from_local_storage.length > 0) {
           setCategories(categories_from_local_storage);
           setCategoryWithExercises(exercises_from_local_storage);
@@ -340,13 +363,13 @@ export default function HomePage() {
         }
         else {
           const categories = await getAllCategories();
-          var all_exercises: CategoryWithExercises[] = [];
+          var categories_with_exercises: CategoryWithExercises[] = [];
           for (const category of categories) {
             const exercises = await getExerciseFromCategory(category.id);
-            all_exercises = [...all_exercises, ...exercises];
+            categories_with_exercises = [...categories_with_exercises, { ...category, exercises }];
           }
           setCategories(categories);
-          localStorage.setItem('exercises', JSON.stringify(all_exercises));
+          localStorage.setItem('categories_with_exercises', JSON.stringify(categories_with_exercises));
           localStorage.setItem('categories', JSON.stringify(categories));
         }
       } catch (error) {
@@ -355,6 +378,13 @@ export default function HomePage() {
     };
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    const top_exercises_done_for_graph = top_exercises_done(workoutList, categoryWithExercises);
+    console.log(top_exercises_done_for_graph);
+    setTopExercisesDone(top_exercises_done_for_graph.topCategoriesWithExercises);
+  },[workoutList, categoryWithExercises]);
+
 
   const getExercisesFromCategoryById = async (category_id: String) => {
     try {
@@ -713,40 +743,59 @@ export default function HomePage() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
-
-          <Card sx={{ backgroundColor: '#333', color: '#fff', width: '33%' }}>
-            <CardHeader title="Workouts" />
-            <CardContent>
-              <ScrollArea sx={{ maxHeight: 300, overflow: 'auto' }}>
-                {Array.isArray(workoutList) && workoutList.length > 0 ? (
-                  workoutList.map((workout: any) => (
-                    <div key={workout.id} className="flex items-center space-x-4 mb-4">
-                      <div className="flex-1">
-                        <Divider sx={{ backgroundColor: 'gray', marginY: 1 }} />
-                        <Box sx={{ display: 'flex', flexDirection: { xs: 'row', sm: 'row' }, justifyContent: 'space-between', width: '100%', marginBottom: 1 }}>
-                          <Typography variant="h6" color="#81d8d0" sx={{ flex: 1 }}>{workout.training.name}</Typography>
-                          <Typography variant="h6" color='#44f814' sx={{ flex: 1, textAlign: 'left' }}>{workout.duration} min</Typography>
-                          <Typography variant="h6" color='red' sx={{ flex: 1, textAlign: 'left' }}>{workout.total_calories} kcal</Typography>
-                          <Typography variant="subtitle1" color='gray' sx={{ flex: 1, textAlign: 'right' }}>{formatDate(workout.date)} </Typography>
-                        </Box>
-                        <Typography variant="body2">
-                          {workout.training.exercises.map((exercise: any, index: number) => (
-                          <span key={exercise.id}>
-                            {exercise.name}
-                            {index < workout.training.exercises.length - 1 && ' - '}
-                          </span>
-                          ))}
-                        </Typography>
-                        <Typography variant="body2" color="gray">Coach: {workout.coach}</Typography>
+          <Box sx={{ display: 'flex', height: '100%', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+            <Card sx={{ flex: 1, backgroundColor: '#333', color: '#fff', width: '100%', height: '100%' }}>
+              <CardHeader title="Workouts" />
+              <CardContent>
+                <ScrollArea sx={{ maxHeight: 400, overflow: 'auto' }}>
+                  {Array.isArray(workoutList) && workoutList.length > 0 ? (
+                    workoutList.map((workout: any) => (
+                      <div key={workout.id} className="flex items-center space-x-4 mb-4">
+                        <div className="flex-1">
+                          <Divider sx={{ backgroundColor: 'gray', marginY: 1 }} />
+                          <Box sx={{ display: 'flex', flexDirection: { xs: 'row', sm: 'row' }, justifyContent: 'space-between', width: '100%', marginBottom: 1 }}>
+                            <Typography variant="h6" color="#81d8d0" sx={{ flex: 1 }}>{workout.training.name}</Typography>
+                            <Typography variant="h6" color='#44f814' sx={{ flex: 1, textAlign: 'left' }}>{workout.duration} min</Typography>
+                            <Typography variant="h6" color='red' sx={{ flex: 1, textAlign: 'left' }}>{workout.total_calories} kcal</Typography>
+                            <Typography variant="subtitle1" color='gray' sx={{ flex: 1, textAlign: 'right' }}>{formatDate(workout.date)} </Typography>
+                          </Box>
+                          <Typography variant="body2">
+                            {workout.training.exercises.map((exercise: any, index: number) => (
+                            <span key={exercise.id}>
+                              {exercise.name}
+                              {index < workout.training.exercises.length - 1 && ' - '}
+                            </span>
+                            ))}
+                          </Typography>
+                          <Typography variant="body2" color="gray">Coach: {workout.coach}</Typography>
+                        </div>
                       </div>
-                    </div>
-                  ))
-                ) : (
-                  <Typography variant="body2" color="gray">No workouts available</Typography>
-                )}
-              </ScrollArea>
-            </CardContent>
-          </Card>
+                    ))
+                  ) : (
+                    <Typography variant="body2" color="gray">No workouts available</Typography>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+
+            <Card sx={{ flex: 1, backgroundColor: '#333', color: '#fff', width: '100%' }}>
+              <CardHeader title="Top Categories & Exercises done" />
+              <CardContent>
+              {Array.isArray(topExercisesDone) && topExercisesDone.length > 0 ? (
+                <DynamicBarChart topExercisesDone={topExercisesDone}/>
+              ) : (
+                <Typography variant="body2" color="gray">No workouts available</Typography>
+              )}
+              </CardContent>
+            </Card>
+
+            <Card sx={{ flex: 1, backgroundColor: '#333', color: '#fff', width: '100%' }}>
+              <CardHeader title="Water intake" />
+              <CardContent>
+                
+              </CardContent>
+            </Card>
+          </Box>
         </main>
       )}
     </div>
