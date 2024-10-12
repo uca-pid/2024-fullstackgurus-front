@@ -16,7 +16,6 @@ import { grey } from '@mui/material/colors';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import CloseIcon from '@mui/icons-material/Close';
-import { Dumbbell, Timer, Bike, Trophy } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Brush } from 'recharts';
 import Typography from '@mui/material/Typography';
 import ScrollArea from '@mui/material/Box';
@@ -30,14 +29,13 @@ import { getCategories } from '../../api/CategoryApi';
 import { getExerciseFromCategory } from '../../api/ExerciseApi';
 import { getCoaches } from '../../api/CoachesApi_external';
 import CalendarModal from '../calendar/CalendarPage';
-import { WorkOff } from '@mui/icons-material';
-import { FilterDateDialog } from './filter_date';
 import { FilterCategoryDialog } from './filter_category';
 import { FilterExerciseDialog } from './filter_exercise';
 import handleCategoryIcon from '../../personalizedComponents/handleCategoryIcon';
 import { Divider } from '@mui/material';
 import { top_exercises_done } from '../../functions/top_exercises_done';
 import DynamicBarChart from './bars_graph';
+import { getTrainings } from '../../api/TrainingApi';
 
 interface Workout {
   id: number;
@@ -95,6 +93,14 @@ interface topCategoriesWithExercises {
   exercises: ExerciseCount[];
 }
 
+interface Trainings {
+  id: string;
+  name: string;
+  owner: string;
+  calories_per_hour_mean: number;
+  exercises: Exercise[];
+}
+
 export default function HomePage() {
   const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState('month');
@@ -118,6 +124,8 @@ export default function HomePage() {
   const [selectedExerciseInFilter, setSelectedExerciseInFilter] = useState<Workout | null>(null);
   const [categoryWithExercises, setCategoryWithExercises] = useState<CategoryWithExercises[]>([]);
   const [topExercisesDone, setTopExercisesDone] = useState<topCategoriesWithExercises[]>([]);
+  const [trainings, setTrainings] = useState<Trainings[]>([]);
+  const [selectedTraining, setSelectedTraining] = useState<Trainings | null>(null);
 
   const handleAvatarClick = () => {
     navigate('/profile');
@@ -157,9 +165,9 @@ export default function HomePage() {
         setLoading(true);
         const workouts_from_local_storage = JSON.parse(localStorage.getItem('workouts') || '[]');
         const calories_per_day_from_local_storage = JSON.parse(localStorage.getItem('calories_per_day') || '{}');
-        console.log(workouts_from_local_storage);
-        console.log(calories_per_day_from_local_storage);
         if (workouts_from_local_storage.length > 0 && Object.keys(calories_per_day_from_local_storage).length > 0) {
+          console.log("Este es el largo:", workouts_from_local_storage.length);
+          console.log("Este es el largo:", Object.keys(calories_per_day_from_local_storage).length);
           setWorkoutList(workouts_from_local_storage);
           setCaloriesPerDay(calories_per_day_from_local_storage);
           console.log('Workouts and calories per day loaded from local storage');
@@ -247,9 +255,9 @@ export default function HomePage() {
   const dataForChart = useMemo(() => formatDataForChart(), [caloriesPerDay]);
 
   const [newWorkout, setNewWorkout] = useState({
-    exercise_id: '',
+    training_id: '',
     duration: '',
-    exercise: '',
+    coach: '',
     date: new Date().toISOString().split('T')[0],
   });
 
@@ -304,15 +312,23 @@ export default function HomePage() {
     setSelectedCategory(null);
     setExercises([]);
     setCoachSelected('');
+    setSelectedTraining(null);
+    setNewWorkout({
+      training_id: '',
+      duration: '',
+      coach: '',
+      date: new Date().toISOString().split('T')[0],
+    });
   }
 
   const handleAddWorkout = async () => {
+    setNewWorkout({ ...newWorkout, coach: coachSelected, training_id: selectedTraining?.id || '' });
     console.log(newWorkout);
-    if (newWorkout.exercise_id && newWorkout.exercise && newWorkout.duration && newWorkout.date) {
+    if (newWorkout.training_id && newWorkout.duration && newWorkout.date) {
 
       setNewWorkout({
-        exercise_id: '',
-        exercise: '',
+        training_id: '',
+        coach: '',
         duration: '',
         date: new Date().toISOString().split('T')[0],
       });
@@ -321,8 +337,8 @@ export default function HomePage() {
         const token = localStorage.getItem('token');
         if (token) {
           await saveWorkout(token, {
-            exercise_id: newWorkout.exercise_id,
-            exercise: newWorkout.exercise,
+            training_id: newWorkout.training_id,
+            coach: newWorkout.coach,
             duration: parseInt(newWorkout.duration, 10),
             date: newWorkout.date,
           });
@@ -338,6 +354,8 @@ export default function HomePage() {
 
       handleCloseWorkoutAdding();
       handleClose();
+      localStorage.removeItem('workouts');
+      localStorage.removeItem('calories_per_day');
     }
   };
 
@@ -386,13 +404,23 @@ export default function HomePage() {
   },[workoutList, categoryWithExercises]);
 
 
-  const getExercisesFromCategoryById = async (category_id: String) => {
+  // const getExercisesFromCategoryById = async (category_id: String) => {
+  //   try {
+  //     const exercises = await getExerciseFromCategory(category_id);
+  //     setExercises(Array.isArray(exercises) ? exercises : []);
+  //   } catch (error) {
+  //     console.error('Error al obtener todas las categorías:', error);
+  //     return [];
+  //   }
+  // }
+
+  const getAllTrainings = async () => {
     try {
-      const exercises = await getExerciseFromCategory(category_id);
-      setExercises(Array.isArray(exercises) ? exercises : []);
+      const trainings = await getTrainings();
+      console.log('Trainings:', trainings);
+      return Array.isArray(trainings) ? trainings : [];
     } catch (error) {
-      console.error('Error al obtener todas las categorías:', error);
-      return [];
+      console.error('Error al obtener los entrenamientos:', error);
     }
   }
 
@@ -418,6 +446,21 @@ export default function HomePage() {
       }
     };
     fetchCoaches();
+  }, []);
+
+  useEffect(() => {
+    const fetchTrainings = async () => {
+      try {
+        const trainings = await getAllTrainings();
+          if (trainings) {
+            setTrainings(trainings);
+            console.log(trainings);
+          }
+      } catch (error) {
+        console.error('Error al obtener entrenamientos:', error);
+      }
+    };
+    fetchTrainings();
   }, []);
 
   return (
@@ -537,8 +580,8 @@ export default function HomePage() {
 
           <Select
             fullWidth
-            value={selectedCategory?.id || ""}
-            onChange={(e) => { setSelectedCategory(categories.find((category) => category.id === e.target.value) || null); getExercisesFromCategoryById(e.target.value) }}
+            value={selectedTraining?.id || ""}
+            onChange={(e) => { setSelectedTraining(trainings.find((training) => training.id === e.target.value) || null) }}
             displayEmpty
             sx={{ marginBottom: 1 }}
             MenuProps={{
@@ -555,40 +598,11 @@ export default function HomePage() {
             }}
           >
             <MenuItem value="" disabled>
-              Select Category
+              Select Training
             </MenuItem>
-            {categories.map((category) => (
-              <MenuItem key={category.id} value={category.id}>
-                {handleCategoryIcon(category.icon)}{category.name}
-              </MenuItem>
-            ))}
-          </Select>
-
-          <Select
-            fullWidth
-            value={newWorkout.exercise_id}
-            onChange={(e) => setNewWorkout({ ...newWorkout, exercise_id: e.target.value, exercise: exercises.find((exercise) => exercise.id === e.target.value)?.name || '' })}
-            displayEmpty
-            sx={{ marginBottom: 1 }}
-            MenuProps={{
-              PaperProps: {
-                sx: {
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  maxWidth: 300,
-                  padding: 1,
-                  backgroundColor: '#444',
-                  color: '#fff',
-                },
-              },
-            }}
-          >
-            <MenuItem value="" disabled>
-              Select Exercise Type
-            </MenuItem>
-            {exercises.map((exerciseFromCategory) => (
-              <MenuItem key={exerciseFromCategory.id} value={exerciseFromCategory.id}>
-                {exerciseFromCategory.name}
+            {trainings.map((training) => (
+              <MenuItem key={training.id} value={training.id}>
+                {training.name}
               </MenuItem>
             ))}
           </Select>
@@ -615,7 +629,7 @@ export default function HomePage() {
               Select Coach
             </MenuItem>
             {coaches.map((coach: any) => (
-              <MenuItem key={coach.uid} value={coach.uid}>
+              <MenuItem key={coach.fullName} value={coach.fullName}>
                 {coach.fullName}
               </MenuItem>
             ))}

@@ -1,7 +1,7 @@
 import { BASE_URL } from "../constants";
 import { refreshAuthToken } from "../utils/AuthUtils";
 
-export const saveWorkout = async (token: string, workoutData: { exercise_id: string, exercise: string, duration: number, date: string }) => {
+export const saveWorkout = async (token: string, workoutData: { training_id: string, coach: string, duration: number, date: string }) => {
   try {
     const response = await fetch(`${BASE_URL}/save-workout`, {
       method: 'POST',

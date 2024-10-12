@@ -58,7 +58,7 @@ export const getTrainings = async () => {
     const token = getAuthToken();
     if (!token) throw new Error('Token no encontrado');
 
-    const exercisesIds = trainingData.exercises.map((ex: { exercise_id: string, calories_per_hour: number }) => ({ exercise_id: ex.exercise_id, calories_per_hour: ex.calories_per_hour }));
+    const exercisesIds = trainingData.exercises.map((ex: { id: string, calories_per_hour: number }) => ({ id: ex.id, calories_per_hour: ex.calories_per_hour }));
     const modifiedTrainingData = {'exercises': exercisesIds, 'name': trainingData.name}
     console.log(modifiedTrainingData)
 
