@@ -20,7 +20,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tool
 import Typography from '@mui/material/Typography';
 import ScrollArea from '@mui/material/Box';
 import { getWorkouts, saveWorkout, getWorkoutsCalories } from '../../api/WorkoutsApi';
-import { calculate_calories_per_day } from '../../functions/calculations';
+import { calculate_calories_and_duration_per_day } from '../../functions/calculations';
 import { useNavigate } from 'react-router-dom';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
@@ -107,7 +107,7 @@ export default function HomePage() {
   const [open, setOpen] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
   const [workoutList, setWorkoutList] = useState<Workout[]>([]);
-  const [caloriesPerDay, setCaloriesPerDay] = useState<{ [date: string]: number }>({});
+  const [caloriesPerDay, setCaloriesPerDay] = useState<{ [date: string]: [number, number] }>({});
   const [loading, setLoading] = useState(true);
   const [workoutsCount, setWorkoutsCount] = useState(0);
   const [openWorkoutAdding, setOpenWorkoutAdding] = useState(false);
@@ -164,12 +164,12 @@ export default function HomePage() {
       try {
         setLoading(true);
         const workouts_from_local_storage = JSON.parse(localStorage.getItem('workouts') || '[]');
-        const calories_per_day_from_local_storage = JSON.parse(localStorage.getItem('calories_per_day') || '{}');
-        if (workouts_from_local_storage.length > 0 && Object.keys(calories_per_day_from_local_storage).length > 0) {
+        const calories_duration_per_day_from_local_storage = JSON.parse(localStorage.getItem('calories_duration_per_day') || '{}');
+        if (workouts_from_local_storage.length > 0 && Object.keys(calories_duration_per_day_from_local_storage).length > 0) {
           console.log("Este es el largo:", workouts_from_local_storage.length);
-          console.log("Este es el largo:", Object.keys(calories_per_day_from_local_storage).length);
+          console.log("Este es el largo:", Object.keys(calories_duration_per_day_from_local_storage).length);
           setWorkoutList(workouts_from_local_storage);
-          setCaloriesPerDay(calories_per_day_from_local_storage);
+          setCaloriesPerDay(calories_duration_per_day_from_local_storage);
           console.log('Workouts and calories per day loaded from local storage');
         }
         else {
@@ -187,10 +187,10 @@ export default function HomePage() {
           // Sort the workouts by date (we convert the string to a Date object)
           const sortedWorkouts = validWorkouts.sort((a: Workout, b: Workout) => new Date(b.date).getTime() - new Date(a.date).getTime());
           setWorkoutList(sortedWorkouts);
-          const calories_per_day = calculate_calories_per_day(sortedWorkouts);
-          setCaloriesPerDay(calories_per_day);
+          const calories_duration_per_day = calculate_calories_and_duration_per_day(sortedWorkouts);
+          setCaloriesPerDay(calories_duration_per_day);
           localStorage.setItem('workouts', JSON.stringify(sortedWorkouts));
-          localStorage.setItem('calories_per_day', JSON.stringify(calories_per_day));
+          localStorage.setItem('calories_duration_per_day', JSON.stringify(calories_duration_per_day));
         }
       } catch (error) {
         console.error('Error al obtener los entrenamientos:', error);
@@ -206,7 +206,8 @@ export default function HomePage() {
     return Object.keys(caloriesPerDay)
       .map(date => ({
         date: formatDate(date), // Use the formatted date here
-        Calories: caloriesPerDay[date],
+        Calories: caloriesPerDay[date][0],
+        Minutes: caloriesPerDay[date][1],
       }))
       .sort((b, a) => new Date(b.date.split('/').reverse().join('-')).getTime() - new Date(a.date.split('/').reverse().join('-')).getTime());
   };
@@ -314,7 +315,7 @@ export default function HomePage() {
       handleCloseWorkoutAdding();
       handleClose();
       localStorage.removeItem('workouts');
-      localStorage.removeItem('calories_per_day');
+      localStorage.removeItem('calories_duration_per_day');
       localStorage.removeItem('categories_with_exercises');
       localStorage.removeItem('categories');
     }
@@ -674,14 +675,16 @@ export default function HomePage() {
 
               <ResponsiveContainer width="100%" height={340} >
                 {Array.isArray(workoutList) && workoutList.length > 0 ? (
-                  <LineChart data={dataForChart} margin={{ top: 10, right: 45, left: 0, bottom: 40 }}>
+                  <LineChart data={dataForChart} margin={{ top: 10, right: 0, left: 0, bottom: 40 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" stroke="#fff" tick={{ dy: 13 }} />
-                    <YAxis stroke="#fff" />
+                    <YAxis stroke="red" yAxisId="left" />
+                    <YAxis stroke="#44f814" orientation="right" yAxisId="right" />
                     <Tooltip />
-                    <Line type="monotone" dataKey="Calories" stroke="red" activeDot={{ r: 10 }} />
+                    <Line type="monotone" dataKey="Calories" stroke="red" activeDot={{ r: 10 }} yAxisId="left" />
+                    <Line type="monotone" dataKey="Minutes" stroke="#44f814" activeDot={{ r: 10 }} yAxisId="right" />
                     <Brush dataKey="date" height={30} stroke="red" y={300}/>
-                    <text x="50.5%" y={320} fill="grey" textAnchor="middle" fontSize="12px" >Filter date</text>
+                    <text x="50%" y={320} fill="grey" textAnchor="middle" fontSize="12px" >Filter date</text>
                   </LineChart>
                 ) : (
                   <div>
