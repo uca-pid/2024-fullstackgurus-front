@@ -17,7 +17,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import CloseIcon from '@mui/icons-material/Close';
 import { Dumbbell, Timer, Bike, Trophy } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Brush } from 'recharts';
 import Typography from '@mui/material/Typography';
 import ScrollArea from '@mui/material/Box';
 import { getWorkouts, saveWorkout, getWorkoutsCalories } from '../../api/WorkoutsApi';
@@ -182,7 +182,7 @@ export default function HomePage() {
     return Object.keys(caloriesPerDay)
       .map(date => ({
         date: formatDate(date), // Use the formatted date here
-        calories: caloriesPerDay[date],
+        Calories: caloriesPerDay[date],
       }))
       .sort((b, a) => new Date(b.date.split('/').reverse().join('-')).getTime() - new Date(a.date.split('/').reverse().join('-')).getTime());
   };
@@ -652,14 +652,16 @@ export default function HomePage() {
                 <Box></Box>
               )}
 
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={340} >
                 {Array.isArray(workoutList) && workoutList.length > 0 ? (
-                  <LineChart data={dataForChart}>
+                  <LineChart data={dataForChart} margin={{ top: 10, right: 45, left: 0, bottom: 40 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" stroke="#fff" tick={{ dy: 13 }} />
                     <YAxis stroke="#fff" />
                     <Tooltip />
-                    <Line type="monotone" dataKey="calories" stroke="red" activeDot={{ r: 10 }} />
+                    <Line type="monotone" dataKey="Calories" stroke="red" activeDot={{ r: 10 }} />
+                    <Brush dataKey="date" height={30} stroke="red" y={300}/>
+                    <text x="50.5%" y={320} fill="grey" textAnchor="middle" fontSize="12px" >Filter date</text>
                   </LineChart>
                 ) : (
                   <div>
@@ -675,7 +677,7 @@ export default function HomePage() {
           </Card>
 
           <Card sx={{ backgroundColor: '#333', color: '#fff', width: '33%' }}>
-            <CardHeader title="Recent Workouts" />
+            <CardHeader title="Workouts" />
             <CardContent>
               <ScrollArea sx={{ maxHeight: 300, overflow: 'auto' }}>
                 {Array.isArray(workoutList) && workoutList.length > 0 ? (
