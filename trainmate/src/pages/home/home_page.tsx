@@ -29,7 +29,7 @@ import { getCategories } from '../../api/CategoryApi';
 import { getExerciseFromCategory } from '../../api/ExerciseApi';
 import { getCoaches } from '../../api/CoachesApi_external';
 import CalendarModal from '../calendar/CalendarPage';
-import { FilterCategoryDialog } from './filter_category';
+import { FilterTrainingDialog } from './filter_training';
 import { FilterExerciseDialog } from './filter_exercise';
 import handleCategoryIcon from '../../personalizedComponents/handleCategoryIcon';
 import { Divider } from '@mui/material';
@@ -44,6 +44,7 @@ interface Workout {
   total_calories: number;
   coach: string;
   training: Training;
+  training_id: string;
 }
 
 interface Training {
@@ -118,9 +119,9 @@ export default function HomePage() {
   const [coachSelected, setCoachSelected] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterDateOpen, setFilterDateOpen] = useState(false);
-  const [filterCategoryOpen, setFilterCategoryOpen] = useState(false);
+  const [filterTrainingOpen, setFilterTrainingOpen] = useState(false);
   const [filterExerciseOpen, setFilterExerciseOpen] = useState(false);
-  const [selectedCategoryInFilter, setSelectedCategoryInFilter] = useState<Category | null>(null);
+  const [selectedTrainingInFilter, setSelectedTrainingInFilter] = useState<Trainings | null>(null);
   const [selectedExerciseInFilter, setSelectedExerciseInFilter] = useState<Workout | null>(null);
   const [categoryWithExercises, setCategoryWithExercises] = useState<CategoryWithExercises[]>([]);
   const [topExercisesDone, setTopExercisesDone] = useState<topCategoriesWithExercises[]>([]);
@@ -241,8 +242,8 @@ export default function HomePage() {
     setFilterDateOpen(true);
   }
 
-  const handleFilterCategoryOpen = () => {
-    setFilterCategoryOpen(true);
+  const handleFilterTrainingOpen = () => {
+    setFilterTrainingOpen(true);
   }
 
   const handleFilterExerciseOpen = () => {
@@ -253,8 +254,25 @@ export default function HomePage() {
     setFilterDateOpen(false);
   }
 
-  const handleFilterCategoryClose = () => {
-    setFilterCategoryOpen(false);
+  const handleFilterTrainingClose = (selectedTraining: { id: string}) => {
+    setFilterTrainingOpen(false);
+    const allWorkoutsList = JSON.parse(localStorage.getItem('workouts') || '[]');
+    const filteredWorkouts = allWorkoutsList?.filter((workout: Workout) => workout.training_id === selectedTraining?.id);
+    const calories_duration_per_dayFiltered = calculate_calories_and_duration_per_day(filteredWorkouts);
+    if (selectedTraining && filteredWorkouts.length > 0) {
+      setWorkoutList(filteredWorkouts);
+      setCaloriesPerDay(calories_duration_per_dayFiltered);
+    }
+  }
+
+  const handleCloseOfTrainingFilterLabel = () => {
+    setSelectedTrainingInFilter(null);
+    const allWorkouts = localStorage.getItem('workouts');
+    const calories_duration_per_day = localStorage.getItem('calories_duration_per_day');
+    if (allWorkouts && calories_duration_per_day) {
+      setWorkoutList(JSON.parse(allWorkouts || '[]'));
+      setCaloriesPerDay(JSON.parse(calories_duration_per_day || '{}'));
+    }
   }
 
   const handleFilterExerciseClose = () => {
@@ -282,8 +300,6 @@ export default function HomePage() {
   }
 
   const handleAddWorkout = async () => {
-    setNewWorkout({ ...newWorkout, coach: coachSelected, training_id: selectedTraining?.id || '' });
-    console.log(newWorkout);
     if (newWorkout.training_id && newWorkout.duration && newWorkout.date) {
 
       setNewWorkout({
@@ -437,11 +453,8 @@ export default function HomePage() {
         <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold' }}>Filter By</DialogTitle>
         <DialogContent>
           <Box display="flex" justifyContent="space-around" alignItems="center" mt={2} >
-            {/* <Box textAlign="center" mx={3}>
-              <Button sx={{ backgroundColor: grey[700], borderColor: grey[900]}} onClick={() => setFilterDateOpen(true)} variant="contained">Dates</Button>
-            </Box> */}
             <Box textAlign="center" mx={3}>
-              <Button sx={{ backgroundColor: grey[700], borderColor: grey[900]}} onClick={() => setFilterCategoryOpen(true)} variant="contained">Category</Button>
+              <Button sx={{ backgroundColor: grey[700], borderColor: grey[900]}} onClick={() => setFilterTrainingOpen(true)} variant="contained">Training</Button>
             </Box>
             <Box textAlign="center" mx={3}>
               <Button sx={{ backgroundColor: grey[700], borderColor: grey[900]}} onClick={() => setFilterExerciseOpen(true)} variant="contained">Exercise</Button>
@@ -450,10 +463,8 @@ export default function HomePage() {
         </DialogContent>
       </Dialog>
 
-      {/* <FilterDateDialog filterDateOpen={filterDateOpen} setFilterDateOpen={setFilterDateOpen}/> */}
-
-      <FilterCategoryDialog filterCategoryOpen={filterCategoryOpen} handleFilterCategoryClose={handleFilterCategoryClose} selectedCategoryInFilter={selectedCategoryInFilter} 
-      setSelectedCategoryInFilter={setSelectedCategoryInFilter} categories={categories} handleFilterClose={handleFilterClose}/>
+      <FilterTrainingDialog filterTrainingOpen={filterTrainingOpen} handleFilterTrainingClose={handleFilterTrainingClose} selectedTrainingInFilter={selectedTrainingInFilter} 
+      setSelectedTrainingInFilter={setSelectedTrainingInFilter} trainings={trainings} handleFilterClose={handleFilterClose}/>
 
       <FilterExerciseDialog filterExerciseOpen={filterExerciseOpen} handleFilterExerciseClose={handleFilterExerciseClose} selectedExerciseInFilter={selectedExerciseInFilter}
       setSelectedExerciseInFilter={setSelectedExerciseInFilter} handleFilterClose={handleFilterClose} workoutList={workoutList}/>
@@ -520,7 +531,7 @@ export default function HomePage() {
           <Select
             fullWidth
             value={selectedTraining?.id || ""}
-            onChange={(e) => { setSelectedTraining(trainings.find((training) => training.id === e.target.value) || null) }}
+            onChange={(e) => { setSelectedTraining(trainings.find((training) => training.id === e.target.value) || null); setNewWorkout({ ...newWorkout, training_id: e.target.value || '' }) }}
             displayEmpty
             sx={{ marginBottom: 1 }}
             MenuProps={{
@@ -549,7 +560,7 @@ export default function HomePage() {
           <Select
             fullWidth
             value={coachSelected}
-            onChange={(e) => setCoachSelected(e.target.value)}
+            onChange={(e) => {setCoachSelected(e.target.value); setNewWorkout({ ...newWorkout, coach: e.target.value })}}
             displayEmpty
             MenuProps={{
               PaperProps: {
@@ -627,10 +638,10 @@ export default function HomePage() {
             />
             <CardContent>
 
-              {(selectedCategoryInFilter && selectedCategoryInFilter.name) ? (
+              {(selectedTrainingInFilter && selectedTrainingInFilter.name) ? (
                 <Box 
                   sx={{ 
-                  display: 'flex', 
+                  display: 'inline-flex', 
                   justifyContent: 'center', 
                   alignItems: 'center', 
                   backgroundColor: grey[700], 
@@ -638,11 +649,13 @@ export default function HomePage() {
                   padding: 2, 
                   marginBottom: 2,
                   height: 50,
-                  width: 130
+                  width: 'auto',
+                  maxWidth: '100%',
+                  overflow: 'hidden',
                   }}
                 >
-                  <Typography variant="h6">{selectedCategoryInFilter?.name}</Typography>
-                  <IconButton aria-label="add" onClick={() => setSelectedCategoryInFilter(null)}>
+                  <Typography variant="h6" noWrap>{selectedTrainingInFilter?.name}</Typography>
+                  <IconButton aria-label="add" onClick={() => handleCloseOfTrainingFilterLabel()}>
                     <CloseIcon sx={{ color: grey[900], fontSize: 20 }} className="h-12 w-12" />
                   </IconButton>
                 </Box>
@@ -678,12 +691,12 @@ export default function HomePage() {
                   <LineChart data={dataForChart} margin={{ top: 10, right: 0, left: 0, bottom: 40 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" stroke="#fff" tick={{ dy: 13 }} />
-                    <YAxis stroke="red" yAxisId="left" />
-                    <YAxis stroke="#44f814" orientation="right" yAxisId="right" />
+                    <YAxis stroke="#E43654" yAxisId="left" tick={{ fontWeight: 'bold' }}/>
+                    <YAxis stroke="#44f814" orientation="right" yAxisId="right" tick={{ fontWeight: 'bold' }}/>
                     <Tooltip />
-                    <Line type="monotone" dataKey="Calories" stroke="red" activeDot={{ r: 10 }} yAxisId="left" />
+                    <Line type="monotone" dataKey="Calories" stroke="#E43654" activeDot={{ r: 10 }} yAxisId="left" />
                     <Line type="monotone" dataKey="Minutes" stroke="#44f814" activeDot={{ r: 10 }} yAxisId="right" />
-                    <Brush dataKey="date" height={30} stroke="red" y={300}/>
+                    <Brush dataKey="date" height={30} stroke="#E43654" y={300}/>
                     <text x="50%" y={320} fill="grey" textAnchor="middle" fontSize="12px" >Filter date</text>
                   </LineChart>
                 ) : (
@@ -711,7 +724,7 @@ export default function HomePage() {
                           <Box sx={{ display: 'flex', flexDirection: { xs: 'row', sm: 'row' }, justifyContent: 'space-between', width: '100%', marginBottom: 1 }}>
                             <Typography variant="h6" color="#81d8d0" sx={{ flex: 1 }}>{workout.training.name}</Typography>
                             <Typography variant="h6" color='#44f814' sx={{ flex: 1, textAlign: 'left' }}>{workout.duration} min</Typography>
-                            <Typography variant="h6" color='red' sx={{ flex: 1, textAlign: 'left' }}>{workout.total_calories} kcal</Typography>
+                            <Typography variant="h6" color='#E43654' sx={{ flex: 1, textAlign: 'left' }}>{workout.total_calories} kcal</Typography>
                             <Typography variant="subtitle1" color='gray' sx={{ flex: 1, textAlign: 'right' }}>{formatDate(workout.date)} </Typography>
                           </Box>
                           <Typography variant="body2">
