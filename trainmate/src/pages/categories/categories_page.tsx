@@ -25,6 +25,7 @@ import { getTrainings } from '../../api/TrainingApi';
 import TopMiddleAlert from '../../personalizedComponents/TopMiddleAlert';
 import handleCategoryIcon from '../../personalizedComponents/handleCategoryIcon';
 import CreateTrainingDialog from './training_dialog';
+import AreYouSureAlert from '../../personalizedComponents/areYouSureAlert';
 
 interface CategoryWithExercises {
   id: string;
@@ -59,6 +60,7 @@ interface NewCategory {
 }
 
 interface NewExercise {
+  id: string;
   calories_per_hour: number | string;
   name: string;
   category_id: string;
@@ -107,6 +109,38 @@ export default function CategoriesPage() {
   const [alertCategoryDeletedOpen, setAlertCategoryDeletedOpen] = useState(false);
   const [alertExerciseDeletedOpen, setAlertExerciseDeletedOpen] = useState(false);
 
+  const [deleteCategoryAlertOpen, setDeleteCategoryAlertOpen] = useState(false);
+  const [deleteExerciseAlertOpen, setDeleteExerciseAlertOpen] = useState(false);
+  const [categoryDataToDelete, setCategoryDataToDelete] = useState('');
+  const [exerciseDataToDelete, setExerciseDataToDelete] = useState<{ exerciseId: string, categoryId: string } | null>(null);
+
+  const handleCategoryDataToDelete = (categoryId: string) => {
+    setCategoryDataToDelete(categoryId);
+    setDeleteCategoryAlertOpen(true);
+  }
+
+  const handleExerciseDataToDelete = (exerciseId: string, categoryId: string) => {
+      setExerciseDataToDelete({ exerciseId, categoryId });
+      setDeleteExerciseAlertOpen(true);
+  };
+
+  const handleCloseAgreeDeleteCategoryAlert = (categoryId: string) => {
+    setDeleteCategoryAlertOpen(false);
+    handleDeleteCategory(categoryId);
+  };
+
+  const handleCloseAgreeDeleteExerciseAlert = (dataToDelete: {exerciseId: string, categoryId: string}) => {
+    setDeleteExerciseAlertOpen(false);
+    handleDeleteExercise(dataToDelete.exerciseId, dataToDelete.categoryId);
+  };
+
+  const handleCloseDisagreeDeleteCategoryAlert = () => {
+    setDeleteCategoryAlertOpen(false)
+  };
+
+  const handleCloseDisagreeDeleteExerciseAlert = () => {
+    setDeleteExerciseAlertOpen(false)
+  };
 
   const getAllCategories = async () => {
     try {
@@ -171,7 +205,7 @@ export default function CategoriesPage() {
   };
 
   const handleOpenAddExerciseDialog = (categoryId: string) => {
-    setNewExercise({ ...newExercise, category_id: categoryId, calories_per_hour: newExercise?.calories_per_hour || 0, name: newExercise?.name || '' });
+    setNewExercise({ ...newExercise, category_id: categoryId, calories_per_hour: newExercise?.calories_per_hour || 0, name: newExercise?.name || '', id: '' });
     setAddExerciseDialogOpen(true);
   };
   const handleCloseAddExerciseDialog = () => {
@@ -267,7 +301,7 @@ export default function CategoriesPage() {
         await editExercise({ name: editingExercise.name, calories_per_hour: editingExercise.calories_per_hour }, editingExercise.id);
         setCategoryWithExercises(
           categoryWithExercises.map((category) => {
-            if (category.id === editingExercise.id) {
+            if (category.id === editingExercise.category_id) {
               return {
                 ...category,
                 exercises: category.exercises.map((exercise) =>
@@ -339,6 +373,15 @@ export default function CategoriesPage() {
       <TopMiddleAlert alertText='Deleted category successfully' open={alertCategoryDeletedOpen} onClose={() => setAlertCategoryDeletedOpen(false)} />
       <TopMiddleAlert alertText='Deleted exercise successfully' open={alertExerciseDeletedOpen} onClose={() => setAlertExerciseDeletedOpen(false)} />
 
+      {deleteCategoryAlertOpen &&
+        <AreYouSureAlert areYouSureTitle='Are you sure you want to delete this category?' areYouSureText='You will not be able to recuperate it' 
+        open={deleteCategoryAlertOpen} handleCloseAgree={handleCloseAgreeDeleteCategoryAlert} handleCloseDisagree={handleCloseDisagreeDeleteCategoryAlert} dataToDelete={categoryDataToDelete}
+      />}
+      {deleteExerciseAlertOpen && 
+        <AreYouSureAlert areYouSureTitle='Are you sure you want to delete this exercise?' areYouSureText='You will not be able to recuperate it'
+        open={deleteExerciseAlertOpen} handleCloseAgree={handleCloseAgreeDeleteExerciseAlert} handleCloseDisagree={handleCloseDisagreeDeleteExerciseAlert} dataToDelete={exerciseDataToDelete}
+      />}
+
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
           <CircularProgress />
@@ -377,7 +420,7 @@ export default function CategoriesPage() {
                                           <IconButton size="small" color="inherit" onClick={() => handleOpenEditCategoryDialog(category)}>
                                               <EditIcon />
                                           </IconButton>
-                                          <IconButton size="small" color="inherit" onClick={() => handleDeleteCategory(category.id)}>
+                                          <IconButton size="small" color="inherit" onClick={() => handleCategoryDataToDelete(category.id)}>
                                               <DeleteIcon />
                                           </IconButton>
                                       </Box>
@@ -396,7 +439,7 @@ export default function CategoriesPage() {
                                                       <IconButton size="small" color="inherit" onClick={() => handleOpenEditExerciseDialog(exercise)}>
                                                           <EditIcon />
                                                       </IconButton>
-                                                      <IconButton size="small" color="inherit" onClick={() => handleDeleteExercise(exercise.id, category.id)}>
+                                                      <IconButton size="small" color="inherit" onClick={() => handleExerciseDataToDelete(exercise.id, category.id)}>
                                                           <DeleteIcon />
                                                       </IconButton>
                                                   </Box>
@@ -567,7 +610,7 @@ export default function CategoriesPage() {
             fullWidth
             variant="standard"
             value={newExercise?.name || ''}
-            onChange={(e) => setNewExercise({ ...newExercise, name: e.target.value, calories_per_hour: newExercise?.calories_per_hour || 1, category_id: newExercise?.category_id || '' })}
+            onChange={(e) => setNewExercise({ ...newExercise, name: e.target.value, calories_per_hour: newExercise?.calories_per_hour || 1, category_id: newExercise?.category_id || '', id: '' })}
           />
           <TextField
             margin="dense"
@@ -581,7 +624,8 @@ export default function CategoriesPage() {
               const value = e.target.value;
               if (value === "") {
                 setNewExercise({ 
-                  ...newExercise, 
+                  ...newExercise,
+                  id: '', 
                   calories_per_hour: "", 
                   name: newExercise?.name || '', 
                   category_id: newExercise?.category_id || '' 
@@ -591,6 +635,7 @@ export default function CategoriesPage() {
                 if (numericValue >= 1 && numericValue <= 4000) {
                   setNewExercise({ 
                     ...newExercise, 
+                    id: '', 
                     calories_per_hour: numericValue, 
                     name: newExercise?.name || '', 
                     category_id: newExercise?.category_id || '' 
@@ -598,6 +643,7 @@ export default function CategoriesPage() {
                 } else if (numericValue < 1) {
                   setNewExercise({ 
                     ...newExercise, 
+                    id: '', 
                     calories_per_hour: 1, 
                     name: newExercise?.name || '', 
                     category_id: newExercise?.category_id || '' 
@@ -605,6 +651,7 @@ export default function CategoriesPage() {
                 } else if (numericValue > 4000) {
                   setNewExercise({ 
                     ...newExercise, 
+                    id: '', 
                     calories_per_hour: 4000, 
                     name: newExercise?.name || '', 
                     category_id: newExercise?.category_id || '' 
