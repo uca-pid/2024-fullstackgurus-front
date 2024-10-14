@@ -1,4 +1,5 @@
 import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from '@mui/material';
+import { grey } from '@mui/material/colors';
 
 interface AreYouSureAlertProps {
     areYouSureTitle: string;
@@ -17,8 +18,16 @@ export default function AreYouSureAlert({areYouSureTitle, areYouSureText, open, 
         onClose={handleCloseDisagree}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
+        PaperProps={{
+          sx: {
+            backgroundColor: grey[800],
+            color: '#fff',
+            borderRadius: '8px',
+            padding: 2,
+          },
+        }}
       >
-        <DialogTitle id="alert-dialog-title">{areYouSureTitle}</DialogTitle>
+        <DialogTitle sx={{ color: '#fff', textAlign: 'center' }} id="alert-dialog-title">{areYouSureTitle}</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
             {areYouSureText}
