@@ -261,42 +261,46 @@ export default function HomePage() {
   const handleFilterTrainingClose = (selectedTraining: { id: string }) => {
     setFilterTrainingOpen(false);
     
-    let allWorkoutsList = JSON.parse(localStorage.getItem('workouts') || '[]');
+    if (selectedTraining) {
+      let allWorkoutsList = JSON.parse(localStorage.getItem('workouts') || '[]');
 
-    if (selectedCoachInFilter) {
-      allWorkoutsList = allWorkoutsList.filter((workout: Workout) => workout.coach === selectedCoachInFilter);
-    }
+      if (selectedCoachInFilter) {
+        allWorkoutsList = allWorkoutsList.filter((workout: Workout) => workout.coach === selectedCoachInFilter);
+      }
 
-    const filteredWorkouts = allWorkoutsList.filter((workout: Workout) => workout.training_id === selectedTraining?.id);
-    
-    if (filteredWorkouts.length === 0) {
-      setWorkoutList([]);
-      setCaloriesPerDay({});
-    } else {
-      const calories_duration_per_dayFiltered = calculate_calories_and_duration_per_day(filteredWorkouts);
-      setWorkoutList(filteredWorkouts);
-      setCaloriesPerDay(calories_duration_per_dayFiltered);
+      const filteredWorkouts = allWorkoutsList.filter((workout: Workout) => workout.training_id === selectedTraining?.id);
+      
+      if (filteredWorkouts.length === 0) {
+        setWorkoutList([]);
+        setCaloriesPerDay({});
+      } else {
+        const calories_duration_per_dayFiltered = calculate_calories_and_duration_per_day(filteredWorkouts);
+        setWorkoutList(filteredWorkouts);
+        setCaloriesPerDay(calories_duration_per_dayFiltered);
+      }
     }
   };
 
   const handleFilterCoachClose = (selectedCoach: string) => {
     setFilterCoachOpen(false);
 
-    let allWorkoutsList = JSON.parse(localStorage.getItem('workouts') || '[]');
+    if (selectedCoach) {
+      let allWorkoutsList = JSON.parse(localStorage.getItem('workouts') || '[]');
 
-    if (selectedTrainingInFilter) {
-      allWorkoutsList = allWorkoutsList.filter((workout: Workout) => workout.training_id === selectedTrainingInFilter.id);
-    }
+      if (selectedTrainingInFilter) {
+        allWorkoutsList = allWorkoutsList.filter((workout: Workout) => workout.training_id === selectedTrainingInFilter.id);
+      }
 
-    const filteredWorkouts = allWorkoutsList.filter((workout: Workout) => workout.coach === selectedCoach);
+      const filteredWorkouts = allWorkoutsList.filter((workout: Workout) => workout.coach === selectedCoach);
 
-    if (filteredWorkouts.length === 0) {
-      setWorkoutList([]);
-      setCaloriesPerDay({});
-    } else {
-      const calories_duration_per_dayFiltered = calculate_calories_and_duration_per_day(filteredWorkouts);
-      setWorkoutList(filteredWorkouts);
-      setCaloriesPerDay(calories_duration_per_dayFiltered);
+      if (filteredWorkouts.length === 0) {
+        setWorkoutList([]);
+        setCaloriesPerDay({});
+      } else {
+        const calories_duration_per_dayFiltered = calculate_calories_and_duration_per_day(filteredWorkouts);
+        setWorkoutList(filteredWorkouts);
+        setCaloriesPerDay(calories_duration_per_dayFiltered);
+      }
     }
   };
 
