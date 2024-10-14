@@ -36,6 +36,7 @@ import { Divider } from '@mui/material';
 import { top_exercises_done } from '../../functions/top_exercises_done';
 import DynamicBarChart from './bars_graph';
 import { getTrainings } from '../../api/TrainingApi';
+import { FilterCoachDialog } from './filter_coach';
 
 interface Workout {
   id: number;
@@ -120,8 +121,10 @@ export default function HomePage() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterDateOpen, setFilterDateOpen] = useState(false);
   const [filterTrainingOpen, setFilterTrainingOpen] = useState(false);
+  const [filterCoachOpen, setFilterCoachOpen] = useState(false);
   const [filterExerciseOpen, setFilterExerciseOpen] = useState(false);
   const [selectedTrainingInFilter, setSelectedTrainingInFilter] = useState<Trainings | null>(null);
+  const [selectedCoachInFilter, setSelectedCoachInFilter] = useState<string>('');
   const [selectedExerciseInFilter, setSelectedExerciseInFilter] = useState<Workout | null>(null);
   const [categoryWithExercises, setCategoryWithExercises] = useState<CategoryWithExercises[]>([]);
   const [topExercisesDone, setTopExercisesDone] = useState<topCategoriesWithExercises[]>([]);
@@ -254,26 +257,92 @@ export default function HomePage() {
     setFilterDateOpen(false);
   }
 
-  const handleFilterTrainingClose = (selectedTraining: { id: string}) => {
+
+  const handleFilterTrainingClose = (selectedTraining: { id: string }) => {
     setFilterTrainingOpen(false);
-    const allWorkoutsList = JSON.parse(localStorage.getItem('workouts') || '[]');
-    const filteredWorkouts = allWorkoutsList?.filter((workout: Workout) => workout.training_id === selectedTraining?.id);
-    const calories_duration_per_dayFiltered = calculate_calories_and_duration_per_day(filteredWorkouts);
-    if (selectedTraining && filteredWorkouts.length > 0) {
+    
+    let allWorkoutsList = JSON.parse(localStorage.getItem('workouts') || '[]');
+
+    if (selectedCoachInFilter) {
+      allWorkoutsList = allWorkoutsList.filter((workout: Workout) => workout.coach === selectedCoachInFilter);
+    }
+
+    const filteredWorkouts = allWorkoutsList.filter((workout: Workout) => workout.training_id === selectedTraining?.id);
+    
+    if (filteredWorkouts.length === 0) {
+      setWorkoutList([]);
+      setCaloriesPerDay({});
+    } else {
+      const calories_duration_per_dayFiltered = calculate_calories_and_duration_per_day(filteredWorkouts);
       setWorkoutList(filteredWorkouts);
       setCaloriesPerDay(calories_duration_per_dayFiltered);
     }
-  }
+  };
+
+  const handleFilterCoachClose = (selectedCoach: string) => {
+    setFilterCoachOpen(false);
+
+    let allWorkoutsList = JSON.parse(localStorage.getItem('workouts') || '[]');
+
+    if (selectedTrainingInFilter) {
+      allWorkoutsList = allWorkoutsList.filter((workout: Workout) => workout.training_id === selectedTrainingInFilter.id);
+    }
+
+    const filteredWorkouts = allWorkoutsList.filter((workout: Workout) => workout.coach === selectedCoach);
+
+    if (filteredWorkouts.length === 0) {
+      setWorkoutList([]);
+      setCaloriesPerDay({});
+    } else {
+      const calories_duration_per_dayFiltered = calculate_calories_and_duration_per_day(filteredWorkouts);
+      setWorkoutList(filteredWorkouts);
+      setCaloriesPerDay(calories_duration_per_dayFiltered);
+    }
+  };
 
   const handleCloseOfTrainingFilterLabel = () => {
     setSelectedTrainingInFilter(null);
-    const allWorkouts = localStorage.getItem('workouts');
-    const calories_duration_per_day = localStorage.getItem('calories_duration_per_day');
-    if (allWorkouts && calories_duration_per_day) {
-      setWorkoutList(JSON.parse(allWorkouts || '[]'));
-      setCaloriesPerDay(JSON.parse(calories_duration_per_day || '{}'));
+    let allWorkoutsList = JSON.parse(localStorage.getItem('workouts') || '[]');
+
+    if (selectedCoachInFilter) {
+      const filteredWorkouts = allWorkoutsList.filter((workout: Workout) => workout.coach === selectedCoachInFilter);
+      
+      if (filteredWorkouts.length === 0) {
+        setWorkoutList([]);
+        setCaloriesPerDay({});
+      } else {
+        const calories_duration_per_dayFiltered = calculate_calories_and_duration_per_day(filteredWorkouts);
+        setWorkoutList(filteredWorkouts);
+        setCaloriesPerDay(calories_duration_per_dayFiltered);
+      }
+    } else {
+      const calories_duration_per_dayList = JSON.parse(localStorage.getItem('calories_duration_per_day') || '{}');
+      setWorkoutList(allWorkoutsList);
+      setCaloriesPerDay(calories_duration_per_dayList);
     }
-  }
+  };
+
+  const handleCloseOfCoachFilterLabel = () => {
+    setSelectedCoachInFilter('');
+    let allWorkoutsList = JSON.parse(localStorage.getItem('workouts') || '[]');
+
+    if (selectedTrainingInFilter) {
+      const filteredWorkouts = allWorkoutsList.filter((workout: Workout) => workout.training_id === selectedTrainingInFilter.id);
+      
+      if (filteredWorkouts.length === 0) {
+        setWorkoutList([]);
+        setCaloriesPerDay({});
+      } else {
+        const calories_duration_per_dayFiltered = calculate_calories_and_duration_per_day(filteredWorkouts);
+        setWorkoutList(filteredWorkouts);
+        setCaloriesPerDay(calories_duration_per_dayFiltered);
+      }
+    } else {
+      const calories_duration_per_dayList = JSON.parse(localStorage.getItem('calories_duration_per_day') || '{}');
+      setWorkoutList(allWorkoutsList);
+      setCaloriesPerDay(calories_duration_per_dayList);
+    }
+  };
 
   const handleFilterExerciseClose = () => {
     setFilterExerciseOpen(false);
@@ -394,8 +463,16 @@ export default function HomePage() {
   useEffect(() => {
     const fetchCoaches = async () => {
       try {
-        const coaches = await getCoaches();
-        setCoaches(coaches);
+        const coaches_from_local_storage = JSON.parse(localStorage.getItem('coaches') || '[]');
+        if (coaches_from_local_storage.length > 0) {
+          setCoaches(coaches_from_local_storage);
+          console.log('Coaches loaded from local storage');
+        }
+        else {
+          const coaches = await getCoaches();
+          setCoaches(coaches);
+          localStorage.setItem('coaches', JSON.stringify(coaches));
+        }
       } catch (error) {
         console.error('Error al obtener los profesores:', error);
       }
@@ -457,8 +534,11 @@ export default function HomePage() {
               <Button sx={{ backgroundColor: grey[700], borderColor: grey[900]}} onClick={() => setFilterTrainingOpen(true)} variant="contained">Training</Button>
             </Box>
             <Box textAlign="center" mx={3}>
-              <Button sx={{ backgroundColor: grey[700], borderColor: grey[900]}} onClick={() => setFilterExerciseOpen(true)} variant="contained">Exercise</Button>
+              <Button sx={{ backgroundColor: grey[700], borderColor: grey[900]}} onClick={() => setFilterCoachOpen(true)} variant="contained">Coach</Button>
             </Box>
+            {/* <Box textAlign="center" mx={3}>
+              <Button sx={{ backgroundColor: grey[700], borderColor: grey[900]}} onClick={() => setFilterExerciseOpen(true)} variant="contained">Exercise</Button>
+            </Box> */}
           </Box>
         </DialogContent>
       </Dialog>
@@ -466,8 +546,11 @@ export default function HomePage() {
       <FilterTrainingDialog filterTrainingOpen={filterTrainingOpen} handleFilterTrainingClose={handleFilterTrainingClose} selectedTrainingInFilter={selectedTrainingInFilter} 
       setSelectedTrainingInFilter={setSelectedTrainingInFilter} trainings={trainings} handleFilterClose={handleFilterClose}/>
 
-      <FilterExerciseDialog filterExerciseOpen={filterExerciseOpen} handleFilterExerciseClose={handleFilterExerciseClose} selectedExerciseInFilter={selectedExerciseInFilter}
-      setSelectedExerciseInFilter={setSelectedExerciseInFilter} handleFilterClose={handleFilterClose} workoutList={workoutList}/>
+      <FilterCoachDialog filterCoachOpen={filterCoachOpen} handleFilterCoachClose={handleFilterCoachClose} selectedCoachInFilter={selectedCoachInFilter} 
+      setSelectedCoachInFilter={setSelectedCoachInFilter} coaches={coaches} handleFilterClose={handleFilterClose}/>
+
+      {/* <FilterExerciseDialog filterExerciseOpen={filterExerciseOpen} handleFilterExerciseClose={handleFilterExerciseClose} selectedExerciseInFilter={selectedExerciseInFilter}
+      setSelectedExerciseInFilter={setSelectedExerciseInFilter} handleFilterClose={handleFilterClose} workoutList={workoutList}/> */}
 
       <Dialog open={open} onClose={handleClose}
         PaperProps={{
@@ -652,6 +735,7 @@ export default function HomePage() {
                   width: 'auto',
                   maxWidth: '100%',
                   overflow: 'hidden',
+                  marginRight: 2
                   }}
                 >
                   <Typography variant="h6" noWrap>{selectedTrainingInFilter?.name}</Typography>
@@ -663,7 +747,32 @@ export default function HomePage() {
                 <Box></Box>
               )}
 
-              {(selectedExerciseInFilter) ? (
+              {(selectedCoachInFilter) ? (
+                <Box 
+                  sx={{ 
+                  display: 'inline-flex', 
+                  justifyContent: 'center', 
+                  alignItems: 'center', 
+                  backgroundColor: grey[700], 
+                  borderRadius: '8px', 
+                  padding: 2, 
+                  marginBottom: 2,
+                  height: 50,
+                  width: 'auto',
+                  maxWidth: '100%',
+                  overflow: 'hidden',
+                  }}
+                >
+                  <Typography variant="h6" noWrap>{selectedCoachInFilter}</Typography>
+                  <IconButton aria-label="add" onClick={() => handleCloseOfCoachFilterLabel()}>
+                    <CloseIcon sx={{ color: grey[900], fontSize: 20 }} className="h-12 w-12" />
+                  </IconButton>
+                </Box>
+              ) : (
+                <Box></Box>
+              )}
+
+              {/* {(selectedExerciseInFilter) ? (
                 <Box 
                   sx={{ 
                   display: 'flex', 
@@ -677,14 +786,14 @@ export default function HomePage() {
                   width: 130
                   }}
                 >
-                  {/* <Typography variant="h6">{selectedExerciseInFilter?.exercise}</Typography> */}
+                  <Typography variant="h6">{selectedExerciseInFilter?.exercise}</Typography>
                   <IconButton aria-label="add" onClick={() => setSelectedExerciseInFilter(null)}>
                     <CloseIcon sx={{ color: grey[900], fontSize: 20 }} className="h-12 w-12" />
                   </IconButton>
                 </Box>
               ) : (
                 <Box></Box>
-              )}
+              )} */}
 
               <ResponsiveContainer width="100%" height={340} >
                 {Array.isArray(workoutList) && workoutList.length > 0 ? (
