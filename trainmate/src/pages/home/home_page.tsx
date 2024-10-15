@@ -37,12 +37,8 @@ import { top_exercises_done } from '../../functions/top_exercises_done';
 import DynamicBarChart from './bars_graph';
 import { getTrainings } from '../../api/TrainingApi';
 import { FilterCoachDialog } from './filter_coach';
-<<<<<<< HEAD
 import WaterIntakeCard from './water_intake';
 import ResponsiveMenu from './menu_responsive';
-=======
-import ResponsiveMenu from './menu_responsive';
->>>>>>> 32cecfc8d08e838740f52c0c1bcf750ac24903b8
 
 interface Workout {
   id: number;
