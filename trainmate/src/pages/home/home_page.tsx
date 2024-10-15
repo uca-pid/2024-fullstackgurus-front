@@ -16,7 +16,7 @@ import { grey } from '@mui/material/colors';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import CloseIcon from '@mui/icons-material/Close';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Brush } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Brush, Rectangle } from 'recharts';
 import Typography from '@mui/material/Typography';
 import ScrollArea from '@mui/material/Box';
 import { getWorkouts, saveWorkout, getWorkoutsCalories } from '../../api/WorkoutsApi';
@@ -139,14 +139,6 @@ export default function HomePage() {
     navigate('/categories');
   }
 
-  // Convert the date string from the format "Sun, 12 May 2024 00:00:00 GMT"
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
-    return `${day}/${month}`;
-  };
-
   const getAllWorkouts = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -206,14 +198,22 @@ export default function HomePage() {
     fetchWorkouts();
   }, [workoutsCount]);
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    return `${day}/${month}`;
+  };
+
   const formatDataForChart = () => {
     return Object.keys(caloriesPerDay)
-      .map(date => ({
-        date: formatDate(date), // Use the formatted date here
+      .map((date) => ({
+        date: formatDate(date),
+        timestamp: new Date(date).getTime(),
         Calories: caloriesPerDay[date][0],
         Minutes: caloriesPerDay[date][1],
       }))
-      .sort((b, a) => new Date(b.date.split('/').reverse().join('-')).getTime() - new Date(a.date.split('/').reverse().join('-')).getTime());
+      .sort((a, b) => a.timestamp - b.timestamp);
   };
 
   const dataForChart = useMemo(() => formatDataForChart(), [caloriesPerDay]);
@@ -809,7 +809,47 @@ export default function HomePage() {
                     <Tooltip />
                     <Line type="monotone" dataKey="Calories" stroke="#E43654" activeDot={{ r: 10 }} yAxisId="left" />
                     <Line type="monotone" dataKey="Minutes" stroke="#44f814" activeDot={{ r: 10 }} yAxisId="right" />
-                    <Brush dataKey="date" height={30} stroke="#E43654" y={300}/>
+                    <Brush dataKey="date" height={30} stroke="#aaaaaa" y={300} fill="#333" travellerWidth={10}
+                    traveller={(props) => {
+                      const { x, y, width, height } = props;
+                      return (
+                        <g>
+                          {/* Traveller rectangle */}
+                          <rect
+                            x={x}
+                            y={y}
+                            width={width}
+                            height={height}
+                            fill="#fff"
+                            stroke="none"
+                            style={{ outline: 'none' }}
+                            tabIndex={-1}
+                          />
+                          {/* First horizontal line */}
+                          <line
+                            x1={x + 2}
+                            y1={y + height / 2 - 1}
+                            x2={x + width - 2}
+                            y2={y + height / 2 - 1}
+                            stroke="#808080"
+                            strokeWidth={1}
+                            style={{ outline: 'none' }}
+                            tabIndex={-1}
+                          />
+                          {/* Second horizontal line */}
+                          <line
+                            x1={x + 2}
+                            y1={y + height / 2 + 1}
+                            x2={x + width - 2}
+                            y2={y + height / 2 + 1}
+                            stroke="#808080"
+                            strokeWidth={1}
+                            style={{ outline: 'none' }}
+                            tabIndex={-1}
+                          />
+                        </g>
+                      );
+                    }}/>
                     <text x="50%" y={320} fill="grey" textAnchor="middle" fontSize="12px" >Filter date</text>
                   </LineChart>
                 ) : (
@@ -882,3 +922,4 @@ export default function HomePage() {
     </div>
   );
 }
+
