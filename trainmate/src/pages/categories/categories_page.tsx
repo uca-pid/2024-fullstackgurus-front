@@ -573,22 +573,22 @@ export default function CategoriesPage() {
               <MenuItem value="">
                 <em>Select an icon</em>
               </MenuItem>
-                <MenuItem value="Dumbbell"><DumbbellIcon/></MenuItem>
-                <MenuItem value="Ball"><BallIcon/></MenuItem>
-                <MenuItem value="Heart"><HeartIcon/></MenuItem>
-                <MenuItem value="Basketball"><BasketballIcon/></MenuItem>
-                <MenuItem value="Tennis"><TennisIcon/></MenuItem>
-                <MenuItem value="Fight"><FightIcon/></MenuItem>
-                <MenuItem value="Martial"><MartialIcon/></MenuItem>
-                <MenuItem value="Mma"><MmaIcon/></MenuItem>
-                <MenuItem value="Motorsports"><MotorsportsIcon/></MenuItem>
-                <MenuItem value="Hiking"><HikingIcon/></MenuItem>
-                <MenuItem value="Sailing"><SailingIcon/></MenuItem>
-                <MenuItem value="Skiing"><SkiingIcon/></MenuItem>
-                <MenuItem value="Pool"><PoolIcon/></MenuItem>
-                <MenuItem value="Skate"><SkateIcon/></MenuItem>
-                <MenuItem value="Rugby"><RugbyIcon/></MenuItem>
-                <MenuItem value="Volleyball"><VolleyballIcon/></MenuItem>
+                <MenuItem value="Dumbbell">{handleCategoryIcon('Dumbbell')}</MenuItem>
+                <MenuItem value="Ball">{handleCategoryIcon('Ball')}</MenuItem>
+                <MenuItem value="Heart">{handleCategoryIcon('Heart')}</MenuItem>
+                <MenuItem value="Basketball">{handleCategoryIcon('Basketball')}</MenuItem>
+                <MenuItem value="Tennis">{handleCategoryIcon('Tennis')}</MenuItem>
+                <MenuItem value="Fight">{handleCategoryIcon('Fight')}</MenuItem>
+                <MenuItem value="Martial">{handleCategoryIcon('Martial')}</MenuItem>
+                <MenuItem value="Mma">{handleCategoryIcon('Mma')}</MenuItem>
+                <MenuItem value="Motorsports">{handleCategoryIcon('Motorsports')}</MenuItem>
+                <MenuItem value="Hiking">{handleCategoryIcon('Hiking')}</MenuItem>
+                <MenuItem value="Sailing">{handleCategoryIcon('Sailing')}</MenuItem>
+                <MenuItem value="Skiing">{handleCategoryIcon('Skiing')}</MenuItem>
+                <MenuItem value="Pool">{handleCategoryIcon('Pool')}</MenuItem>
+                <MenuItem value="Skate">{handleCategoryIcon('Skate')}</MenuItem>
+                <MenuItem value="Rugby">{handleCategoryIcon('Rugby')}</MenuItem>
+                <MenuItem value="Volleyball">{handleCategoryIcon('Volleyball')}</MenuItem>
             </Select>
           </FormControl>
         </DialogContent>
@@ -766,22 +766,22 @@ export default function CategoriesPage() {
                 },
               }}
             >
-              <MenuItem value="Dumbbell"><DumbbellIcon/></MenuItem>
-              <MenuItem value="Ball"><BallIcon/></MenuItem>
-              <MenuItem value="Heart"><HeartIcon/></MenuItem>
-              <MenuItem value="Basketball"><BasketballIcon/></MenuItem>
-              <MenuItem value="Tennis"><TennisIcon/></MenuItem>
-              <MenuItem value="Fight"><FightIcon/></MenuItem>
-              <MenuItem value="Martial"><MartialIcon/></MenuItem>
-              <MenuItem value="Mma"><MmaIcon/></MenuItem>
-              <MenuItem value="Motorsports"><MotorsportsIcon/></MenuItem>
-              <MenuItem value="Hiking"><HikingIcon/></MenuItem>
-              <MenuItem value="Sailing"><SailingIcon/></MenuItem>
-              <MenuItem value="Skiing"><SkiingIcon/></MenuItem>
-              <MenuItem value="Pool"><PoolIcon/></MenuItem>
-              <MenuItem value="Skate"><SkateIcon/></MenuItem>
-              <MenuItem value="Rugby"><RugbyIcon/></MenuItem>
-              <MenuItem value="Volleyball"><VolleyballIcon/></MenuItem>
+              <MenuItem value="Dumbbell">{handleCategoryIcon('Dumbbell')}</MenuItem>
+              <MenuItem value="Ball">{handleCategoryIcon('Ball')}</MenuItem>
+              <MenuItem value="Heart">{handleCategoryIcon('Heart')}</MenuItem>
+              <MenuItem value="Basketball">{handleCategoryIcon('Basketball')}</MenuItem>
+              <MenuItem value="Tennis">{handleCategoryIcon('Tennis')}</MenuItem>
+              <MenuItem value="Fight">{handleCategoryIcon('Fight')}</MenuItem>
+              <MenuItem value="Martial">{handleCategoryIcon('Martial')}</MenuItem>
+              <MenuItem value="Mma">{handleCategoryIcon('Mma')}</MenuItem>
+              <MenuItem value="Motorsports">{handleCategoryIcon('Motorsports')}</MenuItem>
+              <MenuItem value="Hiking">{handleCategoryIcon('Hiking')}</MenuItem>
+              <MenuItem value="Sailing">{handleCategoryIcon('Sailing')}</MenuItem>
+              <MenuItem value="Skiing">{handleCategoryIcon('Skiing')}</MenuItem>
+              <MenuItem value="Pool">{handleCategoryIcon('Pool')}</MenuItem>
+              <MenuItem value="Skate">{handleCategoryIcon('Skate')}</MenuItem>
+              <MenuItem value="Rugby">{handleCategoryIcon('Rugby')}</MenuItem>
+              <MenuItem value="Volleyball">{handleCategoryIcon('Volleyball')}</MenuItem>
             </Select>
             </FormControl>
           </DialogContent>

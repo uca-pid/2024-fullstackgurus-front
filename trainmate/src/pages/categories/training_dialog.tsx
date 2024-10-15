@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Select, MenuItem, InputLabel, FormControl, Checkbox, ListItemText, SelectChangeEvent } from '@mui/material';
 import grey from '@mui/material/colors/grey';
 import { saveTraining } from '../../api/TrainingApi';
+import handleCategoryIcon from '../../personalizedComponents/handleCategoryIcon';
 
 // Definición de interfaces basadas en tu estructura
 interface Exercise {
@@ -133,7 +134,8 @@ const CreateTrainingDialog: React.FC<CreateTrainingDialogProps> = ({ createNewTr
             {categoryWithExercises.map((category) => (
               <MenuItem key={category.id} value={category.id}>
                 <Checkbox checked={selectedCategories.indexOf(category.id) > -1} />
-                <ListItemText primary={category.name} />
+                  {handleCategoryIcon(category.icon)}
+                <ListItemText primary={category.name} sx={{ml: 1}}/>
               </MenuItem>
             ))}
           </Select>
