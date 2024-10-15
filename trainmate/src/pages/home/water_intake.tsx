@@ -110,7 +110,7 @@ const WaterIntakeCard: React.FC = () => {
   const intakePercentage = Math.min((waterIntake / dailyGoal) * 100, 100); // porcentaje para la barra de progreso
 
   return (
-    <Card sx={{ flex: 1, backgroundColor: '#333', color: '#fff', width: '100%' }}>
+    <Card sx={{ flex: 1, backgroundColor: '#161616', color: '#fff', width: '100%' }} className='border border-gray-600'>
       <CardHeader title="Water Tracker" />
       <CardContent>
         <div className="flex justify-between items-center mb-4">

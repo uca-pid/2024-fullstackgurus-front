@@ -418,7 +418,7 @@ export default function CategoriesPage() {
     };
 
     return (
-      <Box sx={{ minHeight: '100vh', background: 'linear-gradient(to bottom, #1a202c, #2d3748)', color: 'white', p: 4 }}>
+      <Box sx={{ minHeight: '100vh','backgroundColor': 'black', color: 'white', p: 4 }}  >
         <Box component="header" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
           <IconButton component="a" sx={{ color: 'white' }} onClick={handleBackToHome}>
             <ArrowLeftIcon />
@@ -456,7 +456,7 @@ export default function CategoriesPage() {
           ) : (
             <Box sx={{ display: 'flex', gap: 2, height: '100vh', flexDirection: { xs: 'column', sm: 'row' } }}>
               {/* Card de Categorías */}
-              <Card sx={{ flex: 1, backgroundColor: '#333', color: '#fff', width: '100%', height: 'calc(100vh - 200px)' }}>
+              <Card sx={{ flex: 1, backgroundColor: '#161616', color: '#fff', width: '100%', height: 'calc(100vh - 200px)' }} >
                 <CardHeader
                   title="Categories"
                   titleTypographyProps={{ fontSize: { xs: '1.2rem', sm: '1.3rem', md: '1.5rem' }, variant: 'h6' }}
@@ -472,7 +472,7 @@ export default function CategoriesPage() {
                 <CardContent>
                   <Box sx={{ height: 'calc(100vh - 300px)', overflowY: 'auto' }}>
                     {categoryWithExercises.map((category) => (
-                      <Accordion key={category.id} sx={{ backgroundColor: grey[800], color: 'white' }}>
+                      <Accordion key={category.id} sx={{ backgroundColor: "#161616", color: 'white' }} className='border border-gray-600'>
                         <AccordionSummary
                           expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}
                           aria-controls={`panel-${category.id}-content`}
@@ -556,7 +556,7 @@ export default function CategoriesPage() {
               </Dialog>
 
               {/* Nueva Card de Trainings */}
-              <Card sx={{ flex: 1, backgroundColor: '#333', color: '#fff', width: '100%', height: 'calc(100vh - 200px)' }}>
+              <Card sx={{ flex: 1, backgroundColor: '#161616', color: '#fff', width: '100%', height: 'calc(100vh - 200px)' }}>
                 <CardHeader
                   title="Trainings"
                   titleTypographyProps={{ fontSize: { xs: '1.2rem', sm: '1.3rem', md: '1.5rem' }, variant: 'h6' }}
@@ -572,7 +572,7 @@ export default function CategoriesPage() {
                 <CardContent>
                   <Box sx={{ height: 'calc(100vh - 300px)', overflowY: 'auto' }}>
                     {trainings.map((training) => (
-                      <Accordion key={training.id} sx={{ backgroundColor: grey[800], color: 'white' }}>
+                      <Accordion key={training.id} sx={{ backgroundColor: '#161616', color: 'white' }} className='border border-gray-600' >
                         <AccordionSummary
                           expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}
                           aria-controls={`panel-${training.id}-content`}

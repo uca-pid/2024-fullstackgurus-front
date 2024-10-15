@@ -502,7 +502,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
+    <div className="min-h-screen bg-black from-gray-900 to-gray-800 text-white">
       <header className="p-4 flex justify-between items-center">
         <Avatar alt="User" src={require('../../images/profile_pic_2.jpg')} onClick={handleAvatarClick} style={{ cursor: 'pointer' }} />
         <ResponsiveMenu handleFilterOpen={handleFilterOpen} handleClickOpen={handleClickOpen}/>
@@ -734,7 +734,7 @@ export default function HomePage() {
         </Box>
       ) : (
         <main className="p-4 space-y-6">
-          <Card sx={{ backgroundColor: '#333', color: '#fff' }}>
+          <Card sx={{ backgroundColor: '#161616', color: '#fff' }} className='border border-gray-600' >
             <CardHeader
               title="Progress"
             />
@@ -824,7 +824,7 @@ export default function HomePage() {
                     <Tooltip />
                     <Line type="monotone" dataKey="Calories" stroke="#E43654" activeDot={{ r: 10 }} yAxisId="left" />
                     <Line type="monotone" dataKey="Minutes" stroke="#44f814" activeDot={{ r: 10 }} yAxisId="right" />
-                    <Brush dataKey="date" height={30} stroke="#aaaaaa" y={300} fill="#333" travellerWidth={10}
+                    <Brush dataKey="date" height={30} stroke="#00000" y={300} fill="#00000" travellerWidth={10}
                     traveller={(props) => {
                       const { x, y, width, height } = props;
                       return (
@@ -865,7 +865,7 @@ export default function HomePage() {
                         </g>
                       );
                     }}/>
-                    <text x="50%" y={320} fill="#aaaaaa" textAnchor="middle" fontSize="12px" >Filter date</text>
+                    <text x="50%" y={320} fill="#ffffff" textAnchor="middle" fontSize="12px" >Filter date</text>
                   </LineChart>
                 ) : (
                   <div>
@@ -880,7 +880,7 @@ export default function HomePage() {
             </CardContent>
           </Card>
           <Box sx={{ display: 'flex', height: '100%', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-            <Card sx={{ flex: 1, backgroundColor: '#333', color: '#fff', width: '100%', height: '100%' }}>
+            <Card sx={{ flex: 1, backgroundColor: '#161616', color: '#fff', width: '100%' }} className='border border-gray-600'>
               <CardHeader title="Workouts" />
               <CardContent>
                 <ScrollArea sx={{ maxHeight: 400, overflow: 'auto' }}>
@@ -914,7 +914,7 @@ export default function HomePage() {
               </CardContent>
             </Card>
 
-            <Card sx={{ flex: 1, backgroundColor: '#333', color: '#fff', width: '100%' }}>
+            <Card sx={{ flex: 1, backgroundColor: '#161616', color: '#fff', width: '100%' }} className='border border-gray-600'>
               <CardHeader title="Top Categories & Exercises done" />
               <CardContent>
               {Array.isArray(topExercisesDone) && topExercisesDone.length > 0 ? (

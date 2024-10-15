@@ -47,7 +47,7 @@ export default function LogIn() {
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Token no encontrado');
-      
+
       const profileData = await getUserProfile();
 
       const user = auth.currentUser;
@@ -113,16 +113,16 @@ export default function LogIn() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-black  from-gray-900 to-gray-800 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <TopMiddleAlert  alertText='Sent email to restore password' open={alertOpen} onClose={() => setAlertOpen(false)}/>
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+        <TopMiddleAlert alertText='Sent email to restore password' open={alertOpen} onClose={() => setAlertOpen(false)} />
+        <div className="bg-black border border-gray-600 shadow-lg rounded-lg overflow-hidden">
           <div className="bg-black p-4 flex items-center justify-center">
             <Dumbbell className="h-8 w-8 text-white mr-2" />
             <h1 className="text-2xl font-bold text-white">TrainMate</h1>
           </div>
           <div className="p-6">
-            <h2 className="text-2xl font-semibold text-center mb-6">Log In</h2>
+            <h2 className="text-2xl font-semibold text-white text-center mb-6">Log In</h2>
             <Button
               variant="outlined"
               className="w-full mb-4 flex items-center justify-center"
@@ -137,17 +137,17 @@ export default function LogIn() {
                 <div className="w-full border-t border-gray-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                <span className="px-2 bg-black text-gray-500">Or continue with</span>
               </div>
             </div>
             <form className="space-y-4" onSubmit={handleSubmit}>
-              <div className="space-y-2">
-                <FormLabel htmlFor="email">Email</FormLabel>
-                <Input id="email" type="email" fullWidth required value={email} onChange={handleEmailChange} />
+              <div className="space-y-2 border border-gray-600 text-sm text-red-500"> {/* Correct color class */}
+                <FormLabel htmlFor="email" color='primary'>Email</FormLabel> {/* Added color class */}
+                <Input id="email" type="email" fullWidth required value={email} onChange={handleEmailChange} className="text-white" /> {/* Adjust input text color if needed */}
               </div>
-              <div className="space-y-2">
-                <FormLabel htmlFor="password">Password</FormLabel>
-                <Input id="password" type="password" fullWidth required value={password} onChange={handlePasswordChange} />
+              <div className="space-y-2 border border-gray-600 text-white"> {/* Added text color */}
+                <FormLabel htmlFor="password" className="text-white">Password</FormLabel> {/* Added color class */}
+                <Input id="password" type="password" fullWidth required value={password} onChange={handlePasswordChange} className="text-white" /> {/* Adjust input text color */}
               </div>
               <Button className="w-full" variant="contained" color="primary" type="submit">
                 Log In
@@ -159,12 +159,12 @@ export default function LogIn() {
               </div>
             )}
             <div className="mt-4 text-center">
-              <a href="#" className="text-sm text-primary hover:underline" onClick={handleForgotPasswordClick}>
+              <a href="#" className="text-sm text-white hover:underline" onClick={handleForgotPasswordClick}>
                 Forgot password?
               </a>
             </div>
             <div className="mt-6 border-t pt-4">
-              <p className="text-center text-sm text-gray-600">
+              <p className="text-center text-sm text-white">
                 Don't have an account?{" "}
                 <Link to="/signup" className="text-primary hover:underline">Sign up</Link>
               </p>
