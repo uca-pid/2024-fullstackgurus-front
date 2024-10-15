@@ -37,6 +37,7 @@ import { top_exercises_done } from '../../functions/top_exercises_done';
 import DynamicBarChart from './bars_graph';
 import { getTrainings } from '../../api/TrainingApi';
 import { FilterCoachDialog } from './filter_coach';
+import WaterIntakeCard from './water_intake';
 
 interface Workout {
   id: number;
@@ -870,12 +871,7 @@ export default function HomePage() {
               </CardContent>
             </Card>
 
-            <Card sx={{ flex: 1, backgroundColor: '#333', color: '#fff', width: '100%' }}>
-              <CardHeader title="Water intake" />
-              <CardContent>
-                
-              </CardContent>
-            </Card>
+            <WaterIntakeCard/>
           </Box>
         </main>
       )}
