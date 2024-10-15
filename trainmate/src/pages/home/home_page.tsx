@@ -37,6 +37,7 @@ import { top_exercises_done } from '../../functions/top_exercises_done';
 import DynamicBarChart from './bars_graph';
 import { getTrainings } from '../../api/TrainingApi';
 import { FilterCoachDialog } from './filter_coach';
+import ResponsiveMenu from './menu_responsive';
 
 interface Workout {
   id: number;
@@ -503,21 +504,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
       <header className="p-4 flex justify-between items-center">
         <Avatar alt="User" src={require('../../images/profile_pic_2.jpg')} onClick={handleAvatarClick} style={{ cursor: 'pointer' }} />
-        <div>
-          <IconButton aria-label="add" onClick={handleFilterOpen}>
-            <FilterAltIcon sx={{ color: grey[50], fontSize: 40 }} className="h-24 w-24" />
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <p className='p-3 text-white'>Filter By</p>
-            </div>
-          </IconButton>
-          <IconButton aria-label="add" onClick={handleClickOpen}>
-            <AddCircleOutlineIcon sx={{ color: grey[50], fontSize: 40 }} className="h-24 w-24" />
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <p className='p-3 text-white'>Add New</p>
-            </div>
-          </IconButton>
-          <CalendarModal />
-        </div>
+        <ResponsiveMenu handleFilterOpen={handleFilterOpen} handleClickOpen={handleClickOpen}/>
       </header>
       <TopMiddleAlert alertText='Added workout successfully' open={alertOpen} onClose={() => setAlertOpen(false)} />
 
