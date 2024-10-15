@@ -563,40 +563,67 @@ export default function HomePage() {
             color: '#fff',
             borderRadius: '8px',
             padding: 2,
+            maxWidth: '30vw',
+            width: '100%',
+            height: 'auto',
+            '@media (max-width: 1024px)': {
+              padding: 1,
+              maxWidth: '60vw',
+            },
+            '@media (max-width: 600px)': {
+              padding: 1,
+              maxWidth: '100vw',
+            },
           },
-        }}>
+        }}
+      >
         <DialogActions>
           <IconButton aria-label="add" onClick={handleClose}>
-            <CloseIcon sx={{ color: grey[900], fontSize: 40 }} className="h-12 w-12" />
+            <CloseIcon sx={{ color: grey[900], fontSize: { xs: '1.2rem', sm: '1.5rem', md: '2rem' } }} className="h-8 w-8" />
           </IconButton>
         </DialogActions>
-        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', mt: -7 }}>What do you want to add?</DialogTitle>
+        
+        <DialogTitle sx={{
+          textAlign: 'center',
+          fontWeight: 'bold',
+          mt: -6,
+          fontSize: { xs: '1.2rem', sm: '1.5rem', md: '2rem' },
+        }}>
+          What do you want to add?
+        </DialogTitle>
+        
         <DialogContent>
-          <Box display="flex" justifyContent="space-around" alignItems="center" mt={2}>
-            <Box textAlign="center" mx={3}>
+          <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" mt={2} px={2}>
+            <Box textAlign="center" mx={2} my={{ xs: 2, sm: 0 }}>
               <IconButton onClick={handleCategoriesClick}>
                 <Avatar
                   style={{ border: '2px solid black' }}
                   alt="New Categories"
                   src={require('../../images/Sports2.png')}
-                  sx={{ width: 150, height: 150 }}
+                  sx={{
+                    width: { xs: 120, sm: 150, md: 170 },
+                    height: { xs: 120, sm: 150, md: 170 },
+                  }}
                 />
               </IconButton>
-              <Typography variant="body1" sx={{ mt: 1, fontWeight: 'bold' }}>
-                New Category or Sport
+              <Typography variant="body1" sx={{ mt: 1, fontWeight: 'bold', fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                New Category, Exercise or Training
               </Typography>
             </Box>
 
-            <Box textAlign="center" mx={3}>
+            <Box textAlign="center" mx={2} my={{ xs: 2, sm: 0 }}>
               <IconButton onClick={handleOpenWorkoutAdding}>
                 <Avatar
                   style={{ border: '2px solid black' }}
                   alt="New Workout"
                   src={require('../../images/Exercise2.png')}
-                  sx={{ width: 150, height: 150 }}
+                  sx={{
+                    width: { xs: 120, sm: 150, md: 170 },
+                    height: { xs: 120, sm: 150, md: 170 },
+                  }}
                 />
               </IconButton>
-              <Typography variant="body1" sx={{ mt: 1, fontWeight: 'bold' }}>
+              <Typography variant="body1" sx={{ mt: 1, fontWeight: 'bold', fontSize: { xs: '0.9rem', sm: '1rem' }, mb: 3 }}>
                 New Workout
               </Typography>
             </Box>

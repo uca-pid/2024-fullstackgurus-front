@@ -370,7 +370,7 @@ export default function CategoriesPage() {
           <IconButton component="a" sx={{ color: 'white' }} onClick={handleBackToHome}>
             <ArrowLeftIcon />
           </IconButton>
-        <Typography variant="h4">Categories & Exercises</Typography>
+        <Typography variant="h4">Categories, Exercises & Trainings</Typography>
         <Box sx={{ width: 6 }}></Box>
       </Box>
 
