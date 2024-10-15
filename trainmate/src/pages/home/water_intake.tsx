@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardContent, IconButton, Button, Typography, CircularProgress, Box } from '@mui/material';
 import { Add as AddIcon, Remove as RemoveIcon, ArrowBack as ArrowBackIcon, ArrowForward as ArrowForwardIcon } from '@mui/icons-material';
 import { BASE_URL } from '../../constants';
+import LoadingButton from '../../personalizedComponents/buttons/LoadingButton';
 
 const token = localStorage.getItem("token"); // Reemplaza con el token real
 
@@ -112,7 +113,7 @@ const WaterIntakeCard: React.FC = () => {
   return (
     <Card sx={{ flex: 1, backgroundColor: '#161616', color: '#fff', width: '100%' }} className='border border-gray-600'>
       <CardHeader title="Water Tracker" />
-      <CardContent>
+      <CardContent className="flex flex-col gap-6">
         <div className="flex justify-between items-center mb-4">
           <IconButton onClick={handlePrevDay}>
             <ArrowBackIcon style={{ color: '#fff' }} />
@@ -156,26 +157,26 @@ const WaterIntakeCard: React.FC = () => {
 
         <div className="flex justify-center space-x-4">
           {/* Button with loading spinner */}
-          <Button
-            variant="contained"
-            color="secondary"
-            startIcon={loadingRemove ? <CircularProgress size={20} color="inherit" /> : <RemoveIcon />}
+          <LoadingButton
+            isLoading={loadingRemove}
             onClick={removeWater}
-            className="bg-red-500"
-            disabled={loadingRemove} // Disable button while loading
-          >
-            Remove 150ml
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={loadingAdd ? <CircularProgress size={20} color="inherit" /> : <AddIcon />}
+            label="Remove 150ml"
+            icon={<RemoveIcon />}
+            borderColor="border-red-600"
+            borderWidth="border"
+            bgColor="bg-transparent"
+            color="text-red-500"
+          />
+         <LoadingButton
+            isLoading={loadingAdd}
             onClick={addWater}
-            className="bg-blue-500"
-            disabled={loadingAdd} // Disable button while loading
-          >
-            Add 150ml
-          </Button>
+            label="Add 150ml"
+            icon={<AddIcon />}
+            borderColor="border-green-600"
+            borderWidth="border"
+            bgColor="bg-transparent"
+            color="text-green-500"
+          />
         </div>
       </CardContent>
     </Card>
