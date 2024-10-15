@@ -141,14 +141,34 @@ export default function LogIn() {
               </div>
             </div>
             <form className="space-y-4" onSubmit={handleSubmit}>
-              <div className="space-y-2 border border-gray-600 text-sm text-red-500"> {/* Correct color class */}
-                <FormLabel htmlFor="email" color='primary'>Email</FormLabel> {/* Added color class */}
-                <Input id="email" type="email" fullWidth required value={email} onChange={handleEmailChange} className="text-white" /> {/* Adjust input text color if needed */}
+              <div className="space-y-2 border border-gray-600 rounded">
+                <Input
+                  id="email"
+                  type="email"
+                  fullWidth
+                  required
+                  value={email}
+                  onChange={handleEmailChange}
+                  className="rounded-md p-2 text-white placeholder-white text-sm"  // Add rounded borders and smaller size
+                  style={{ borderRadius: '8px', color: 'white' }}  // Optional inline styles
+                  placeholder="Enter your email"  // White placeholder
+                />
               </div>
-              <div className="space-y-2 border border-gray-600 text-white"> {/* Added text color */}
-                <FormLabel htmlFor="password" className="text-white">Password</FormLabel> {/* Added color class */}
-                <Input id="password" type="password" fullWidth required value={password} onChange={handlePasswordChange} className="text-white" /> {/* Adjust input text color */}
+
+              <div className="space-y-2 border border-gray-600 rounded">
+                <Input
+                  id="password"
+                  type="password"
+                  fullWidth
+                  required
+                  value={password}
+                  onChange={handlePasswordChange}
+                  className="rounded-md p-2 text-white placeholder-white text-sm"  // Add rounded borders and smaller size
+                  style={{ borderRadius: '8px', color: 'white' }}  // Optional inline styles
+                  placeholder="Enter your password"  // White placeholder
+                />
               </div>
+
               <Button className="w-full" variant="contained" color="primary" type="submit">
                 Log In
               </Button>
