@@ -850,7 +850,7 @@ export default function HomePage() {
                         </g>
                       );
                     }}/>
-                    <text x="50%" y={320} fill="grey" textAnchor="middle" fontSize="12px" >Filter date</text>
+                    <text x="50%" y={320} fill="#aaaaaa" textAnchor="middle" fontSize="12px" >Filter date</text>
                   </LineChart>
                 ) : (
                   <div>

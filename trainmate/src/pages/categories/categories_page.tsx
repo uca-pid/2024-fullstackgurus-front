@@ -26,6 +26,7 @@ import TopMiddleAlert from '../../personalizedComponents/TopMiddleAlert';
 import handleCategoryIcon from '../../personalizedComponents/handleCategoryIcon';
 import CreateTrainingDialog from './training_dialog';
 import AreYouSureAlert from '../../personalizedComponents/areYouSureAlert';
+import {muscularGroups} from "../../enums/muscularGroups";
 
 interface CategoryWithExercises {
   id: string;
@@ -60,6 +61,7 @@ interface NewCategory {
 }
 
 interface NewExercise {
+  training_muscle: string;
   id: string;
   calories_per_hour: number | string;
   name: string;
@@ -205,7 +207,7 @@ export default function CategoriesPage() {
   };
 
   const handleOpenAddExerciseDialog = (categoryId: string) => {
-    setNewExercise({ ...newExercise, category_id: categoryId, calories_per_hour: newExercise?.calories_per_hour || 0, name: newExercise?.name || '', id: '' });
+    setNewExercise({ ...newExercise, category_id: categoryId, calories_per_hour: newExercise?.calories_per_hour || 0, name: newExercise?.name || '', id: '', training_muscle: '' });
     setAddExerciseDialogOpen(true);
   };
   const handleCloseAddExerciseDialog = () => {
@@ -251,29 +253,36 @@ export default function CategoriesPage() {
   };
 
   const handleAddExercise = async () => {
-    if (newExercise && newExercise.name) {
-      try {
-        const exercise = await saveExercise(newExercise);
-        setCategoryWithExercises(
-          categoryWithExercises.map((category) => {
-            if (category.id === newExercise.category_id) {
-              return {
-                ...category,
-                exercises: [
-                  ...category.exercises,
-                  exercise
-                ],
-              };
-            }
-            return category;
-          })
-        );
-        setNewExercise(null);
-        setAlertExerciseAddedOpen(true);
-      } catch (error) {
-        console.error('Error al guardar el ejercicio:', error);
+    if (newExercise) {
+      const exerciseToSave = {
+        ...newExercise,
+        training_muscle: newExercise.training_muscle || 'Fullbody',
+      };
+  
+      if (exerciseToSave.name && exerciseToSave.calories_per_hour && exerciseToSave.category_id && exerciseToSave.training_muscle) {
+        try {
+          const exercise = await saveExercise(exerciseToSave);
+          setCategoryWithExercises(
+            categoryWithExercises.map((category) => {
+              if (category.id === exerciseToSave.category_id) {
+                return {
+                  ...category,
+                  exercises: [
+                    ...category.exercises,
+                    exercise
+                  ],
+                };
+              }
+              return category;
+            })
+          );
+          setNewExercise(null);
+          setAlertExerciseAddedOpen(true);
+        } catch (error) {
+          console.error('Error al guardar el ejercicio:', error);
+        }
+        handleCloseAddExerciseDialog();
       }
-      handleCloseAddExerciseDialog();
     }
   };
 
@@ -610,7 +619,7 @@ export default function CategoriesPage() {
             fullWidth
             variant="standard"
             value={newExercise?.name || ''}
-            onChange={(e) => setNewExercise({ ...newExercise, name: e.target.value, calories_per_hour: newExercise?.calories_per_hour || 1, category_id: newExercise?.category_id || '', id: '' })}
+            onChange={(e) => setNewExercise({ ...newExercise, name: e.target.value, calories_per_hour: newExercise?.calories_per_hour || 1, category_id: newExercise?.category_id || '', id: '', training_muscle: newExercise?.training_muscle || '' })}
           />
           <TextField
             margin="dense"
@@ -628,7 +637,8 @@ export default function CategoriesPage() {
                   id: '', 
                   calories_per_hour: "", 
                   name: newExercise?.name || '', 
-                  category_id: newExercise?.category_id || '' 
+                  category_id: newExercise?.category_id || '' ,
+                  training_muscle: newExercise?.training_muscle || ''
                 });
               } else {
                 const numericValue = parseInt(value, 10);
@@ -638,7 +648,8 @@ export default function CategoriesPage() {
                     id: '', 
                     calories_per_hour: numericValue, 
                     name: newExercise?.name || '', 
-                    category_id: newExercise?.category_id || '' 
+                    category_id: newExercise?.category_id || '',
+                    training_muscle: newExercise?.training_muscle || ''
                   });
                 } else if (numericValue < 1) {
                   setNewExercise({ 
@@ -646,7 +657,8 @@ export default function CategoriesPage() {
                     id: '', 
                     calories_per_hour: 1, 
                     name: newExercise?.name || '', 
-                    category_id: newExercise?.category_id || '' 
+                    category_id: newExercise?.category_id || '',
+                    training_muscle: newExercise?.training_muscle || ''
                   });
                 } else if (numericValue > 4000) {
                   setNewExercise({ 
@@ -654,7 +666,8 @@ export default function CategoriesPage() {
                     id: '', 
                     calories_per_hour: 4000, 
                     name: newExercise?.name || '', 
-                    category_id: newExercise?.category_id || '' 
+                    category_id: newExercise?.category_id || '',
+                    training_muscle: newExercise?.training_muscle || ''
                   });
                 }
               }
@@ -664,6 +677,46 @@ export default function CategoriesPage() {
               htmlInput: { min: 1, max: 4000 }
             }}
           />
+          <FormControl fullWidth sx={{ marginTop: 2 }}>
+            <InputLabel id="muscle-label">Muscular Group</InputLabel>
+            <Select
+              labelId="muscle-label"
+              id="muscle"
+              value={newExercise?.training_muscle || 'Fullbody'}
+              onChange={(e) =>
+                setNewExercise({
+                  ...newExercise,
+                  training_muscle: e.target.value,
+                  name: newExercise?.name || '',
+                  calories_per_hour: newExercise?.calories_per_hour || 1,
+                  category_id: newExercise?.category_id || '',
+                  id: ''
+                })
+              }
+              label="Muscular Group"
+              MenuProps={{
+                PaperProps: {
+                  sx: {
+                    maxWidth: 300,
+                    backgroundColor: '#444',
+                    color: '#fff',
+                  },
+                },
+              }}
+              sx={{
+                // color: '#fff',
+              }}
+            >
+              <MenuItem value="">
+                <em>Select a muscle</em>
+              </MenuItem>
+              {muscularGroups.map((muscle) => (
+                <MenuItem key={muscle} value={muscle}>
+                  {muscle}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseAddExerciseDialog}>Cancel</Button>

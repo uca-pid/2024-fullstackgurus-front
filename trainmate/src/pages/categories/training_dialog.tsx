@@ -117,8 +117,11 @@ const CreateTrainingDialog: React.FC<CreateTrainingDialogProps> = ({ createNewTr
 
         {/* MultiSelect para categorías */}
         <FormControl fullWidth sx={{ mt: 2 }}>
-          <InputLabel>Categories</InputLabel>
+          <InputLabel id="categories">Categories</InputLabel>
           <Select
+            labelId="categories"
+            id="categories"
+            label="Categories"
             multiple
             value={selectedCategories}
             onChange={handleCategoryChange}
@@ -139,8 +142,11 @@ const CreateTrainingDialog: React.FC<CreateTrainingDialogProps> = ({ createNewTr
         {/* Mostrar MultiSelect de ejercicios según las categorías seleccionadas */}
         {selectedCategories.map((categoryId) => (
           <FormControl key={categoryId} fullWidth sx={{ mt: 2 }}>
-            <InputLabel>Exercises from {categoryWithExercises.find(cat => cat.id === categoryId)?.name}</InputLabel>
+            <InputLabel id={`exercises-${categoryId}`}>Exercises from {categoryWithExercises.find(cat => cat.id === categoryId)?.name}</InputLabel>
             <Select
+              labelId={`exercises-${categoryId}`}
+              id={`exercises-${categoryId}`}
+              label={`Exercises from ${categoryWithExercises.find(cat => cat.id === categoryId)?.name || "category"}`}
               multiple
               value={selectedExercises[categoryId] || []}
               onChange={handleExerciseChange(categoryId)}
