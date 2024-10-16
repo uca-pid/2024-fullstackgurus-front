@@ -419,10 +419,9 @@ export default function CategoriesPage() {
         <IconButton component="a" sx={{ color: 'white' }} onClick={handleBackToHome}>
           <ArrowLeftIcon />
         </IconButton>
-        <Typography variant="h4">Categories, Exercises & Trainings</Typography>
-        <Box sx={{ width: 6 }}></Box>
+        <Typography variant="h4" sx={{ fontSize: { xs: '1.3rem', sm: '1.8rem', md: '2.5rem' }}}>Categories, Exercises & Trainings</Typography>
         <IconButton component="a" sx={{ color: 'white' }} onClick={handleTrophyButton}>
-          <EmojiEventsIcon />
+          <EmojiEventsIcon sx={{ fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' } }}/>
         </IconButton>
         <PopularExercisesModal open={openRankingModal} onClose={handleCloseRankingModal}/>
       </Box >
