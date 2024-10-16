@@ -39,6 +39,7 @@ import { getTrainings } from '../../api/TrainingApi';
 import { FilterCoachDialog } from './filter_coach';
 import WaterIntakeCard from './water_intake';
 import ResponsiveMenu from './menu_responsive';
+import LoadingAnimation from '../../personalizedComponents/loadingAnimation';
 
 interface Workout {
   id: number;
@@ -423,6 +424,7 @@ export default function HomePage() {
   }
 
   useEffect(() => {
+    setLoading(true);
     const fetchCategories = async () => {
       try {
         const categories_from_local_storage = JSON.parse(localStorage.getItem('categories') || '[]');
@@ -445,6 +447,8 @@ export default function HomePage() {
         }
       } catch (error) {
         console.error('Error al obtener las categorías:', error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchCategories();
@@ -467,6 +471,7 @@ export default function HomePage() {
   };
 
   useEffect(() => {
+    setLoading(true);
     const fetchCoaches = async () => {
       try {
         const coaches_from_local_storage = JSON.parse(localStorage.getItem('coaches') || '[]');
@@ -481,12 +486,15 @@ export default function HomePage() {
         }
       } catch (error) {
         console.error('Error al obtener los profesores:', error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchCoaches();
   }, []);
 
   useEffect(() => {
+    setLoading(true);
     const fetchTrainings = async () => {
       try {
         const trainings = await getAllTrainings();
@@ -496,6 +504,8 @@ export default function HomePage() {
           }
       } catch (error) {
         console.error('Error al obtener entrenamientos:', error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchTrainings();
@@ -729,9 +739,7 @@ export default function HomePage() {
       </Dialog>
 
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-          <CircularProgress />
-        </Box>
+        <LoadingAnimation />
       ) : (
         <main className="p-4 space-y-6">
           <Card sx={{ backgroundColor: '#161616', color: '#fff' }} className='border border-gray-600' >
