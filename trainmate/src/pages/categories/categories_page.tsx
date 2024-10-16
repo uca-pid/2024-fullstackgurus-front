@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Button, Card, CardContent, CardHeader, Typography, TextField, InputLabel, Box, Accordion, AccordionSummary, AccordionDetails, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, MenuItem, Select, FormControl, CircularProgress, } from '@mui/material';
 import { Add as PlusIcon, Edit as EditIcon, Delete as DeleteIcon, ArrowBack as ArrowLeftIcon, ExpandMore as ExpandMoreIcon, BorderColor, } from '@mui/icons-material';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import {
   FitnessCenter as DumbbellIcon,
   SportsSoccer as BallIcon,
@@ -33,6 +34,7 @@ import { Visibility as EyeIcon } from '@mui/icons-material'; // Add the Eye icon
 import DialogContentText from '@mui/material/DialogContentText';
 
 import { muscularGroups } from "../../enums/muscularGroups";
+import PopularExercisesModal from './popular_exercise_modal';
 
 interface CategoryWithExercises {
   id: string;
@@ -125,6 +127,13 @@ export default function CategoriesPage() {
   // Add state for the modal to display the image
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const [openRankingModal, setOpenRankingModal] = useState(false);
+
+
+  const handleCloseRankingModal = () => {
+    setOpenRankingModal(false);
+  };
 
   // Function to handle opening the image modal
   const handleOpenImageModal = (imageUrl: string) => {
@@ -369,496 +378,302 @@ export default function CategoriesPage() {
 
 
 
-    const handleEditCategory = async () => {
-      if (editingCategory) {
-        try {
-          await editCategory({ name: editingCategory.name, icon: editingCategory.icon }, editingCategory.id);
-          setCategoryWithExercises(
-            categoryWithExercises.map((category) =>
-              category.id === editingCategory.id ? { ...editingCategory, exercises: category.exercises } : category
-            )
-          );
-          setAlertCategoryEditedOpen(true);
-        } catch (error) {
-          console.error('Error al editar la categoría:', error);
-        }
-        setEditingCategory(null);
-        handleCloseEditCategoryDialog();
-      }
-    };
-
-    const handleEditExercise = async () => {
-      if (editingExercise) {
-        try {
-          await editExercise({ name: editingExercise.name, calories_per_hour: editingExercise.calories_per_hour }, editingExercise.id);
-          setCategoryWithExercises(
-            categoryWithExercises.map((category) => {
-              if (category.id === editingExercise.category_id) {
-                return {
-                  ...category,
-                  exercises: category.exercises.map((exercise) =>
-                    exercise.id === editingExercise.id ? editingExercise : exercise
-                  ),
-                };
-              }
-              return category;
-            })
-          );
-          setAlertExerciseEditedOpen(true);
-        } catch (error) {
-          console.error('Error al editar el ejercicio:', error);
-        }
-        setEditingExercise(null);
-        handleCloseEditExerciseDialog();
-      }
-    };
-
-    const handleBackToHome = () => {
-      navigate('/homepage');
-    };
-
-    return (
-      <Box sx={{ minHeight: '100vh','backgroundColor': 'black', color: 'white', p: 4 }}  >
-        <Box component="header" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
-          <IconButton component="a" sx={{ color: 'white' }} onClick={handleBackToHome}>
-            <ArrowLeftIcon />
-          </IconButton>
-          <Typography variant="h4">Categories, Exercises & Trainings</Typography>
-          <Box sx={{ width: 6 }}></Box>
-        </Box >
-
-        <TopMiddleAlert alertText='Added category successfully' open={alertCategoryAddedOpen} onClose={() => setAlertCategoryAddedOpen(false)} />
-        <TopMiddleAlert alertText='Added exercise successfully' open={alertExerciseAddedOpen} onClose={() => setAlertExerciseAddedOpen(false)} />
-        <TopMiddleAlert alertText='Added training successfully' open={alertTrainingAddedOpen} onClose={() => setAlertTrainingAddedOpen(false)} />
-        <TopMiddleAlert alertText='Edited category successfully' open={alertCategoryEditedOpen} onClose={() => setAlertCategoryEditedOpen(false)} />
-        <TopMiddleAlert alertText='Edited exercise successfully' open={alertExerciseEditedOpen} onClose={() => setAlertExerciseEditedOpen(false)} />
-        <TopMiddleAlert alertText='Deleted category successfully' open={alertCategoryDeletedOpen} onClose={() => setAlertCategoryDeletedOpen(false)} />
-        <TopMiddleAlert alertText='Deleted exercise successfully' open={alertExerciseDeletedOpen} onClose={() => setAlertExerciseDeletedOpen(false)} />
-
-        {
-          deleteCategoryAlertOpen &&
-          <AreYouSureAlert areYouSureTitle='Are you sure you want to delete this category?' areYouSureText='You will not be able to recuperate it'
-            open={deleteCategoryAlertOpen} handleCloseAgree={handleCloseAgreeDeleteCategoryAlert} handleCloseDisagree={handleCloseDisagreeDeleteCategoryAlert} dataToDelete={categoryDataToDelete}
-          />
-        }
-        {
-          deleteExerciseAlertOpen &&
-          <AreYouSureAlert areYouSureTitle='Are you sure you want to delete this exercise?' areYouSureText='You will not be able to recuperate it'
-            open={deleteExerciseAlertOpen} handleCloseAgree={handleCloseAgreeDeleteExerciseAlert} handleCloseDisagree={handleCloseDisagreeDeleteExerciseAlert} dataToDelete={exerciseDataToDelete}
-          />
-        }
-
-        {
-          loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <Box sx={{ display: 'flex', gap: 2, height: '100vh', flexDirection: { xs: 'column', sm: 'row' } }}>
-              {/* Card de Categorías */}
-              <Card sx={{ flex: 1, backgroundColor: '#161616', color: '#fff', width: '100%', height: 'calc(100vh - 200px)' }} >
-                <CardHeader
-                  title="Categories"
-                  titleTypographyProps={{ fontSize: { xs: '1.2rem', sm: '1.3rem', md: '1.5rem' }, variant: 'h6' }}
-                  action={
-                    <IconButton aria-label="add" onClick={handleOpenAddCategoryDialog}>
-                      <PlusIcon sx={{ color: grey[50], fontSize: 25 }} />
-                      <div>
-                        <Typography className='p-1 text-white text-lg'>Add New Category</Typography>
-                      </div>
-                    </IconButton>
-                  }
-                />
-                <CardContent>
-                  <Box sx={{ height: 'calc(100vh - 300px)', overflowY: 'auto' }}>
-                    {categoryWithExercises.map((category) => (
-                      <Accordion key={category.id} sx={{ backgroundColor: "#161616", color: 'white' }} className='border border-gray-600'>
-                        <AccordionSummary
-                          expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}
-                          aria-controls={`panel-${category.id}-content`}
-                          id={`panel-${category.id}-header`}
-                        >
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            {handleCategoryIcon(category.icon)}
-                            <Typography sx={{ ml: 1, fontWeight: 'bold', fontSize: '1.2rem' }}>{category.name}</Typography>
-                          </Box>
-                          {category.isCustom && (
-                            <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center' }}>
-                              <IconButton size="small" color="inherit" onClick={() => handleOpenEditCategoryDialog(category)}>
-                                <EditIcon />
-                              </IconButton>
-                              <IconButton size="small" color="inherit" onClick={() => handleCategoryDataToDelete(category.id)}>
-                                <DeleteIcon />
-                              </IconButton>
-                            </Box>
-                          )}
-                        </AccordionSummary>
-                        <AccordionDetails>
-                          <Box sx={{ pl: 4 }}>
-                            {category.exercises.map((exercise: any) => (
-                              <Box key={exercise.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                  <Typography>{exercise.name}</Typography>
-                                  <Typography sx={{ fontSize: '0.7rem', marginLeft: 3 }}>({exercise.calories_per_hour} kcal/h)</Typography>
-                                </Box>
-                                <Box>
-                                  {!exercise.public && (
-                                    <Box>
-                                      <IconButton size="small" color="inherit" onClick={() => handleOpenEditExerciseDialog(exercise)}>
-                                        <EditIcon />
-                                      </IconButton>
-                                      <IconButton size="small" color="inherit" onClick={() => handleExerciseDataToDelete(exercise.id, category.id)}>
-                                        <DeleteIcon />
-                                      </IconButton>
-                                      {exercise.image_url && (
-                                        <IconButton size="small" color="inherit" onClick={() => handleOpenImageModal(exercise.image_url)}>
-                                          <EyeIcon />
-                                        </IconButton>
-                                      )}
-                                    </Box>
-                                  )}
-
-                                </Box>
-                              </Box>
-                            ))}
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              startIcon={<PlusIcon />}
-                              sx={{ mt: 2 }}
-                              onClick={() => handleOpenAddExerciseDialog(category.id)}
-                            >
-                              Add Custom Exercise
-                            </Button>
-                          </Box>
-                        </AccordionDetails>
-                      </Accordion>
-                    ))}
-                  </Box>
-                </CardContent>
-              </Card>
-              <Dialog open={imageModalOpen} onClose={handleCloseImageModal} fullWidth maxWidth="sm">
-                <DialogTitle>Exercise Image</DialogTitle>
-                <DialogContent>
-                  {selectedImage ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                      <img src={selectedImage} alt="Exercise" style={{ maxWidth: '100%', maxHeight: '400px' }} />
-                    </Box>
-                  ) : (
-                    <DialogContentText>No image available</DialogContentText>
-                  )}
-                </DialogContent>
-                <DialogActions>
-                  <Button onClick={handleCloseImageModal} color="primary">
-                    Close
-                  </Button>
-                </DialogActions>
-              </Dialog>
-
-              {/* Nueva Card de Trainings */}
-              <Card sx={{ flex: 1, backgroundColor: '#161616', color: '#fff', width: '100%', height: 'calc(100vh - 200px)' }}>
-                <CardHeader
-                  title="Trainings"
-                  titleTypographyProps={{ fontSize: { xs: '1.2rem', sm: '1.3rem', md: '1.5rem' }, variant: 'h6' }}
-                  action={
-                    <IconButton aria-label="add" onClick={handleOpenAddTrainingDialog}>
-                      <PlusIcon sx={{ color: grey[50], fontSize: 25 }} />
-                      <div>
-                        <Typography className='p-1 text-white text-lg'>Create new Training</Typography>
-                      </div>
-                    </IconButton>
-                  }
-                />
-                <CardContent>
-                  <Box sx={{ height: 'calc(100vh - 300px)', overflowY: 'auto' }}>
-                    {trainings.map((training) => (
-                      <Accordion key={training.id} sx={{ backgroundColor: '#161616', color: 'white' }} className='border border-gray-600' >
-                        <AccordionSummary
-                          expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}
-                          aria-controls={`panel-${training.id}-content`}
-                          id={`panel-${training.id}-header`}
-                        >
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Typography sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}>{training.name}</Typography>
-                          </Box>
-                          <Typography sx={{ ml: 'auto', fontWeight: 'bold', fontSize: '1rem' }}>
-                            {training.calories_per_hour_mean} kcal/h
-                          </Typography>
-                        </AccordionSummary>
-                        {<AccordionDetails>
-                          <Box sx={{ pl: 4 }}>
-                            {training.exercises.map((exercise) => (
-                              <Box key={exercise.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                  <Typography>{exercise.name}</Typography>
-                                  <Typography sx={{ fontSize: '0.7rem', marginLeft: 3 }}>({exercise.calories_per_hour} kcal/h)</Typography>
-                                </Box>
-                              </Box>
-                            ))}
-                          </Box>
-                        </AccordionDetails>}
-                      </Accordion>
-                    ))}
-                  </Box>
-                </CardContent>
-              </Card>
-            </Box>
+  const handleEditCategory = async () => {
+    if (editingCategory) {
+      try {
+        await editCategory({ name: editingCategory.name, icon: editingCategory.icon }, editingCategory.id);
+        setCategoryWithExercises(
+          categoryWithExercises.map((category) =>
+            category.id === editingCategory.id ? { ...editingCategory, exercises: category.exercises } : category
           )
-        }
+        );
+        setAlertCategoryEditedOpen(true);
+      } catch (error) {
+        console.error('Error al editar la categoría:', error);
+      }
+      setEditingCategory(null);
+      handleCloseEditCategoryDialog();
+    }
+  };
 
-        {/* Add Category Dialog */}
-        <Dialog open={addCategoryDialogOpen} onClose={handleCloseAddCategoryDialog} fullWidth={true} maxWidth={'xs'}
-          PaperProps={{
-            sx: {
-              backgroundColor: grey[800],
-              color: '#fff',
-              borderRadius: '8px',
-              padding: 2,
-            },
-          }}>
-          <DialogTitle sx={{ color: '#fff', textAlign: 'center' }}>Add New Category</DialogTitle>
-          <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              id="category-name"
-              label="Name"
-              InputLabelProps={{
-                style: { color: '#b0b0b0' },
-              }}
-              type="text"
-              fullWidth
-              variant="standard"
-              value={newCategory?.name || ''}
-              onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value, icon: newCategory?.icon || '' })}
-              sx={{ mb: 3 }}
-            />
-            <FormControl fullWidth margin="dense">
-              <InputLabel id="icon-label">Icon</InputLabel>
-              <Select
-                labelId="icon-label"
-                id="icon"
-                label="Icon"
-                value={newCategory?.icon || ''}
-                onChange={(e) => setNewCategory({ ...newCategory, icon: e.target.value, name: newCategory?.name || '' })}
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      /* display: 'flex',
-                      flexWrap: 'wrap',
-                      maxWidth: 300,
-                      padding: 1, */
-                      backgroundColor: '#444',
-                      color: '#fff',
-                    },
-                  },
-                }}
-              >
-                <MenuItem value="">
-                  <em>Select an icon</em>
-                </MenuItem>
-                <MenuItem value="Dumbbell">{handleCategoryIcon('Dumbbell')}</MenuItem>
-                <MenuItem value="Ball">{handleCategoryIcon('Ball')}</MenuItem>
-                <MenuItem value="Heart">{handleCategoryIcon('Heart')}</MenuItem>
-                <MenuItem value="Basketball">{handleCategoryIcon('Basketball')}</MenuItem>
-                <MenuItem value="Tennis">{handleCategoryIcon('Tennis')}</MenuItem>
-                <MenuItem value="Fight">{handleCategoryIcon('Fight')}</MenuItem>
-                <MenuItem value="Martial">{handleCategoryIcon('Martial')}</MenuItem>
-                <MenuItem value="Mma">{handleCategoryIcon('Mma')}</MenuItem>
-                <MenuItem value="Motorsports">{handleCategoryIcon('Motorsports')}</MenuItem>
-                <MenuItem value="Hiking">{handleCategoryIcon('Hiking')}</MenuItem>
-                <MenuItem value="Sailing">{handleCategoryIcon('Sailing')}</MenuItem>
-                <MenuItem value="Skiing">{handleCategoryIcon('Skiing')}</MenuItem>
-                <MenuItem value="Pool">{handleCategoryIcon('Pool')}</MenuItem>
-                <MenuItem value="Skate">{handleCategoryIcon('Skate')}</MenuItem>
-                <MenuItem value="Rugby">{handleCategoryIcon('Rugby')}</MenuItem>
-                <MenuItem value="Volleyball">{handleCategoryIcon('Volleyball')}</MenuItem>
-              </Select >
-            </FormControl >
-          </DialogContent >
-          <DialogActions>
-            <Button onClick={handleCloseAddCategoryDialog}>Cancel</Button>
-            <Button onClick={handleAddCategory}>Add Category</Button>
-          </DialogActions>
-        </Dialog >
+  const handleEditExercise = async () => {
+    if (editingExercise) {
+      try {
+        await editExercise({ name: editingExercise.name, calories_per_hour: editingExercise.calories_per_hour }, editingExercise.id);
+        setCategoryWithExercises(
+          categoryWithExercises.map((category) => {
+            if (category.id === editingExercise.category_id) {
+              return {
+                ...category,
+                exercises: category.exercises.map((exercise) =>
+                  exercise.id === editingExercise.id ? editingExercise : exercise
+                ),
+              };
+            }
+            return category;
+          })
+        );
+        setAlertExerciseEditedOpen(true);
+      } catch (error) {
+        console.error('Error al editar el ejercicio:', error);
+      }
+      setEditingExercise(null);
+      handleCloseEditExerciseDialog();
+    }
+  };
 
-        {/* Add Exercise Dialog */}
-        < Dialog open={addExerciseDialogOpen} onClose={handleCloseAddExerciseDialog} fullWidth={true} maxWidth={'xs'}
-          PaperProps={{
-            sx: {
-              backgroundColor: grey[800],
-              color: '#fff',
-              borderRadius: '8px',
-              padding: 2,
-            },
-          }
-          }>
-          <DialogTitle>Add New Exercise</DialogTitle>
-          <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              id="exercise-name"
-              label="Name"
-              type="text"
-              fullWidth
-              variant="standard"
-              value={newExercise?.name || ''}
-              onChange={(e) => setNewExercise({ ...newExercise, name: e.target.value, calories_per_hour: newExercise?.calories_per_hour || 1, category_id: newExercise?.category_id || '', id: '', training_muscle: newExercise?.training_muscle || '' })}
-            />
-            <TextField
-              margin="dense"
-              id="exercise-calories"
-              label="Kcal per Hour"
-              type="number"
-              fullWidth
-              variant="standard"
-              value={newExercise?.calories_per_hour ?? ''}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value === "") {
-                  setNewExercise({
-                    ...newExercise,
-                    id: '',
-                    calories_per_hour: "",
-                    name: newExercise?.name || '',
-                    category_id: newExercise?.category_id || '',
-                    training_muscle: newExercise?.training_muscle || ''
-                  });
-                } else {
-                  const numericValue = parseInt(value, 10);
-                  if (numericValue >= 1 && numericValue <= 4000) {
-                    setNewExercise({
-                      ...newExercise,
-                      id: '',
-                      calories_per_hour: numericValue,
-                      name: newExercise?.name || '',
-                      category_id: newExercise?.category_id || '',
-                      training_muscle: newExercise?.training_muscle || ''
-                    });
-                  } else if (numericValue < 1) {
-                    setNewExercise({
-                      ...newExercise,
-                      id: '',
-                      calories_per_hour: 1,
-                      name: newExercise?.name || '',
-                      category_id: newExercise?.category_id || '',
-                      training_muscle: newExercise?.training_muscle || ''
-                    });
-                  } else if (numericValue > 4000) {
-                    setNewExercise({
-                      ...newExercise,
-                      id: '',
-                      calories_per_hour: 4000,
-                      name: newExercise?.name || '',
-                      category_id: newExercise?.category_id || '',
-                      training_muscle: newExercise?.training_muscle || ''
-                    });
-                  }
+  const handleBackToHome = () => {
+    navigate('/homepage');
+  };
+
+  const handleTrophyButton = () => {
+    setOpenRankingModal(true);
+  };
+
+  return (
+    <Box sx={{ minHeight: '100vh', 'backgroundColor': 'black', color: 'white', p: 4 }}  >
+      <Box component="header" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
+        <IconButton component="a" sx={{ color: 'white' }} onClick={handleBackToHome}>
+          <ArrowLeftIcon />
+        </IconButton>
+        <Typography variant="h4">Categories, Exercises & Trainings</Typography>
+        <Box sx={{ width: 6 }}></Box>
+        <IconButton component="a" sx={{ color: 'white' }} onClick={handleTrophyButton}>
+          <EmojiEventsIcon />
+        </IconButton>
+        <PopularExercisesModal open={openRankingModal} onClose={handleCloseRankingModal}/>
+      </Box >
+
+      <TopMiddleAlert alertText='Added category successfully' open={alertCategoryAddedOpen} onClose={() => setAlertCategoryAddedOpen(false)} />
+      <TopMiddleAlert alertText='Added exercise successfully' open={alertExerciseAddedOpen} onClose={() => setAlertExerciseAddedOpen(false)} />
+      <TopMiddleAlert alertText='Added training successfully' open={alertTrainingAddedOpen} onClose={() => setAlertTrainingAddedOpen(false)} />
+      <TopMiddleAlert alertText='Edited category successfully' open={alertCategoryEditedOpen} onClose={() => setAlertCategoryEditedOpen(false)} />
+      <TopMiddleAlert alertText='Edited exercise successfully' open={alertExerciseEditedOpen} onClose={() => setAlertExerciseEditedOpen(false)} />
+      <TopMiddleAlert alertText='Deleted category successfully' open={alertCategoryDeletedOpen} onClose={() => setAlertCategoryDeletedOpen(false)} />
+      <TopMiddleAlert alertText='Deleted exercise successfully' open={alertExerciseDeletedOpen} onClose={() => setAlertExerciseDeletedOpen(false)} />
+
+      {
+        deleteCategoryAlertOpen &&
+        <AreYouSureAlert areYouSureTitle='Are you sure you want to delete this category?' areYouSureText='You will not be able to recuperate it'
+          open={deleteCategoryAlertOpen} handleCloseAgree={handleCloseAgreeDeleteCategoryAlert} handleCloseDisagree={handleCloseDisagreeDeleteCategoryAlert} dataToDelete={categoryDataToDelete}
+        />
+      }
+      {
+        deleteExerciseAlertOpen &&
+        <AreYouSureAlert areYouSureTitle='Are you sure you want to delete this exercise?' areYouSureText='You will not be able to recuperate it'
+          open={deleteExerciseAlertOpen} handleCloseAgree={handleCloseAgreeDeleteExerciseAlert} handleCloseDisagree={handleCloseDisagreeDeleteExerciseAlert} dataToDelete={exerciseDataToDelete}
+        />
+      }
+
+      {
+        loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Box sx={{ display: 'flex', gap: 2, height: '100vh', flexDirection: { xs: 'column', sm: 'row' } }}>
+            {/* Card de Categorías */}
+            <Card sx={{ flex: 1, backgroundColor: '#161616', color: '#fff', width: '100%', height: 'calc(100vh - 200px)' }} >
+              <CardHeader
+                title="Categories"
+                titleTypographyProps={{ fontSize: { xs: '1.2rem', sm: '1.3rem', md: '1.5rem' }, variant: 'h6' }}
+                action={
+                  <IconButton aria-label="add" onClick={handleOpenAddCategoryDialog}>
+                    <PlusIcon sx={{ color: grey[50], fontSize: 25 }} />
+                    <div>
+                      <Typography className='p-1 text-white text-lg'>Add New Category</Typography>
+                    </div>
+                  </IconButton>
                 }
-              }}
-              placeholder="Kcal per Hour"
-              slotProps={{
-                htmlInput: { min: 1, max: 4000 }
-              }}
-            />
-            <InputLabel htmlFor="upload-image">Upload Exercise Image</InputLabel>
-            <input
-              accept="image/*"
-              id="upload-image"
-              type="file"
-              onChange={handleFileChange}
-              style={{ display: 'block', marginTop: '8px' }}
-            />
-            <FormControl fullWidth sx={{ marginTop: 2 }}>
-              <InputLabel id="muscle-label">Muscular Group</InputLabel>
-              <Select
-                labelId="muscle-label"
-                id="muscle"
-                value={newExercise?.training_muscle || 'Fullbody'}
-                onChange={(e) =>
-                  setNewExercise({
-                    ...newExercise,
-                    training_muscle: e.target.value,
-                    name: newExercise?.name || '',
-                    calories_per_hour: newExercise?.calories_per_hour || 1,
-                    category_id: newExercise?.category_id || '',
-                    id: ''
-                  })
-                }
-                label="Muscular Group"
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      maxWidth: 300,
-                      backgroundColor: '#444',
-                      color: '#fff',
-                    },
-                  },
-                }}
-                sx={{
-                  // color: '#fff',
-                }}
-              >
-                <MenuItem value="">
-                  <em>Select a muscle</em>
-                </MenuItem>
-                {muscularGroups.map((muscle) => (
-                  <MenuItem key={muscle} value={muscle}>
-                    {muscle}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </DialogContent >
-          <DialogActions>
-            <Button onClick={handleCloseAddExerciseDialog}>Cancel</Button>
-            <Button onClick={handleAddExercise}>Add Exercise</Button>
-          </DialogActions>
-        </Dialog >
+              />
+              <CardContent>
+                <Box sx={{ height: 'calc(100vh - 300px)', overflowY: 'auto' }}>
+                  {categoryWithExercises.map((category) => (
+                    <Accordion key={category.id} sx={{ backgroundColor: "#161616", color: 'white' }} className='border border-gray-600'>
+                      <AccordionSummary
+                        expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}
+                        aria-controls={`panel-${category.id}-content`}
+                        id={`panel-${category.id}-header`}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          {handleCategoryIcon(category.icon)}
+                          <Typography sx={{ ml: 1, fontWeight: 'bold', fontSize: '1.2rem' }}>{category.name}</Typography>
+                        </Box>
+                        {category.isCustom && (
+                          <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center' }}>
+                            <IconButton size="small" color="inherit" onClick={() => handleOpenEditCategoryDialog(category)}>
+                              <EditIcon />
+                            </IconButton>
+                            <IconButton size="small" color="inherit" onClick={() => handleCategoryDataToDelete(category.id)}>
+                              <DeleteIcon />
+                            </IconButton>
+                          </Box>
+                        )}
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <Box sx={{ pl: 4 }}>
+                          {category.exercises.map((exercise: any) => (
+                            <Box key={exercise.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Typography>{exercise.name}</Typography>
+                                <Typography sx={{ fontSize: '0.7rem', marginLeft: 3 }}>({exercise.calories_per_hour} kcal/h)</Typography>
+                              </Box>
+                              <Box>
+                                {!exercise.public && (
+                                  <Box>
+                                    <IconButton size="small" color="inherit" onClick={() => handleOpenEditExerciseDialog(exercise)}>
+                                      <EditIcon />
+                                    </IconButton>
+                                    <IconButton size="small" color="inherit" onClick={() => handleExerciseDataToDelete(exercise.id, category.id)}>
+                                      <DeleteIcon />
+                                    </IconButton>
+                                    {exercise.image_url && (
+                                      <IconButton size="small" color="inherit" onClick={() => handleOpenImageModal(exercise.image_url)}>
+                                        <EyeIcon />
+                                      </IconButton>
+                                    )}
+                                  </Box>
+                                )}
 
-        {/* Edit Category Dialog */}
-        < Dialog open={editCategoryDialogOpen} onClose={handleCloseEditCategoryDialog} fullWidth={true} maxWidth={'xs'}
-          PaperProps={{
-            sx: {
-              backgroundColor: grey[800],
-              color: '#fff',
-              borderRadius: '8px',
-              padding: 2,
-            },
-          }}>
-          <DialogTitle>Edit Category</DialogTitle>
-          {editingCategory && (
-          <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              id="edit-category-name"
-              label="Name"
-              type="text"
-              fullWidth
-              variant="standard"
-              value={editingCategory.name}
-              onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
-              sx={{ mb: 3 }}
-            />
-            <FormControl fullWidth margin="dense">
+                              </Box>
+                            </Box>
+                          ))}
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<PlusIcon />}
+                            sx={{ mt: 2 }}
+                            onClick={() => handleOpenAddExerciseDialog(category.id)}
+                          >
+                            Add Custom Exercise
+                          </Button>
+                        </Box>
+                      </AccordionDetails>
+                    </Accordion>
+                  ))}
+                </Box>
+              </CardContent>
+            </Card>
+            <Dialog open={imageModalOpen} onClose={handleCloseImageModal} fullWidth maxWidth="sm">
+              <DialogTitle>Exercise Image</DialogTitle>
+              <DialogContent>
+                {selectedImage ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                    <img src={selectedImage} alt="Exercise" style={{ maxWidth: '100%', maxHeight: '400px' }} />
+                  </Box>
+                ) : (
+                  <DialogContentText>No image available</DialogContentText>
+                )}
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCloseImageModal} color="primary">
+                  Close
+                </Button>
+              </DialogActions>
+            </Dialog>
+
+            {/* Nueva Card de Trainings */}
+            <Card sx={{ flex: 1, backgroundColor: '#161616', color: '#fff', width: '100%', height: 'calc(100vh - 200px)' }}>
+              <CardHeader
+                title="Trainings"
+                titleTypographyProps={{ fontSize: { xs: '1.2rem', sm: '1.3rem', md: '1.5rem' }, variant: 'h6' }}
+                action={
+                  <IconButton aria-label="add" onClick={handleOpenAddTrainingDialog}>
+                    <PlusIcon sx={{ color: grey[50], fontSize: 25 }} />
+                    <div>
+                      <Typography className='p-1 text-white text-lg'>Create new Training</Typography>
+                    </div>
+                  </IconButton>
+                }
+              />
+              <CardContent>
+                <Box sx={{ height: 'calc(100vh - 300px)', overflowY: 'auto' }}>
+                  {trainings.map((training) => (
+                    <Accordion key={training.id} sx={{ backgroundColor: '#161616', color: 'white' }} className='border border-gray-600' >
+                      <AccordionSummary
+                        expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}
+                        aria-controls={`panel-${training.id}-content`}
+                        id={`panel-${training.id}-header`}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Typography sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}>{training.name}</Typography>
+                        </Box>
+                        <Typography sx={{ ml: 'auto', fontWeight: 'bold', fontSize: '1rem' }}>
+                          {training.calories_per_hour_mean} kcal/h
+                        </Typography>
+                      </AccordionSummary>
+                      {<AccordionDetails>
+                        <Box sx={{ pl: 4 }}>
+                          {training.exercises.map((exercise) => (
+                            <Box key={exercise.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Typography>{exercise.name}</Typography>
+                                <Typography sx={{ fontSize: '0.7rem', marginLeft: 3 }}>({exercise.calories_per_hour} kcal/h)</Typography>
+                              </Box>
+                            </Box>
+                          ))}
+                        </Box>
+                      </AccordionDetails>}
+                    </Accordion>
+                  ))}
+                </Box>
+              </CardContent>
+            </Card>
+          </Box>
+        )
+      }
+
+      {/* Add Category Dialog */}
+      <Dialog open={addCategoryDialogOpen} onClose={handleCloseAddCategoryDialog} fullWidth={true} maxWidth={'xs'}
+        PaperProps={{
+          sx: {
+            backgroundColor: grey[800],
+            color: '#fff',
+            borderRadius: '8px',
+            padding: 2,
+          },
+        }}>
+        <DialogTitle sx={{ color: '#fff', textAlign: 'center' }}>Add New Category</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="category-name"
+            label="Name"
+            InputLabelProps={{
+              style: { color: '#b0b0b0' },
+            }}
+            type="text"
+            fullWidth
+            variant="standard"
+            value={newCategory?.name || ''}
+            onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value, icon: newCategory?.icon || '' })}
+            sx={{ mb: 3 }}
+          />
+          <FormControl fullWidth margin="dense">
             <InputLabel id="icon-label">Icon</InputLabel>
             <Select
               labelId="icon-label"
               id="icon"
               label="Icon"
-              value={editingCategory.icon}
-              onChange={(e) => setEditingCategory({ ...editingCategory, icon: e.target.value })}
+              value={newCategory?.icon || ''}
+              onChange={(e) => setNewCategory({ ...newCategory, icon: e.target.value, name: newCategory?.name || '' })}
               MenuProps={{
                 PaperProps: {
                   sx: {
+                    /* display: 'flex',
+                    flexWrap: 'wrap',
+                    maxWidth: 300,
+                    padding: 1, */
                     backgroundColor: '#444',
                     color: '#fff',
                   },
                 },
               }}
             >
+              <MenuItem value="">
+                <em>Select an icon</em>
+              </MenuItem>
               <MenuItem value="Dumbbell">{handleCategoryIcon('Dumbbell')}</MenuItem>
               <MenuItem value="Ball">{handleCategoryIcon('Ball')}</MenuItem>
               <MenuItem value="Heart">{handleCategoryIcon('Heart')}</MenuItem>
@@ -875,93 +690,295 @@ export default function CategoriesPage() {
               <MenuItem value="Skate">{handleCategoryIcon('Skate')}</MenuItem>
               <MenuItem value="Rugby">{handleCategoryIcon('Rugby')}</MenuItem>
               <MenuItem value="Volleyball">{handleCategoryIcon('Volleyball')}</MenuItem>
+            </Select >
+          </FormControl >
+        </DialogContent >
+        <DialogActions>
+          <Button onClick={handleCloseAddCategoryDialog}>Cancel</Button>
+          <Button onClick={handleAddCategory}>Add Category</Button>
+        </DialogActions>
+      </Dialog >
+
+      {/* Add Exercise Dialog */}
+      < Dialog open={addExerciseDialogOpen} onClose={handleCloseAddExerciseDialog} fullWidth={true} maxWidth={'xs'}
+        PaperProps={{
+          sx: {
+            backgroundColor: grey[800],
+            color: '#fff',
+            borderRadius: '8px',
+            padding: 2,
+          },
+        }
+        }>
+        <DialogTitle>Add New Exercise</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="exercise-name"
+            label="Name"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={newExercise?.name || ''}
+            onChange={(e) => setNewExercise({ ...newExercise, name: e.target.value, calories_per_hour: newExercise?.calories_per_hour || 1, category_id: newExercise?.category_id || '', id: '', training_muscle: newExercise?.training_muscle || '' })}
+          />
+          <TextField
+            margin="dense"
+            id="exercise-calories"
+            label="Kcal per Hour"
+            type="number"
+            fullWidth
+            variant="standard"
+            value={newExercise?.calories_per_hour ?? ''}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === "") {
+                setNewExercise({
+                  ...newExercise,
+                  id: '',
+                  calories_per_hour: "",
+                  name: newExercise?.name || '',
+                  category_id: newExercise?.category_id || '',
+                  training_muscle: newExercise?.training_muscle || ''
+                });
+              } else {
+                const numericValue = parseInt(value, 10);
+                if (numericValue >= 1 && numericValue <= 4000) {
+                  setNewExercise({
+                    ...newExercise,
+                    id: '',
+                    calories_per_hour: numericValue,
+                    name: newExercise?.name || '',
+                    category_id: newExercise?.category_id || '',
+                    training_muscle: newExercise?.training_muscle || ''
+                  });
+                } else if (numericValue < 1) {
+                  setNewExercise({
+                    ...newExercise,
+                    id: '',
+                    calories_per_hour: 1,
+                    name: newExercise?.name || '',
+                    category_id: newExercise?.category_id || '',
+                    training_muscle: newExercise?.training_muscle || ''
+                  });
+                } else if (numericValue > 4000) {
+                  setNewExercise({
+                    ...newExercise,
+                    id: '',
+                    calories_per_hour: 4000,
+                    name: newExercise?.name || '',
+                    category_id: newExercise?.category_id || '',
+                    training_muscle: newExercise?.training_muscle || ''
+                  });
+                }
+              }
+            }}
+            placeholder="Kcal per Hour"
+            slotProps={{
+              htmlInput: { min: 1, max: 4000 }
+            }}
+          />
+          <InputLabel htmlFor="upload-image">Upload Exercise Image</InputLabel>
+          <input
+            accept="image/*"
+            id="upload-image"
+            type="file"
+            onChange={handleFileChange}
+            style={{ display: 'block', marginTop: '8px' }}
+          />
+          <FormControl fullWidth sx={{ marginTop: 2 }}>
+            <InputLabel id="muscle-label">Muscular Group</InputLabel>
+            <Select
+              labelId="muscle-label"
+              id="muscle"
+              value={newExercise?.training_muscle || 'Fullbody'}
+              onChange={(e) =>
+                setNewExercise({
+                  ...newExercise,
+                  training_muscle: e.target.value,
+                  name: newExercise?.name || '',
+                  calories_per_hour: newExercise?.calories_per_hour || 1,
+                  category_id: newExercise?.category_id || '',
+                  id: ''
+                })
+              }
+              label="Muscular Group"
+              MenuProps={{
+                PaperProps: {
+                  sx: {
+                    maxWidth: 300,
+                    backgroundColor: '#444',
+                    color: '#fff',
+                  },
+                },
+              }}
+              sx={{
+                // color: '#fff',
+              }}
+            >
+              <MenuItem value="">
+                <em>Select a muscle</em>
+              </MenuItem>
+              {muscularGroups.map((muscle) => (
+                <MenuItem key={muscle} value={muscle}>
+                  {muscle}
+                </MenuItem>
+              ))}
             </Select>
+          </FormControl>
+        </DialogContent >
+        <DialogActions>
+          <Button onClick={handleCloseAddExerciseDialog}>Cancel</Button>
+          <Button onClick={handleAddExercise}>Add Exercise</Button>
+        </DialogActions>
+      </Dialog >
+
+      {/* Edit Category Dialog */}
+      < Dialog open={editCategoryDialogOpen} onClose={handleCloseEditCategoryDialog} fullWidth={true} maxWidth={'xs'}
+        PaperProps={{
+          sx: {
+            backgroundColor: grey[800],
+            color: '#fff',
+            borderRadius: '8px',
+            padding: 2,
+          },
+        }}>
+        <DialogTitle>Edit Category</DialogTitle>
+        {editingCategory && (
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              id="edit-category-name"
+              label="Name"
+              type="text"
+              fullWidth
+              variant="standard"
+              value={editingCategory.name}
+              onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
+              sx={{ mb: 3 }}
+            />
+            <FormControl fullWidth margin="dense">
+              <InputLabel id="icon-label">Icon</InputLabel>
+              <Select
+                labelId="icon-label"
+                id="icon"
+                label="Icon"
+                value={editingCategory.icon}
+                onChange={(e) => setEditingCategory({ ...editingCategory, icon: e.target.value })}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: '#444',
+                      color: '#fff',
+                    },
+                  },
+                }}
+              >
+                <MenuItem value="Dumbbell">{handleCategoryIcon('Dumbbell')}</MenuItem>
+                <MenuItem value="Ball">{handleCategoryIcon('Ball')}</MenuItem>
+                <MenuItem value="Heart">{handleCategoryIcon('Heart')}</MenuItem>
+                <MenuItem value="Basketball">{handleCategoryIcon('Basketball')}</MenuItem>
+                <MenuItem value="Tennis">{handleCategoryIcon('Tennis')}</MenuItem>
+                <MenuItem value="Fight">{handleCategoryIcon('Fight')}</MenuItem>
+                <MenuItem value="Martial">{handleCategoryIcon('Martial')}</MenuItem>
+                <MenuItem value="Mma">{handleCategoryIcon('Mma')}</MenuItem>
+                <MenuItem value="Motorsports">{handleCategoryIcon('Motorsports')}</MenuItem>
+                <MenuItem value="Hiking">{handleCategoryIcon('Hiking')}</MenuItem>
+                <MenuItem value="Sailing">{handleCategoryIcon('Sailing')}</MenuItem>
+                <MenuItem value="Skiing">{handleCategoryIcon('Skiing')}</MenuItem>
+                <MenuItem value="Pool">{handleCategoryIcon('Pool')}</MenuItem>
+                <MenuItem value="Skate">{handleCategoryIcon('Skate')}</MenuItem>
+                <MenuItem value="Rugby">{handleCategoryIcon('Rugby')}</MenuItem>
+                <MenuItem value="Volleyball">{handleCategoryIcon('Volleyball')}</MenuItem>
+              </Select>
             </FormControl>
           </DialogContent>
         )}
-          <DialogActions>
-            <Button onClick={handleCloseEditCategoryDialog}>Cancel</Button>
-            <Button onClick={handleEditCategory}>Save Changes</Button>
-          </DialogActions>
-        </Dialog >
+        <DialogActions>
+          <Button onClick={handleCloseEditCategoryDialog}>Cancel</Button>
+          <Button onClick={handleEditCategory}>Save Changes</Button>
+        </DialogActions>
+      </Dialog >
 
-        {/* Edit Exercise Dialog */}
-        < Dialog open={editExerciseDialogOpen} onClose={handleCloseEditExerciseDialog} fullWidth={true} maxWidth={'xs'}
-          PaperProps={{
-            sx: {
-              backgroundColor: grey[800],
-              color: '#fff',
-              borderRadius: '8px',
-              padding: 2,
-            },
-          }}>
-          <DialogTitle>Edit Exercise</DialogTitle>
-          {
-            editingExercise && (
-              <DialogContent>
-                <TextField
-                  autoFocus
-                  margin="dense"
-                  id="edit-exercise-name"
-                  label="Name"
-                  type="text"
-                  fullWidth
-                  variant="standard"
-                  value={editingExercise.name}
-                  onChange={(e) => setEditingExercise({ ...editingExercise, name: e.target.value })}
-                />
-                <TextField
-                  margin="dense"
-                  id="edit-exercise-calories"
-                  label="KCal Per Hour"
-                  type="number"
-                  fullWidth
-                  variant="standard"
-                  value={editingExercise.calories_per_hour ?? ''}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === "") {
+      {/* Edit Exercise Dialog */}
+      < Dialog open={editExerciseDialogOpen} onClose={handleCloseEditExerciseDialog} fullWidth={true} maxWidth={'xs'}
+        PaperProps={{
+          sx: {
+            backgroundColor: grey[800],
+            color: '#fff',
+            borderRadius: '8px',
+            padding: 2,
+          },
+        }}>
+        <DialogTitle>Edit Exercise</DialogTitle>
+        {
+          editingExercise && (
+            <DialogContent>
+              <TextField
+                autoFocus
+                margin="dense"
+                id="edit-exercise-name"
+                label="Name"
+                type="text"
+                fullWidth
+                variant="standard"
+                value={editingExercise.name}
+                onChange={(e) => setEditingExercise({ ...editingExercise, name: e.target.value })}
+              />
+              <TextField
+                margin="dense"
+                id="edit-exercise-calories"
+                label="KCal Per Hour"
+                type="number"
+                fullWidth
+                variant="standard"
+                value={editingExercise.calories_per_hour ?? ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === "") {
+                    setEditingExercise({
+                      ...editingExercise,
+                      calories_per_hour: ""
+                    });
+                  } else {
+                    const numericValue = parseInt(value, 10);
+                    if (numericValue >= 1 && numericValue <= 4000) {
                       setEditingExercise({
                         ...editingExercise,
-                        calories_per_hour: ""
+                        calories_per_hour: numericValue
                       });
-                    } else {
-                      const numericValue = parseInt(value, 10);
-                      if (numericValue >= 1 && numericValue <= 4000) {
-                        setEditingExercise({
-                          ...editingExercise,
-                          calories_per_hour: numericValue
-                        });
-                      } else if (numericValue < 1) {
-                        setEditingExercise({
-                          ...editingExercise,
-                          calories_per_hour: 1
-                        });
-                      } else if (numericValue > 4000) {
-                        setEditingExercise({
-                          ...editingExercise,
-                          calories_per_hour: 4000
-                        });
-                      }
+                    } else if (numericValue < 1) {
+                      setEditingExercise({
+                        ...editingExercise,
+                        calories_per_hour: 1
+                      });
+                    } else if (numericValue > 4000) {
+                      setEditingExercise({
+                        ...editingExercise,
+                        calories_per_hour: 4000
+                      });
                     }
-                  }}
-                  placeholder="KCal Per Hour"
-                  slotProps={{
-                    htmlInput: { min: 1, max: 4000 }
-                  }}
-                />
-              </DialogContent>
-            )
-          }
-          <DialogActions>
-            <Button onClick={handleCloseEditExerciseDialog}>Cancel</Button>
-            <Button onClick={handleEditExercise}>Save Changes</Button>
-          </DialogActions>
-        </Dialog >
+                  }
+                }}
+                placeholder="KCal Per Hour"
+                slotProps={{
+                  htmlInput: { min: 1, max: 4000 }
+                }}
+              />
+            </DialogContent>
+          )
+        }
+        <DialogActions>
+          <Button onClick={handleCloseEditExerciseDialog}>Cancel</Button>
+          <Button onClick={handleEditExercise}>Save Changes</Button>
+        </DialogActions>
+      </Dialog >
 
-        {/* Create Training Dialog */}
-        < CreateTrainingDialog createNewTraining={createNewTraining} handleCloseAddTrainingDialog={handleCloseAddTrainingDialog} categoryWithExercises={categoryWithExercises} setTrainings={setTrainings} setAlertTrainingAddedOpen={setAlertTrainingAddedOpen} />
-      </Box >
-    );
-  }
+      {/* Create Training Dialog */}
+      < CreateTrainingDialog createNewTraining={createNewTraining} handleCloseAddTrainingDialog={handleCloseAddTrainingDialog} categoryWithExercises={categoryWithExercises} setTrainings={setTrainings} setAlertTrainingAddedOpen={setAlertTrainingAddedOpen} />
+    </Box >
+  );
+}
 
