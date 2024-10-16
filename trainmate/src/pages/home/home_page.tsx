@@ -900,10 +900,10 @@ export default function HomePage() {
                         <div className="flex-1">
                           <Divider sx={{ backgroundColor: 'gray', marginY: 1 }} />
                           <Box sx={{ display: 'flex', flexDirection: { xs: 'row', sm: 'row' }, justifyContent: 'space-between', width: '100%', marginBottom: 1 }}>
-                            <Typography variant="h6" color="#81d8d0" sx={{ flex: 1 }}>{workout.training.name}</Typography>
-                            <Typography variant="h6" color='#44f814' sx={{ flex: 1, textAlign: 'left' }}>{workout.duration} min</Typography>
-                            <Typography variant="h6" color='#E43654' sx={{ flex: 1, textAlign: 'left' }}>{workout.total_calories} kcal</Typography>
-                            <Typography variant="subtitle1" color='gray' sx={{ flex: 1, textAlign: 'right' }}>{formatDate(workout.date)} </Typography>
+                            <Typography variant="h6" color="#81d8d0" sx={{ flex: 1, fontSize: { xs: '1rem', sm: '1.2rem', md: '1.4rem' }}}>{workout.training.name}</Typography>
+                            <Typography variant="h6" color='#44f814' sx={{ flex: 1, textAlign: 'left', fontSize: { xs: '1rem', sm: '1.2rem', md: '1.4rem' } }}>{workout.duration} min</Typography>
+                            <Typography variant="h6" color='#E43654' sx={{ flex: 1, textAlign: 'left', fontSize: { xs: '1rem', sm: '1.2rem', md: '1.4rem' } }}>{workout.total_calories} kcal</Typography>
+                            <Typography variant="subtitle1" color='gray' sx={{ flex: 1, textAlign: 'right', fontSize: { xs: '0.8rem', sm: '1rem', md: '1.2rem' } }}>{formatDate(workout.date)} </Typography>
                           </Box>
                           <Typography variant="body2">
                             {workout.training.exercises.map((exercise: any, index: number) => (
