@@ -177,8 +177,8 @@ const CalendarModal: React.FC<DrawerProps> = ({ showDrawer, onClose, open }) => 
           />
         <DatePicker
             label="End Date"
-            value={dateRange[0]}
-            onChange={(newValue) => handleDateChange([newValue, dateRange[1]])}
+            value={dateRange[1]}
+            onChange={(newValue) => handleDateChange([dateRange[0], newValue])}
             slotProps={{
               textField: {
                 variant: 'outlined',

@@ -40,6 +40,7 @@ import { FilterCoachDialog } from './filter_coach';
 import WaterIntakeCard from './water_intake';
 import ResponsiveMenu from './menu_responsive';
 import LoadingAnimation from '../../personalizedComponents/loadingAnimation';
+import '../../App.css';
 
 interface Workout {
   id: number;
@@ -832,7 +833,8 @@ export default function HomePage() {
                     <Tooltip />
                     <Line type="monotone" dataKey="Calories" stroke="#E43654" activeDot={{ r: 10 }} yAxisId="left" />
                     <Line type="monotone" dataKey="Minutes" stroke="#44f814" activeDot={{ r: 10 }} yAxisId="right" />
-                    <Brush dataKey="date" height={30} stroke="#00000" y={300} fill="#00000" travellerWidth={10}
+                    <Brush dataKey="date" height={30} stroke="#000000" y={300} fill="#161616" travellerWidth={10}
+                    className="custom-brush"
                     traveller={(props) => {
                       const { x, y, width, height } = props;
                       return (
