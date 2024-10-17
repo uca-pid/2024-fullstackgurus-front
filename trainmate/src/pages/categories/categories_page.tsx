@@ -18,6 +18,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import { muscularGroups } from "../../enums/muscularGroups";
 import PopularExercisesModal from './popular_exercise_modal';
 import LoadingAnimation from '../../personalizedComponents/loadingAnimation';
+import app from '../../FirebaseConfig';
 
 interface CategoryWithExercises {
   id: string;
@@ -324,7 +325,7 @@ export default function CategoriesPage() {
     if (newExercise) {
       if (imageFile) {
         setUploading(true); // Show loading indicator
-        const storage = getStorage();
+        const storage = getStorage(app);
         const storageRef = ref(storage, `exercises/${imageFile.name}`);
 
         // Upload the image to Firebase Storage
