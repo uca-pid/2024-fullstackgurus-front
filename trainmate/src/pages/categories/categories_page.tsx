@@ -275,6 +275,7 @@ export default function CategoriesPage() {
   const handleCloseAddExerciseDialog = () => {
     setAddExerciseDialogOpen(false);
     setNewExercise(null);
+    setImageFile(null)
   };
 
   const handleOpenEditCategoryDialog = (category: Category) => {
@@ -778,15 +779,33 @@ export default function CategoriesPage() {
               htmlInput: { min: 1, max: 4000 }
             }}
           />
-          <InputLabel htmlFor="upload-image">Upload Exercise Image</InputLabel>
-          <input
-            accept="image/*"
-            id="upload-image"
-            type="file"
-            onChange={handleFileChange}
-            style={{ display: 'block', marginTop: '8px' }}
-          />
-          <FormControl fullWidth sx={{ marginTop: 2 }}>
+          <InputLabel htmlFor="upload-image" sx={{ mt: 2 }}>Upload Exercise Image</InputLabel>
+            <label htmlFor="upload-image" style={{ display: 'block', marginTop: '8px' }}>
+              <Button
+                variant="contained"
+                component="span"
+                sx={{
+                  backgroundColor: grey[800],
+                  color: 'black',
+                  textTransform: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                }}
+              >
+                Choose File
+              </Button>
+              <span style={{ marginLeft: '10px', color: 'black' }}>
+                {imageFile ? imageFile.name : 'No file selected'}
+              </span>
+              <input
+                accept="image/*"
+                id="upload-image"
+                type="file"
+                onChange={handleFileChange}
+                style={{ display: 'none' }} // Hide the default input button
+              />
+            </label>
+          <FormControl fullWidth sx={{ marginTop: 4 }}>
             <InputLabel id="muscle-label">Muscular Group</InputLabel>
             <Select
               labelId="muscle-label"
