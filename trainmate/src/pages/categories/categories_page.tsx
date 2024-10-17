@@ -382,7 +382,7 @@ export default function CategoriesPage() {
   const handleEditExercise = async () => {
     if (editingExercise) {
       try {
-        await editExercise({ name: editingExercise.name, calories_per_hour: editingExercise.calories_per_hour }, editingExercise.id);
+        await editExercise({ name: editingExercise.name, calories_per_hour: editingExercise.calories_per_hour, training_muscle: editingExercise.training_muscle }, editingExercise.id);
         setCategoryWithExercises(
           categoryWithExercises.map((category) => {
             if (category.id === editingExercise.category_id) {
@@ -496,6 +496,7 @@ export default function CategoriesPage() {
                             <Box key={exercise.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                 <Typography>{exercise.name}</Typography>
+                                <Typography sx={{ fontSize: '0.7rem', marginLeft: 3 }}>({exercise.training_muscle})</Typography>
                                 <Typography sx={{ fontSize: '0.7rem', marginLeft: 3 }}>({exercise.calories_per_hour} kcal/h)</Typography>
                               </Box>
                               <Box>
@@ -907,6 +908,34 @@ export default function CategoriesPage() {
                 value={editingExercise.name}
                 onChange={(e) => setEditingExercise({ ...editingExercise, name: e.target.value })}
               />
+              <FormControl fullWidth sx={{ marginTop: 2 }}>
+                <InputLabel id="muscle-label">Muscular Group</InputLabel>
+                <Select
+                  labelId="muscle-label"
+                  id="muscle"
+                  value={editingExercise.training_muscle}
+                  onChange={(e) => setEditingExercise({ ...editingExercise, training_muscle: e.target.value })}
+                  label="Muscular Group"
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        maxWidth: 300,
+                        backgroundColor: '#444',
+                        color: '#fff',
+                      },
+                    },
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>Select a muscle</em>
+                  </MenuItem>
+                  {muscularGroups.map((muscle) => (
+                    <MenuItem key={muscle} value={muscle}>
+                      {muscle}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
               <TextField
                 margin="dense"
                 id="edit-exercise-calories"
