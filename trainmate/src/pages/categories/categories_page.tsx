@@ -95,7 +95,9 @@ export default function CategoriesPage() {
   const handleCloseAddTrainingDialog = () => setCreateNewTraining(false);
 
   const [alertCategoryAddedOpen, setAlertCategoryAddedOpen] = useState(false);
+  const [alertCategoryFillFieldsOpen, setAlertCategoryFillFieldsOpen] = useState(false);
   const [alertExerciseAddedOpen, setAlertExerciseAddedOpen] = useState(false);
+  const [alertExerciseFillFieldsOpen, setAlertExerciseFillFieldsOpen] = useState(false);
   const [alertTrainingAddedOpen, setAlertTrainingAddedOpen] = useState(false);
   const [alertCategoryEditedOpen, setAlertCategoryEditedOpen] = useState(false);
   const [alertExerciseEditedOpen, setAlertExerciseEditedOpen] = useState(false);
@@ -310,6 +312,9 @@ export default function CategoriesPage() {
       }
       handleCloseAddCategoryDialog();
     }
+    else {
+      setAlertCategoryFillFieldsOpen(true);
+    }
   };
 
 
@@ -360,11 +365,15 @@ export default function CategoriesPage() {
           }
           handleCloseAddExerciseDialog();
         }
+        else {
+          setAlertExerciseFillFieldsOpen(true);
+        }
+      }
+      else {
+        setAlertExerciseFillFieldsOpen(true);
       }
     };
   }
-
-
 
   const handleEditCategory = async () => {
     if (editingCategory) {
@@ -440,6 +449,8 @@ export default function CategoriesPage() {
       <TopMiddleAlert alertText='Deleted exercise successfully' open={alertExerciseDeletedSuccessOpen} onClose={() => setAlertExerciseDeletedSuccessOpen(false)} severity='success'/>
       <TopMiddleAlert alertText='You cannot delete an exercise that is part of a training' open={alertExerciseDeletedErrorOpen} onClose={() => setAlertExerciseDeletedErrorOpen(false)} severity='warning'/>
       <TopMiddleAlert alertText='You cannot delete a category that has exercises in a training' open={alertCategoryDeletedErrorOpen} onClose={() => setAlertCategoryDeletedErrorOpen(false)} severity='warning'/>
+      <TopMiddleAlert alertText='Please fill all fields' open={alertCategoryFillFieldsOpen} onClose={() => setAlertCategoryFillFieldsOpen(false)} severity='warning'/>
+      <TopMiddleAlert alertText='Please fill all fields' open={alertExerciseFillFieldsOpen} onClose={() => setAlertExerciseFillFieldsOpen(false)} severity='warning'/>
 
       {
         deleteCategoryAlertOpen &&

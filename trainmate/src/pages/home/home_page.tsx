@@ -111,7 +111,8 @@ export default function HomePage() {
   const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState('month');
   const [open, setOpen] = useState(false);
-  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertWorkoutAddedOpen, setAlertWorkoutAddedOpen] = useState(false);
+  const [alertWorkoutFillFieldsOpen, setAlertWorkoutFillFieldsOpen] = useState(false);
   const [workoutList, setWorkoutList] = useState<Workout[]>([]);
   const [caloriesPerDay, setCaloriesPerDay] = useState<{ [date: string]: [number, number] }>({});
   const [loading, setLoading] = useState(true);
@@ -377,7 +378,7 @@ export default function HomePage() {
   }
 
   const handleAddWorkout = async () => {
-    if (newWorkout.training_id && newWorkout.duration && newWorkout.date) {
+    if (newWorkout.training_id && newWorkout.duration && newWorkout.date && newWorkout.coach) {
 
       setNewWorkout({
         training_id: '',
@@ -397,7 +398,7 @@ export default function HomePage() {
           });
           console.log('Workout saved successfully');
           setWorkoutsCount((prevCount) => prevCount + 1);
-          setAlertOpen(true);
+          setAlertWorkoutAddedOpen(true);
         } else {
           console.error('No token found, unable to save workout');
         }
@@ -411,6 +412,9 @@ export default function HomePage() {
       localStorage.removeItem('calories_duration_per_day');
       localStorage.removeItem('categories_with_exercises');
       localStorage.removeItem('categories');
+    }
+    else {
+      setAlertWorkoutFillFieldsOpen(true);
     }
   };
 
@@ -518,7 +522,8 @@ export default function HomePage() {
         <Avatar alt="User" src={require('../../images/profile_pic_2.jpg')} onClick={handleAvatarClick} style={{ cursor: 'pointer' }} />
         <ResponsiveMenu handleFilterOpen={handleFilterOpen} handleClickOpen={handleClickOpen}/>
       </header>
-      <TopMiddleAlert alertText='Added workout successfully' open={alertOpen} onClose={() => setAlertOpen(false)} severity='success'/>
+      <TopMiddleAlert alertText='Added workout successfully' open={alertWorkoutAddedOpen} onClose={() => setAlertWorkoutAddedOpen(false)} severity='success'/>
+      <TopMiddleAlert alertText='Please fill in all the fields' open={alertWorkoutFillFieldsOpen} onClose={() => setAlertWorkoutFillFieldsOpen(false)} severity='warning'/>
 
       {/* FILTER PRINCIPAL */}
       <Dialog open={filterOpen} onClose={handleFilterClose}
