@@ -112,6 +112,7 @@ export default function HomePage() {
   const [timeRange, setTimeRange] = useState('month');
   const [open, setOpen] = useState(false);
   const [alertWorkoutAddedOpen, setAlertWorkoutAddedOpen] = useState(false);
+  const [alertWorkoutAddedForAgendaOpen, setAlertWorkoutAddedForAgendaOpen] = useState(false);
   const [alertWorkoutFillFieldsOpen, setAlertWorkoutFillFieldsOpen] = useState(false);
   const [workoutList, setWorkoutList] = useState<Workout[]>([]);
   const [caloriesPerDay, setCaloriesPerDay] = useState<{ [date: string]: [number, number] }>({});
@@ -398,7 +399,13 @@ export default function HomePage() {
           });
           console.log('Workout saved successfully');
           setWorkoutsCount((prevCount) => prevCount + 1);
-          setAlertWorkoutAddedOpen(true);
+          // Verificar si la fecha es futura para hacer alertas distintas
+          const today = new Date().toISOString().split('T')[0];
+          if (newWorkout.date > today) {
+            setAlertWorkoutAddedForAgendaOpen(true);
+          } else {
+            setAlertWorkoutAddedOpen(true);
+          }
         } else {
           console.error('No token found, unable to save workout');
         }
@@ -523,6 +530,7 @@ export default function HomePage() {
         <ResponsiveMenu handleFilterOpen={handleFilterOpen} handleClickOpen={handleClickOpen}/>
       </header>
       <TopMiddleAlert alertText='Added workout successfully' open={alertWorkoutAddedOpen} onClose={() => setAlertWorkoutAddedOpen(false)} severity='success'/>
+      <TopMiddleAlert alertText='Added workout in Agenda successfully' open={alertWorkoutAddedForAgendaOpen} onClose={() => setAlertWorkoutAddedForAgendaOpen(false)} severity='success'/>
       <TopMiddleAlert alertText='Please fill in all the fields' open={alertWorkoutFillFieldsOpen} onClose={() => setAlertWorkoutFillFieldsOpen(false)} severity='warning'/>
 
       {/* FILTER PRINCIPAL */}
