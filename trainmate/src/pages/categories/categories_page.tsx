@@ -432,10 +432,13 @@ export default function CategoriesPage() {
   return (
     <Box sx={{ minHeight: '100vh', 'backgroundColor': 'black', color: 'white', p: 4 }}  >
       <Box component="header" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
-        <IconButton component="a" sx={{ color: 'white' }} onClick={handleBackToHome}>
-          <ArrowLeftIcon />
-        </IconButton>
-        <Typography variant="h4" sx={{ fontSize: { xs: '1.3rem', sm: '1.8rem', md: '2.5rem' }}}>Categories, Exercises & Trainings</Typography>
+        <div className="flex items-center">
+          <IconButton component="a" sx={{ color: 'white' }} onClick={handleBackToHome}>
+            <ArrowLeftIcon />
+          </IconButton>
+          <img src={require('../../images/logo.png')} alt="Logo" width={200} height={150} className="hidden md:block"/>
+        </div>
+        <Typography variant="h4" sx={{ fontSize: { xs: '1.3rem', sm: '1.8rem', md: '2.5rem' }, ml: {xs:0, sm:-12, md:-14}}}>Categories, Exercises & Trainings</Typography>
         <IconButton component="a" sx={{ color: 'white' }} onClick={handleTrophyButton}>
           <EmojiEventsIcon sx={{ fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' } }}/>
         </IconButton>
