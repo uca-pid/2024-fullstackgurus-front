@@ -99,8 +99,10 @@ export default function CategoriesPage() {
   const [alertTrainingAddedOpen, setAlertTrainingAddedOpen] = useState(false);
   const [alertCategoryEditedOpen, setAlertCategoryEditedOpen] = useState(false);
   const [alertExerciseEditedOpen, setAlertExerciseEditedOpen] = useState(false);
-  const [alertCategoryDeletedOpen, setAlertCategoryDeletedOpen] = useState(false);
-  const [alertExerciseDeletedOpen, setAlertExerciseDeletedOpen] = useState(false);
+  const [alertCategoryDeletedSuccessOpen, setAlertCategoryDeletedSuccessOpen] = useState(false);
+  const [alertCategoryDeletedErrorOpen, setAlertCategoryDeletedErrorOpen] = useState(false);
+  const [alertExerciseDeletedSuccessOpen, setAlertExerciseDeletedSuccessOpen] = useState(false);
+  const [alertExerciseDeletedErrorOpen, setAlertExerciseDeletedErrorOpen] = useState(false);
 
   const [deleteCategoryAlertOpen, setDeleteCategoryAlertOpen] = useState(false);
   const [deleteExerciseAlertOpen, setDeleteExerciseAlertOpen] = useState(false);
@@ -158,10 +160,11 @@ export default function CategoriesPage() {
 
   const handleDeleteCategory = async (categoryId: string) => {
     try {
-      await deleteCategory(categoryId);
+      await deleteCategory(categoryId, trainings);
       setCategoryWithExercises(categoryWithExercises.filter((category) => category.id !== categoryId));
-      setAlertCategoryDeletedOpen(true);
+      setAlertCategoryDeletedSuccessOpen(true);
     } catch (error) {
+      setAlertCategoryDeletedErrorOpen(true);
       console.error('Error al eliminar la categoría:', error);
     }
   };
@@ -173,7 +176,7 @@ export default function CategoriesPage() {
 
   const handleDeleteExercise = async (exerciseId: string, categoryId: string) => {
     try {
-      await deleteExercise(exerciseId);
+      await deleteExercise(exerciseId, trainings);
       setCategoryWithExercises(
         categoryWithExercises.map((category) => {
           if (category.id === categoryId) {
@@ -185,8 +188,10 @@ export default function CategoriesPage() {
           return category;
         })
       );
-      setAlertExerciseDeletedOpen(true);
+      setAlertExerciseDeletedSuccessOpen(true);
     } catch (error) {
+      setAlertExerciseDeletedErrorOpen(true);
+      console.log('Error al eliminar el ejercicio:', error);
       console.error('Error al eliminar el ejercicio:', error);
     }
   };
@@ -426,13 +431,15 @@ export default function CategoriesPage() {
         <PopularExercisesModal open={openRankingModal} onClose={handleCloseRankingModal}/>
       </Box >
 
-      <TopMiddleAlert alertText='Added category successfully' open={alertCategoryAddedOpen} onClose={() => setAlertCategoryAddedOpen(false)} />
-      <TopMiddleAlert alertText='Added exercise successfully' open={alertExerciseAddedOpen} onClose={() => setAlertExerciseAddedOpen(false)} />
-      <TopMiddleAlert alertText='Added training successfully' open={alertTrainingAddedOpen} onClose={() => setAlertTrainingAddedOpen(false)} />
-      <TopMiddleAlert alertText='Edited category successfully' open={alertCategoryEditedOpen} onClose={() => setAlertCategoryEditedOpen(false)} />
-      <TopMiddleAlert alertText='Edited exercise successfully' open={alertExerciseEditedOpen} onClose={() => setAlertExerciseEditedOpen(false)} />
-      <TopMiddleAlert alertText='Deleted category successfully' open={alertCategoryDeletedOpen} onClose={() => setAlertCategoryDeletedOpen(false)} />
-      <TopMiddleAlert alertText='Deleted exercise successfully' open={alertExerciseDeletedOpen} onClose={() => setAlertExerciseDeletedOpen(false)} />
+      <TopMiddleAlert alertText='Added category successfully' open={alertCategoryAddedOpen} onClose={() => setAlertCategoryAddedOpen(false)} severity='success'/>
+      <TopMiddleAlert alertText='Added exercise successfully' open={alertExerciseAddedOpen} onClose={() => setAlertExerciseAddedOpen(false)} severity='success'/>
+      <TopMiddleAlert alertText='Added training successfully' open={alertTrainingAddedOpen} onClose={() => setAlertTrainingAddedOpen(false)} severity='success'/>
+      <TopMiddleAlert alertText='Edited category successfully' open={alertCategoryEditedOpen} onClose={() => setAlertCategoryEditedOpen(false)} severity='success'/>
+      <TopMiddleAlert alertText='Edited exercise successfully' open={alertExerciseEditedOpen} onClose={() => setAlertExerciseEditedOpen(false)} severity='success'/>
+      <TopMiddleAlert alertText='Deleted category successfully' open={alertCategoryDeletedSuccessOpen} onClose={() => setAlertCategoryDeletedSuccessOpen(false)} severity='success'/>
+      <TopMiddleAlert alertText='Deleted exercise successfully' open={alertExerciseDeletedSuccessOpen} onClose={() => setAlertExerciseDeletedSuccessOpen(false)} severity='success'/>
+      <TopMiddleAlert alertText='You cannot delete an exercise that is part of a training' open={alertExerciseDeletedErrorOpen} onClose={() => setAlertExerciseDeletedErrorOpen(false)} severity='warning'/>
+      <TopMiddleAlert alertText='You cannot delete a category that has exercises in a training' open={alertCategoryDeletedErrorOpen} onClose={() => setAlertCategoryDeletedErrorOpen(false)} severity='warning'/>
 
       {
         deleteCategoryAlertOpen &&

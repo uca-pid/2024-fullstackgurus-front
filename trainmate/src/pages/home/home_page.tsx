@@ -518,7 +518,7 @@ export default function HomePage() {
         <Avatar alt="User" src={require('../../images/profile_pic_2.jpg')} onClick={handleAvatarClick} style={{ cursor: 'pointer' }} />
         <ResponsiveMenu handleFilterOpen={handleFilterOpen} handleClickOpen={handleClickOpen}/>
       </header>
-      <TopMiddleAlert alertText='Added workout successfully' open={alertOpen} onClose={() => setAlertOpen(false)} />
+      <TopMiddleAlert alertText='Added workout successfully' open={alertOpen} onClose={() => setAlertOpen(false)} severity='success'/>
 
       {/* FILTER PRINCIPAL */}
       <Dialog open={filterOpen} onClose={handleFilterClose}
