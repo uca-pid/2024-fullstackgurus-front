@@ -80,7 +80,7 @@ export default function CategoriesPage() {
   const [newCategory, setNewCategory] = useState<NewCategory | null>(null);
   const [newExercise, setNewExercise] = useState<NewExercise | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
+  const [editingExercise, setEditingExercise] = useState<Exercise | any | null>(null);
 
   const [addCategoryDialogOpen, setAddCategoryDialogOpen] = useState(false);
   const [addExerciseDialogOpen, setAddExerciseDialogOpen] = useState(false);
@@ -407,30 +407,59 @@ export default function CategoriesPage() {
   const handleEditExercise = async () => {
     if (editingExercise) {
       try {
-        setLoadingButton(true)
-        await editExercise({ name: editingExercise.name, calories_per_hour: editingExercise.calories_per_hour, training_muscle: editingExercise.training_muscle }, editingExercise.id);
+        setLoadingButton(true);
+  
+        let image_url = editingExercise.image_url;
+        if (imageFile) {
+          const storage = getStorage();
+          const storageRef = ref(storage, `exercises/${imageFile.name}`);
+  
+          // Upload the new image to Firebase Storage
+          await uploadBytes(storageRef, imageFile);
+          // Get the download URL for the uploaded image
+          image_url = await getDownloadURL(storageRef);
+        }
+  
+        await editExercise(
+          {
+            name: editingExercise.name,
+            calories_per_hour: editingExercise.calories_per_hour,
+            training_muscle: editingExercise.training_muscle,
+            image_url,
+          },
+          editingExercise.id
+        );
+  
         setCategoryWithExercises(
           categoryWithExercises.map((category) => {
             if (category.id === editingExercise.category_id) {
               return {
                 ...category,
                 exercises: category.exercises.map((exercise) =>
-                  exercise.id === editingExercise.id ? editingExercise : exercise
+                  exercise.id === editingExercise.id ? { ...editingExercise, image_url } : exercise
                 ),
               };
             }
             return category;
           })
         );
+  
         setAlertExerciseEditedOpen(true);
-        setLoadingButton(false)
+        setImageFile(null);
+        setLoadingButton(false);
+        setLoading(true);
+        const trainings = await getAllTrainings();
+        if (trainings) {
+          setTrainings(trainings);
+        }
+        setLoading(false);
       } catch (error) {
-        setLoadingButton(false)
+        setLoadingButton(false);
         console.error('Error al editar el ejercicio:', error);
       }
       setEditingExercise(null);
       handleCloseEditExerciseDialog();
-      setLoadingButton(false)
+      setLoadingButton(false);
     }
   };
 
@@ -455,17 +484,17 @@ export default function CategoriesPage() {
         <PopularExercisesModal open={openRankingModal} onClose={handleCloseRankingModal} />
       </Box >
 
-      <TopMiddleAlert alertText='Added category successfully' open={alertCategoryAddedOpen} onClose={() => setAlertCategoryAddedOpen(false)} severity='success'/>
-      <TopMiddleAlert alertText='Added exercise successfully' open={alertExerciseAddedOpen} onClose={() => setAlertExerciseAddedOpen(false)} severity='success'/>
-      <TopMiddleAlert alertText='Added training successfully' open={alertTrainingAddedOpen} onClose={() => setAlertTrainingAddedOpen(false)} severity='success'/>
-      <TopMiddleAlert alertText='Edited category successfully' open={alertCategoryEditedOpen} onClose={() => setAlertCategoryEditedOpen(false)} severity='success'/>
-      <TopMiddleAlert alertText='Edited exercise successfully' open={alertExerciseEditedOpen} onClose={() => setAlertExerciseEditedOpen(false)} severity='success'/>
-      <TopMiddleAlert alertText='Deleted category successfully' open={alertCategoryDeletedSuccessOpen} onClose={() => setAlertCategoryDeletedSuccessOpen(false)} severity='success'/>
-      <TopMiddleAlert alertText='Deleted exercise successfully' open={alertExerciseDeletedSuccessOpen} onClose={() => setAlertExerciseDeletedSuccessOpen(false)} severity='success'/>
-      <TopMiddleAlert alertText='You cannot delete an exercise that is part of a training' open={alertExerciseDeletedErrorOpen} onClose={() => setAlertExerciseDeletedErrorOpen(false)} severity='warning'/>
-      <TopMiddleAlert alertText='You cannot delete a category that has exercises in a training' open={alertCategoryDeletedErrorOpen} onClose={() => setAlertCategoryDeletedErrorOpen(false)} severity='warning'/>
-      <TopMiddleAlert alertText='Please fill all fields' open={alertCategoryFillFieldsOpen} onClose={() => setAlertCategoryFillFieldsOpen(false)} severity='warning'/>
-      <TopMiddleAlert alertText='Please fill all fields' open={alertExerciseFillFieldsOpen} onClose={() => setAlertExerciseFillFieldsOpen(false)} severity='warning'/>
+      <TopMiddleAlert alertText='Added category successfully' open={alertCategoryAddedOpen} onClose={() => setAlertCategoryAddedOpen(false)} severity='success' />
+      <TopMiddleAlert alertText='Added exercise successfully' open={alertExerciseAddedOpen} onClose={() => setAlertExerciseAddedOpen(false)} severity='success' />
+      <TopMiddleAlert alertText='Added training successfully' open={alertTrainingAddedOpen} onClose={() => setAlertTrainingAddedOpen(false)} severity='success' />
+      <TopMiddleAlert alertText='Edited category successfully' open={alertCategoryEditedOpen} onClose={() => setAlertCategoryEditedOpen(false)} severity='success' />
+      <TopMiddleAlert alertText='Edited exercise successfully' open={alertExerciseEditedOpen} onClose={() => setAlertExerciseEditedOpen(false)} severity='success' />
+      <TopMiddleAlert alertText='Deleted category successfully' open={alertCategoryDeletedSuccessOpen} onClose={() => setAlertCategoryDeletedSuccessOpen(false)} severity='success' />
+      <TopMiddleAlert alertText='Deleted exercise successfully' open={alertExerciseDeletedSuccessOpen} onClose={() => setAlertExerciseDeletedSuccessOpen(false)} severity='success' />
+      <TopMiddleAlert alertText='You cannot delete an exercise that is part of a training' open={alertExerciseDeletedErrorOpen} onClose={() => setAlertExerciseDeletedErrorOpen(false)} severity='warning' />
+      <TopMiddleAlert alertText='You cannot delete a category that has exercises in a training' open={alertCategoryDeletedErrorOpen} onClose={() => setAlertCategoryDeletedErrorOpen(false)} severity='warning' />
+      <TopMiddleAlert alertText='Please fill all fields' open={alertCategoryFillFieldsOpen} onClose={() => setAlertCategoryFillFieldsOpen(false)} severity='warning' />
+      <TopMiddleAlert alertText='Please fill all fields' open={alertExerciseFillFieldsOpen} onClose={() => setAlertExerciseFillFieldsOpen(false)} severity='warning' />
 
       {
         deleteCategoryAlertOpen &&
@@ -1111,6 +1140,22 @@ export default function CategoriesPage() {
                 slotProps={{
                   htmlInput: { min: 1, max: 4000 }
                 }}
+              />
+              <InputLabel htmlFor="upload-image" sx={{
+                color: '#fff',
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#fff',
+                },
+                '& .MuiSvgIcon-root': {
+                  color: '#fff',
+                }
+              }} >Edit Exercise Image</InputLabel>
+              <input
+                accept="image/*"
+                id="upload-image"
+                type="file"
+                onChange={handleFileChange}
+                style={{ display: 'block', marginTop: '8px' }}
               />
             </DialogContent>
           )
