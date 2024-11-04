@@ -886,29 +886,6 @@ export default function HomePage() {
                 <Box></Box>
               )}
 
-              {/* {(selectedExerciseInFilter) ? (
-                <Box 
-                  sx={{ 
-                  display: 'flex', 
-                  justifyContent: 'center', 
-                  alignItems: 'center', 
-                  backgroundColor: grey[700], 
-                  borderRadius: '8px', 
-                  padding: 2, 
-                  marginBottom: 2,
-                  height: 50,
-                  width: 130
-                  }}
-                >
-                  <Typography variant="h6">{selectedExerciseInFilter?.exercise}</Typography>
-                  <IconButton aria-label="add" onClick={() => setSelectedExerciseInFilter(null)}>
-                    <CloseIcon sx={{ color: grey[900], fontSize: 20 }} className="h-12 w-12" />
-                  </IconButton>
-                </Box>
-              ) : (
-                <Box></Box>
-              )} */}
-
               <ResponsiveContainer width="100%" height={340} >
                 {Array.isArray(workoutList) && workoutList.length > 0 ? (
                   <LineChart data={dataForChart} margin={{ top: 10, right: 0, left: 0, bottom: 40 }}>
@@ -916,7 +893,7 @@ export default function HomePage() {
                     <XAxis dataKey="date" stroke="#fff" tick={{ dy: 13 }} />
                     <YAxis stroke="#E43654" yAxisId="left" tick={{ fontWeight: 'bold' }} />
                     <YAxis stroke="#44f814" orientation="right" yAxisId="right" tick={{ fontWeight: 'bold' }} />
-                    <Tooltip />
+                    <Tooltip contentStyle={{ backgroundColor: 'black', borderRadius: '5px' }} labelStyle={{ color: 'white' }}/>
                     <Line type="monotone" dataKey="Calories" stroke="#E43654" activeDot={{ r: 10 }} yAxisId="left" />
                     <Line type="monotone" dataKey="Minutes" stroke="#44f814" activeDot={{ r: 10 }} yAxisId="right" />
                     <Brush dataKey="date" height={30} stroke="#000000" y={300} fill="#161616" travellerWidth={10}
