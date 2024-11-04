@@ -408,18 +408,18 @@ export default function CategoriesPage() {
     if (editingExercise) {
       try {
         setLoadingButton(true);
-  
+
         let image_url = editingExercise.image_url;
         if (imageFile) {
           const storage = getStorage();
           const storageRef = ref(storage, `exercises/${imageFile.name}`);
-  
+
           // Upload the new image to Firebase Storage
           await uploadBytes(storageRef, imageFile);
           // Get the download URL for the uploaded image
           image_url = await getDownloadURL(storageRef);
         }
-  
+
         await editExercise(
           {
             name: editingExercise.name,
@@ -429,7 +429,7 @@ export default function CategoriesPage() {
           },
           editingExercise.id
         );
-  
+
         setCategoryWithExercises(
           categoryWithExercises.map((category) => {
             if (category.id === editingExercise.category_id) {
@@ -443,7 +443,7 @@ export default function CategoriesPage() {
             return category;
           })
         );
-  
+
         setAlertExerciseEditedOpen(true);
         setImageFile(null);
         setLoadingButton(false);
@@ -475,30 +475,33 @@ export default function CategoriesPage() {
     <Box sx={{ minHeight: '100vh', 'backgroundColor': 'black', color: 'white', p: 4 }}  >
       <Box component="header" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
 
-      <div className="flex items-center">
-      <IconButton component="a" sx={{ color: 'white' }} onClick={handleBackToHome}>
+        <div className="flex items-center">
+          <IconButton component="a" sx={{ color: 'white' }} onClick={handleBackToHome}>
             <ArrowLeftIcon />
           </IconButton>
-          <img src={require('../../images/logo.png')} alt="Logo" width={200} height={150} className="hidden md:block"/>
+          <img src={require('../../images/logo.png')} alt="Logo" width={200} height={150} className="hidden md:block" />
         </div>
-        <Typography variant="h4" sx={{ fontSize: { xs: '1.3rem', sm: '1.8rem', md: '2.5rem' }, ml: {xs:0, sm:-12, md:-14}}}>Categories, Exercises & Trainings</Typography>
-        <IconButton component="a" sx={{ color: 'white' }} onClick={handleTrophyButton}>
-          <EmojiEventsIcon sx={{ fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' } }}/>
-        </IconButton>
-        <PopularExercisesModal open={openRankingModal} onClose={handleCloseRankingModal}/>
+        <Typography variant="h4" sx={{ fontSize: { xs: '1.3rem', sm: '1.8rem', md: '2.5rem' }, ml: { xs: 0, sm: -12, md: -14 } }}>Categories, Exercises & Trainings</Typography>
+        <div style={{display:'flex', flexDirection:'row', alignItems:'center', justifyContent: 'center'}}>
+          <IconButton component="a" sx={{ color: 'white' }} onClick={handleTrophyButton}>
+            <EmojiEventsIcon sx={{ fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' } }} />
+          </IconButton>
+          <p>Top exercises</p>
+          <PopularExercisesModal open={openRankingModal} onClose={handleCloseRankingModal} />
+        </div>
       </Box >
 
-      <TopMiddleAlert alertText='Added category successfully' open={alertCategoryAddedOpen} onClose={() => setAlertCategoryAddedOpen(false)} severity='success'/>
-      <TopMiddleAlert alertText='Added exercise successfully' open={alertExerciseAddedOpen} onClose={() => setAlertExerciseAddedOpen(false)} severity='success'/>
-      <TopMiddleAlert alertText='Added training successfully' open={alertTrainingAddedOpen} onClose={() => setAlertTrainingAddedOpen(false)} severity='success'/>
-      <TopMiddleAlert alertText='Edited category successfully' open={alertCategoryEditedOpen} onClose={() => setAlertCategoryEditedOpen(false)} severity='success'/>
-      <TopMiddleAlert alertText='Edited exercise successfully' open={alertExerciseEditedOpen} onClose={() => setAlertExerciseEditedOpen(false)} severity='success'/>
-      <TopMiddleAlert alertText='Deleted category successfully' open={alertCategoryDeletedSuccessOpen} onClose={() => setAlertCategoryDeletedSuccessOpen(false)} severity='success'/>
-      <TopMiddleAlert alertText='Deleted exercise successfully' open={alertExerciseDeletedSuccessOpen} onClose={() => setAlertExerciseDeletedSuccessOpen(false)} severity='success'/>
-      <TopMiddleAlert alertText='You cannot delete an exercise that is part of a training' open={alertExerciseDeletedErrorOpen} onClose={() => setAlertExerciseDeletedErrorOpen(false)} severity='warning'/>
-      <TopMiddleAlert alertText='You cannot delete a category that has exercises in a training' open={alertCategoryDeletedErrorOpen} onClose={() => setAlertCategoryDeletedErrorOpen(false)} severity='warning'/>
-      <TopMiddleAlert alertText='Please fill all fields' open={alertCategoryFillFieldsOpen} onClose={() => setAlertCategoryFillFieldsOpen(false)} severity='warning'/>
-      <TopMiddleAlert alertText='Please fill all fields' open={alertExerciseFillFieldsOpen} onClose={() => setAlertExerciseFillFieldsOpen(false)} severity='warning'/>
+      <TopMiddleAlert alertText='Added category successfully' open={alertCategoryAddedOpen} onClose={() => setAlertCategoryAddedOpen(false)} severity='success' />
+      <TopMiddleAlert alertText='Added exercise successfully' open={alertExerciseAddedOpen} onClose={() => setAlertExerciseAddedOpen(false)} severity='success' />
+      <TopMiddleAlert alertText='Added training successfully' open={alertTrainingAddedOpen} onClose={() => setAlertTrainingAddedOpen(false)} severity='success' />
+      <TopMiddleAlert alertText='Edited category successfully' open={alertCategoryEditedOpen} onClose={() => setAlertCategoryEditedOpen(false)} severity='success' />
+      <TopMiddleAlert alertText='Edited exercise successfully' open={alertExerciseEditedOpen} onClose={() => setAlertExerciseEditedOpen(false)} severity='success' />
+      <TopMiddleAlert alertText='Deleted category successfully' open={alertCategoryDeletedSuccessOpen} onClose={() => setAlertCategoryDeletedSuccessOpen(false)} severity='success' />
+      <TopMiddleAlert alertText='Deleted exercise successfully' open={alertExerciseDeletedSuccessOpen} onClose={() => setAlertExerciseDeletedSuccessOpen(false)} severity='success' />
+      <TopMiddleAlert alertText='You cannot delete an exercise that is part of a training' open={alertExerciseDeletedErrorOpen} onClose={() => setAlertExerciseDeletedErrorOpen(false)} severity='warning' />
+      <TopMiddleAlert alertText='You cannot delete a category that has exercises in a training' open={alertCategoryDeletedErrorOpen} onClose={() => setAlertCategoryDeletedErrorOpen(false)} severity='warning' />
+      <TopMiddleAlert alertText='Please fill all fields' open={alertCategoryFillFieldsOpen} onClose={() => setAlertCategoryFillFieldsOpen(false)} severity='warning' />
+      <TopMiddleAlert alertText='Please fill all fields' open={alertExerciseFillFieldsOpen} onClose={() => setAlertExerciseFillFieldsOpen(false)} severity='warning' />
 
       {
         deleteCategoryAlertOpen &&
@@ -935,31 +938,31 @@ export default function CategoriesPage() {
 
           </FormControl>
           <InputLabel htmlFor="upload-image" sx={{ mt: 2, color: '#fff' }}>Upload Exercise Image</InputLabel>
-            <label htmlFor="upload-image" style={{ display: 'block', marginTop: '8px' }}>
-              <Button
-                variant="contained"
-                component="span"
-                sx={{
-                  backgroundColor: grey[800],
-                  color: '#fff',
-                  textTransform: 'none',
-                  padding: '8px 16px',
-                  borderRadius: '8px',
-                }}
-              >
-                Choose File
-              </Button>
-              <span style={{ marginLeft: '10px', color: '#fff' }}>
-                {imageFile ? imageFile.name : 'No file selected'}
-              </span>
-              <input
-                accept="image/*"
-                id="upload-image"
-                type="file"
-                onChange={handleFileChange}
-                style={{ display: 'none' }} // Hide the default input button
-              />
-            </label>
+          <label htmlFor="upload-image" style={{ display: 'block', marginTop: '8px' }}>
+            <Button
+              variant="contained"
+              component="span"
+              sx={{
+                backgroundColor: grey[800],
+                color: '#fff',
+                textTransform: 'none',
+                padding: '8px 16px',
+                borderRadius: '8px',
+              }}
+            >
+              Choose File
+            </Button>
+            <span style={{ marginLeft: '10px', color: '#fff' }}>
+              {imageFile ? imageFile.name : 'No file selected'}
+            </span>
+            <input
+              accept="image/*"
+              id="upload-image"
+              type="file"
+              onChange={handleFileChange}
+              style={{ display: 'none' }} // Hide the default input button
+            />
+          </label>
         </DialogContent >
         <DialogActions>
           <LoadingButton
