@@ -106,8 +106,8 @@ export default function PhysicalProgressPage() {
   // Datos para el gráfico de tortas basado en el día seleccionado
   const pieData = selectedDay
     ? [
-        { name: 'Body Fat', value: parseFloat((selectedDay.BodyFat * 100 / selectedDay.Weight).toFixed(1)) },
         { name: 'Body Muscle', value: parseFloat((selectedDay.BodyMuscle * 100 / selectedDay.Weight).toFixed(1)) },
+        { name: 'Body Fat', value: parseFloat((selectedDay.BodyFat * 100 / selectedDay.Weight).toFixed(1)) },
         { name: 'Other', value: parseFloat(((selectedDay.Weight - selectedDay.BodyFat - selectedDay.BodyMuscle) * 100 / selectedDay.Weight).toFixed(1)) }
       ]
     : [];
@@ -167,8 +167,8 @@ export default function PhysicalProgressPage() {
                   <Tooltip contentStyle={{ backgroundColor: 'black', borderRadius: '5px' }} labelStyle={{ color: 'white' }}/>
                   <Legend verticalAlign="top" height={50} wrapperStyle={{marginLeft: 30}}/>
                   <Line type="monotone" dataKey="Weight" stroke="#0088FE" activeDot={{ r: 10 }} />
-                  <Line type="monotone" dataKey="BodyMuscle" stroke="#FFBB28" activeDot={{ r: 10 }}/>
-                  <Line type="monotone" dataKey="BodyFat" stroke="#00C49F" activeDot={{ r: 10 }}/>
+                  <Line type="monotone" dataKey="BodyMuscle" stroke="#44f814" activeDot={{ r: 10 }}/>
+                  <Line type="monotone" dataKey="BodyFat" stroke="#E43654" activeDot={{ r: 10 }}/>
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
@@ -184,9 +184,9 @@ export default function PhysicalProgressPage() {
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}>
                   <PieChart width={400} height={280}>
                     <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={renderCustomizedLabel} stroke="#0088FE" strokeWidth={2} labelLine={false}>
-                      <Cell key={`cell-0`} fill={"#00C49F"}/>
-                      <Cell key={`cell-1`} fill={"#FFBB28"}/>
-                      <Cell key={`cell-2`} fill={"#DF0026"}/>
+                      <Cell key={`cell-0`} fill={"#44f814"}/>
+                      <Cell key={`cell-1`} fill={"#E43654"}/>
+                      <Cell key={`cell-2`} fill={"#81d8d0"}/>
                     </Pie>
                     <Tooltip contentStyle={{ backgroundColor: 'black', borderRadius: '5px' }} labelStyle={{ color: 'white' }} itemStyle={{ color: '#fff' }}/>
                     <Legend verticalAlign="top" height={50} wrapperStyle={{marginTop: 5}}/>
