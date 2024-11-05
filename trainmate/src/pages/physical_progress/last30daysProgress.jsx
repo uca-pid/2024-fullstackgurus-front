@@ -44,28 +44,19 @@ const Last30DaysProgress = ({ last30DaysData }) => {
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'row', gap: 18, mt: 0, ml: 10 }}>
 
-          <Typography
-            variant="body1"
-            sx={{ textAlign: 'left', display: 'flex', alignItems: 'center' }}
-          >
+          <Typography variant="body1" sx={{ textAlign: 'left', display: 'flex', alignItems: 'center' }}>
             {renderChangeIcon(last30DaysData.Weight?.change, '#0088FE')}
             Weight: {last30DaysData.Weight?.change?.toFixed(1) ?? 'N/A'} kg
           </Typography>
 
-          <Typography
-            variant="body1"
-            sx={{ textAlign: 'left', display: 'flex', alignItems: 'center' }}
-          >
-            {renderChangeIcon(last30DaysData.BodyFat?.change, '#E43654')}
-            Body Fat: {last30DaysData.BodyFat?.change?.toFixed(1) ?? 'N/A'} %
-          </Typography>
-
-          <Typography
-            variant="body1"
-            sx={{ textAlign: 'left', display: 'flex', alignItems: 'center' }}
-          >
+          <Typography variant="body1" sx={{ textAlign: 'left', display: 'flex', alignItems: 'center' }}>
             {renderChangeIcon(last30DaysData.BodyMuscle?.change, '#44f814')}
             Body Muscle: {last30DaysData.BodyMuscle?.change?.toFixed(1) ?? 'N/A'} kg
+          </Typography>
+
+          <Typography variant="body1" sx={{ textAlign: 'left', display: 'flex', alignItems: 'center' }}>
+            {renderChangeIcon(last30DaysData.BodyFat?.change, '#E43654')}
+            Body Fat: {last30DaysData.BodyFat?.change?.toFixed(1) ?? 'N/A'} %
           </Typography>
         </Box>
       </Box>
