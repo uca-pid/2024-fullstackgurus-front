@@ -49,7 +49,7 @@ export default function ChallengeModal({ pageName, listOfChallenges, open, handl
                 sx={{
                   mb: 3,
                   p: 2,
-                  backgroundColor: challenge.state ? grey[700] : grey[900],
+                  backgroundColor: challenge.state ? grey[900] : grey[700],
                   borderRadius: 2,
                   border: `1px solid ${challenge.state ? '#AE8625' : grey[600]}`,
                 }}
