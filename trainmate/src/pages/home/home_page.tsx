@@ -831,7 +831,7 @@ export default function HomePage() {
         <main className="p-4 space-y-6">
           <Card sx={{ backgroundColor: '#161616', color: '#fff' }} className='border border-gray-600' >
             <CardHeader
-              title="Progress"
+              title="Workouts Progress"
             />
             <CardContent>
 

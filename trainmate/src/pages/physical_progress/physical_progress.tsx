@@ -10,6 +10,9 @@ import TopMiddleAlert from '../../personalizedComponents/TopMiddleAlert';
 import { renderCustomizedLabel } from './customizedLabel';
 import { calculate_last_30_days_progress } from '../../functions/progress_calcs';
 import Last30DaysProgress from './last30daysProgress';
+import WorkspacePremiumTwoToneIcon from '@mui/icons-material/WorkspacePremiumTwoTone';
+import { getChallenges } from '../../api/ChallengesApi';
+import ChallengeModal from '../../personalizedComponents/challengeModal';
 
 interface PhysicalData {
   date: string;
@@ -25,6 +28,12 @@ interface PhysicalDataForChart {
   BodyMuscle: number;
 }
 
+interface Challenges {
+  id: number;
+  challenge: string;
+  state: boolean;
+}
+
 export default function PhysicalProgressPage() {
   const navigate = useNavigate();
   const [data, setData] = useState<PhysicalData[]>([]);
@@ -38,6 +47,22 @@ export default function PhysicalProgressPage() {
   const [alertDataAddedOpen, setAlertDataAddedOpen] = useState(false)
   const [alertFillFieldsOpen, setAlertFillFieldsOpen] = useState(false)
   const [physicalDataCount, setPhysicalDataCount] = useState(0)
+  const [challengeModalOpen, setChallengeModalOpen] = useState(false)
+  const [challengesList, setChallengesList] = useState<Challenges[]>([])
+
+  const handleChallengeModalClose = () => {
+    setChallengeModalOpen(false)
+  }
+
+  const getChallengesList = async () => {
+    try {
+      const challenges = await getChallenges('physical')
+      setChallengesList(challenges)
+    }
+    catch (error) {
+      console.error('Error al obtener challenges:', error);
+    }
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,6 +85,7 @@ export default function PhysicalProgressPage() {
       }
     };
     fetchData();
+    getChallengesList(); // Ver si conviene llamarlo acá o en otro lado
   }, [physicalDataCount]);
 
   const handleBackToHome = () => {
@@ -139,18 +165,28 @@ export default function PhysicalProgressPage() {
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: 'black', color: 'white', p: 4 }}  >
-      <Box component="header" sx={{ display: 'flex', justifyContent: 'space-between', mb: 6 }}>
-        <div className="flex items-center">
+      <Box component="header" sx={{ display: 'flex', flexDirection: 'row', gap: 14}}>
+        <Box className="flex items-center" sx={{flex: 1, mt: -5}}>
           <IconButton component="a" sx={{ color: 'white' }} onClick={handleBackToHome}>
             <ArrowLeftIcon />
           </IconButton>
             <img src={require('../../images/logo.png')} alt="Logo" width={200} height={150} className="hidden md:block"/>
-        </div>
-        <Typography variant="h4" sx={{ fontSize: { xs: '1.3rem', sm: '1.8rem', md: '2.5rem' }, position: 'absolute', left: '50%', transform: 'translateX(-50%)'}}>Physical Progress</Typography>
+        </Box>
+        <Box sx={{flex: 1}}>
+          <Typography variant="h4" sx={{ fontSize: { xs: '1.3rem', sm: '1.8rem', md: '2.5rem' }, position: 'absolute', left: '50%', transform: 'translateX(-50%)'}}>Physical Progress</Typography>
+        </Box>
+        <Box sx={{cursor: 'pointer'}} onClick={() => setChallengeModalOpen(true)}>
+          <WorkspacePremiumTwoToneIcon sx={{ fontSize: 70, mt: -2 }} style={{ color: '#AE8625'}}/>
+          <Typography sx={{ml: -1, mb: 2, mt: 1}} style={{ color: '#AE8625'}}>Challenges</Typography>
+        </Box>
       </Box>
 
       <TopMiddleAlert alertText='Added new entry successfully' open={alertDataAddedOpen} onClose={() => setAlertDataAddedOpen(false)} severity='success'/>
       <TopMiddleAlert alertText='Please fill in all the fields' open={alertFillFieldsOpen} onClose={() => setAlertFillFieldsOpen(false)} severity='warning'/>
+
+      {challengeModalOpen &&
+        <ChallengeModal pageName='Physical Challenges' listOfChallenges={challengesList} open={challengeModalOpen} handleClose={handleChallengeModalClose}/>
+      }
 
       {loading ? (
         <LoadingAnimation />
