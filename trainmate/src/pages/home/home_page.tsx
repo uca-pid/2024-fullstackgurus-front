@@ -192,17 +192,9 @@ export default function HomePage() {
         }
         else {
           var workouts = await getAllWorkouts();
-          // if (selectedCategoryInFilter) {
-          //   const exercises = await getExerciseFromCategory(selectedCategoryInFilter.category_id);
-          //   workouts = workouts.filter((workout) => exercises.find((exercise: Exercise) => exercise.exercise_id === workout.exercise_id));
-          // }
-          // if (selectedExerciseInFilter) {
-          //   workouts = workouts.filter((workout) => workout.exercise === selectedExerciseInFilter.exercise);
-          // }
           const validWorkouts = workouts.filter((workout: Workout) =>
             workout.duration && workout.date && workout.total_calories && workout.coach
           );
-          // Sort the workouts by date (we convert the string to a Date object)
           const sortedWorkouts = validWorkouts.sort((a: Workout, b: Workout) => new Date(b.date).getTime() - new Date(a.date).getTime());
           setWorkoutList(sortedWorkouts);
           const calories_duration_per_day = calculate_calories_and_duration_per_day(sortedWorkouts);
@@ -503,7 +495,7 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    setLoading(true);
+    // setLoading(true);
     const fetchCoaches = async () => {
       try {
         const coaches_from_local_storage = JSON.parse(localStorage.getItem('coaches') || '[]');
@@ -519,7 +511,7 @@ export default function HomePage() {
       } catch (error) {
         console.error('Error al obtener los profesores:', error);
       } finally {
-        setLoading(false);
+        // setLoading(false);
       }
     };
     fetchCoaches();
@@ -844,7 +836,7 @@ export default function HomePage() {
         <main className="p-4 space-y-6">
           <Card sx={{ backgroundColor: '#161616', color: '#fff' }} className='border border-gray-600' >
             <CardHeader
-              title="Progress"
+              title="Workouts Progress"
             />
             <CardContent>
 
@@ -899,29 +891,6 @@ export default function HomePage() {
                 <Box></Box>
               )}
 
-              {/* {(selectedExerciseInFilter) ? (
-                <Box 
-                  sx={{ 
-                  display: 'flex', 
-                  justifyContent: 'center', 
-                  alignItems: 'center', 
-                  backgroundColor: grey[700], 
-                  borderRadius: '8px', 
-                  padding: 2, 
-                  marginBottom: 2,
-                  height: 50,
-                  width: 130
-                  }}
-                >
-                  <Typography variant="h6">{selectedExerciseInFilter?.exercise}</Typography>
-                  <IconButton aria-label="add" onClick={() => setSelectedExerciseInFilter(null)}>
-                    <CloseIcon sx={{ color: grey[900], fontSize: 20 }} className="h-12 w-12" />
-                  </IconButton>
-                </Box>
-              ) : (
-                <Box></Box>
-              )} */}
-
               <ResponsiveContainer width="100%" height={340} >
                 {Array.isArray(workoutList) && workoutList.length > 0 ? (
                   <LineChart data={getFilteredData(dataForChart, timeRange)} margin={{ top: 10, right: 0, left: 0, bottom: 40 }}>
@@ -929,7 +898,7 @@ export default function HomePage() {
                     <XAxis dataKey="date" stroke="#fff" tick={{ dy: 13 }} />
                     <YAxis stroke="#E43654" yAxisId="left" tick={{ fontWeight: 'bold' }} />
                     <YAxis stroke="#44f814" orientation="right" yAxisId="right" tick={{ fontWeight: 'bold' }} />
-                    <Tooltip />
+                    <Tooltip contentStyle={{ backgroundColor: 'black', borderRadius: '5px' }} labelStyle={{ color: 'white' }}/>
                     <Line type="monotone" dataKey="Calories" stroke="#E43654" activeDot={{ r: 10 }} yAxisId="left" />
                     <Line type="monotone" dataKey="Minutes" stroke="#44f814" activeDot={{ r: 10 }} yAxisId="right" />
                     <Brush dataKey="date" height={30} stroke="#000000" y={300} fill="#161616" travellerWidth={10}
