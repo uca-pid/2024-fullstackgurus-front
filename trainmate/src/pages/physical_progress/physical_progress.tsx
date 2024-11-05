@@ -155,21 +155,21 @@ export default function PhysicalProgressPage() {
       {loading ? (
         <LoadingAnimation />
       ) : (
-        <Box sx={{ display: 'flex', gap: 4 }}>
+        <Box sx={{ display: 'flex', gap: 4, flexDirection: { xs: 'column', sm: 'column', md: 'row' } }}>
           {/* Gráfico de Líneas */}
           <Card sx={{ flex: 2, backgroundColor: '#161616', color: '#fff'}} className='border border-gray-600'>
             <CardHeader
               title="Weight progress"
             />
             <CardContent>
-              <ResponsiveContainer width="90%" height={640}>
-                <LineChart width={500} height={400} data={dataForChart} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              <ResponsiveContainer width="100%" height={640}>
+                <LineChart width={500} height={400} data={dataForChart} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
                  onClick={(e) => e.activePayload && handleLineClick(e.activePayload[0].payload)} style={{ cursor: 'pointer' }}>
                   <CartesianGrid strokeDasharray="3 3"/>
                   <XAxis dataKey="date" stroke="#fff" tick={{ dy: 13 }}/>
                   <YAxis stroke="white" tick={{ fontWeight: 'bold' }}/>
                   <Tooltip contentStyle={{ backgroundColor: 'black', borderRadius: '5px' }} labelStyle={{ color: 'white' }}/>
-                  <Legend verticalAlign="top" height={50} wrapperStyle={{marginLeft: 30}}/>
+                  <Legend verticalAlign="top" height={50} wrapperStyle={{display: 'flex', flexDirection: 'row', justifyContent: 'center'}}/>
                   <Line type="monotone" dataKey="Weight" stroke="#0088FE" activeDot={{ r: 10 }} />
                   <Line type="monotone" dataKey="BodyMuscle" stroke="#44f814" activeDot={{ r: 10 }}/>
                   <Line type="monotone" dataKey="BodyFat" stroke="#E43654" activeDot={{ r: 10 }}/>
@@ -197,7 +197,7 @@ export default function PhysicalProgressPage() {
                     <Legend verticalAlign="top" height={50} wrapperStyle={{marginTop: 5}}/>
                   </PieChart>
                 </Box>
-                <Typography variant="h6" sx={{ position: 'absolute', right: 25, top: '50%', transform: 'translateY(-50%)', color: '#fff' }}>{selectedDay?.date}</Typography>
+                <Typography variant="h6" sx={{ position: 'absolute', right: { xs: 0, sm: 25, md: 25 }, top: { xs: '90%', sm: '55%', md: '55%' }, transform: 'translateY(-50%)', color: '#fff' }}>{selectedDay?.date}</Typography>
               </CardContent>
             </Card>
 

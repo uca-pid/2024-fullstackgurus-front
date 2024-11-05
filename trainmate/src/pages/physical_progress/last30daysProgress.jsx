@@ -38,11 +38,9 @@ const Last30DaysProgress = ({ last30DaysData }) => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', flexDirection: 'row', mt: 8, ml: 9 }}>
-        <Typography variant="h6" sx={{ textAlign: 'left' }}>
-          Last 30 days:
-        </Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 18, mt: 0, ml: 10 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'row', mt: 8, justifyContent: 'center' }}>
+        <Typography variant="h6" sx={{ textAlign: 'left' }}> Last 30 days: </Typography>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row', md: 'row' }, gap: { xs: 2, sm: 5, md: 18 }, mt: 0, ml: { xs: 2, sm: 5, md: 10 } }}>
 
           <Typography variant="body1" sx={{ textAlign: 'left', display: 'flex', alignItems: 'center' }}>
             {renderChangeIcon(last30DaysData.Weight?.change, '#0088FE')}
@@ -56,7 +54,7 @@ const Last30DaysProgress = ({ last30DaysData }) => {
 
           <Typography variant="body1" sx={{ textAlign: 'left', display: 'flex', alignItems: 'center' }}>
             {renderChangeIcon(last30DaysData.BodyFat?.change, '#E43654')}
-            Body Fat: {last30DaysData.BodyFat?.change?.toFixed(1) ?? 'N/A'} %
+            Body Fat: {last30DaysData.BodyFat?.change?.toFixed(1) ?? 'N/A'} kg
           </Typography>
         </Box>
       </Box>
