@@ -161,7 +161,7 @@ export default function PhysicalProgressPage() {
               <ResponsiveContainer width="90%" height={640}>
                 <LineChart width={500} height={400} data={dataForChart} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                  onClick={(e) => e.activePayload && handleLineClick(e.activePayload[0].payload)}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid strokeDasharray="3 3"/>
                   <XAxis dataKey="date" stroke="#fff" tick={{ dy: 13 }}/>
                   <YAxis stroke="white" tick={{ fontWeight: 'bold' }}/>
                   <Tooltip contentStyle={{ backgroundColor: 'black', borderRadius: '5px' }} labelStyle={{ color: 'white' }}/>
