@@ -179,17 +179,9 @@ export default function HomePage() {
         }
         else {
           var workouts = await getAllWorkouts();
-          // if (selectedCategoryInFilter) {
-          //   const exercises = await getExerciseFromCategory(selectedCategoryInFilter.category_id);
-          //   workouts = workouts.filter((workout) => exercises.find((exercise: Exercise) => exercise.exercise_id === workout.exercise_id));
-          // }
-          // if (selectedExerciseInFilter) {
-          //   workouts = workouts.filter((workout) => workout.exercise === selectedExerciseInFilter.exercise);
-          // }
           const validWorkouts = workouts.filter((workout: Workout) =>
             workout.duration && workout.date && workout.total_calories && workout.coach
           );
-          // Sort the workouts by date (we convert the string to a Date object)
           const sortedWorkouts = validWorkouts.sort((a: Workout, b: Workout) => new Date(b.date).getTime() - new Date(a.date).getTime());
           setWorkoutList(sortedWorkouts);
           const calories_duration_per_day = calculate_calories_and_duration_per_day(sortedWorkouts);
@@ -490,7 +482,7 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    setLoading(true);
+    // setLoading(true);
     const fetchCoaches = async () => {
       try {
         const coaches_from_local_storage = JSON.parse(localStorage.getItem('coaches') || '[]');
@@ -506,7 +498,7 @@ export default function HomePage() {
       } catch (error) {
         console.error('Error al obtener los profesores:', error);
       } finally {
-        setLoading(false);
+        // setLoading(false);
       }
     };
     fetchCoaches();
