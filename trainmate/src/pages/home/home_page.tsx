@@ -13,8 +13,6 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 import { grey } from '@mui/material/colors';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import CloseIcon from '@mui/icons-material/Close';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Brush, Rectangle } from 'recharts';
 import Typography from '@mui/material/Typography';
@@ -22,16 +20,12 @@ import ScrollArea from '@mui/material/Box';
 import { getWorkouts, saveWorkout, getWorkoutsCalories } from '../../api/WorkoutsApi';
 import { calculate_calories_and_duration_per_day } from '../../functions/calculations';
 import { useNavigate } from 'react-router-dom';
-import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import TopMiddleAlert from '../../personalizedComponents/TopMiddleAlert';
 import { getCategories } from '../../api/CategoryApi';
 import { getExerciseFromCategory } from '../../api/ExerciseApi';
 import { getCoaches } from '../../api/CoachesApi_external';
-import CalendarModal from '../calendar/CalendarPage';
 import { FilterTrainingDialog } from './filter_training';
-import { FilterExerciseDialog } from './filter_exercise';
-import handleCategoryIcon from '../../personalizedComponents/handleCategoryIcon';
 import { Divider } from '@mui/material';
 import { top_exercises_done } from '../../functions/top_exercises_done';
 import DynamicBarChart from './bars_graph';
@@ -198,43 +192,6 @@ export default function HomePage() {
 
     return () => window.removeEventListener('resize', updateTimeRange);
   }, []);
-  
-
-  useEffect(() => {
-    const fetchWorkouts = async () => {
-      try {
-        setLoading(true);
-        const workouts_from_local_storage = JSON.parse(localStorage.getItem('workouts') || '[]');
-        const calories_duration_per_day_from_local_storage = JSON.parse(localStorage.getItem('calories_duration_per_day') || '{}');
-        if (workouts_from_local_storage.length > 0 && Object.keys(calories_duration_per_day_from_local_storage).length > 0) {
-          console.log("Este es el largo:", workouts_from_local_storage.length);
-          console.log("Este es el largo:", Object.keys(calories_duration_per_day_from_local_storage).length);
-          setWorkoutList(workouts_from_local_storage);
-          setCaloriesPerDay(calories_duration_per_day_from_local_storage);
-          console.log('Workouts and calories per day loaded from local storage');
-        }
-        else {
-          var workouts = await getAllWorkouts();
-          const validWorkouts = workouts.filter((workout: Workout) =>
-            workout.duration && workout.date && workout.total_calories && workout.coach
-          );
-          const sortedWorkouts = validWorkouts.sort((a: Workout, b: Workout) => new Date(b.date).getTime() - new Date(a.date).getTime());
-          setWorkoutList(sortedWorkouts);
-          const calories_duration_per_day = calculate_calories_and_duration_per_day(sortedWorkouts);
-          setCaloriesPerDay(calories_duration_per_day);
-          localStorage.setItem('workouts', JSON.stringify(sortedWorkouts));
-          localStorage.setItem('calories_duration_per_day', JSON.stringify(calories_duration_per_day));
-        }
-      } catch (error) {
-        console.error('Error al obtener los entrenamientos:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchWorkouts();
-    getChallengesList(); // Ver si conviene llamarla aca
-  }, [workoutsCount]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -453,8 +410,6 @@ export default function HomePage() {
       handleClose();
       localStorage.removeItem('workouts');
       localStorage.removeItem('calories_duration_per_day');
-      localStorage.removeItem('categories_with_exercises');
-      localStorage.removeItem('categories');
     }
     else {
       setAlertWorkoutFillFieldsOpen(true);
@@ -469,44 +424,7 @@ export default function HomePage() {
       console.error('Error al obtener todas las categorías:', error);
       return [];
     }
-  }
-
-  useEffect(() => {
-    setLoading(true);
-    const fetchCategories = async () => {
-      try {
-        const categories_from_local_storage = JSON.parse(localStorage.getItem('categories') || '[]');
-        const exercises_from_local_storage = JSON.parse(localStorage.getItem('categories_with_exercises') || '[]');
-        if (categories_from_local_storage.length > 0 && exercises_from_local_storage.length > 0) {
-          setCategories(categories_from_local_storage);
-          setCategoryWithExercises(exercises_from_local_storage);
-          console.log('Workouts and calories per day loaded from local storage');
-        }
-        else {
-          const categories = await getAllCategories();
-          var categories_with_exercises: CategoryWithExercises[] = [];
-          for (const category of categories) {
-            const exercises = await getExerciseFromCategory(category.id);
-            categories_with_exercises = [...categories_with_exercises, { ...category, exercises }];
-          }
-          setCategories(categories);
-          localStorage.setItem('categories_with_exercises', JSON.stringify(categories_with_exercises));
-          localStorage.setItem('categories', JSON.stringify(categories));
-        }
-      } catch (error) {
-        console.error('Error al obtener las categorías:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    const top_exercises_done_for_graph = top_exercises_done(workoutList, categoryWithExercises);
-    console.log(top_exercises_done_for_graph);
-    setTopExercisesDone(top_exercises_done_for_graph.topCategoriesWithExercises);
-  }, [workoutList, categoryWithExercises]);
+  };
 
   const getAllTrainings = async () => {
     try {
@@ -519,45 +437,95 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    // setLoading(true);
-    const fetchCoaches = async () => {
+    const fetchData = async () => {
       try {
+        setLoading(true);
+  
+        // Step 1: Fetch Workouts
+        console.log("Fetching workouts...");
+        const workouts_from_local_storage = JSON.parse(localStorage.getItem('workouts') || '[]');
+        const calories_duration_per_day_from_local_storage = JSON.parse(localStorage.getItem('calories_duration_per_day') || '{}');
+        let sortedWorkouts = workouts_from_local_storage;
+  
+        if (workouts_from_local_storage.length > 0 && Object.keys(calories_duration_per_day_from_local_storage).length > 0) {
+          setWorkoutList(workouts_from_local_storage);
+          setCaloriesPerDay(calories_duration_per_day_from_local_storage);
+          console.log('Workouts and calories per day loaded from local storage');
+        } else {
+          const workouts = await getAllWorkouts();
+          const validWorkouts = workouts.filter((workout: Workout) => workout.duration && workout.date && workout.total_calories && workout.coach);
+          sortedWorkouts = validWorkouts.sort((a: Workout, b: Workout) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          setWorkoutList(sortedWorkouts);
+          
+          const calories_duration_per_day = calculate_calories_and_duration_per_day(sortedWorkouts);
+          setCaloriesPerDay(calories_duration_per_day);
+          
+          localStorage.setItem('workouts', JSON.stringify(sortedWorkouts));
+          localStorage.setItem('calories_duration_per_day', JSON.stringify(calories_duration_per_day));
+        }
+  
+        // Step 2: Fetch Categories and Exercises
+        console.log("Fetching categories and exercises...");
+        const categories_from_local_storage = JSON.parse(localStorage.getItem('categories') || '[]');
+        const exercises_from_local_storage = JSON.parse(localStorage.getItem('categories_with_exercises') || '[]');
+  
+        if (categories_from_local_storage.length > 0 && exercises_from_local_storage.length > 0) {
+          setCategories(categories_from_local_storage);
+          setCategoryWithExercises(exercises_from_local_storage);
+        } else {
+          const categories = await getAllCategories();
+          let categories_with_exercises: CategoryWithExercises[] = [];
+          
+          for (const category of categories) {
+            const exercises = await getExerciseFromCategory(category.id);
+            categories_with_exercises = [...categories_with_exercises, { ...category, exercises }];
+          }
+          
+          setCategories(categories);
+          setCategoryWithExercises(categories_with_exercises);
+          
+          localStorage.setItem('categories_with_exercises', JSON.stringify(categories_with_exercises));
+          localStorage.setItem('categories', JSON.stringify(categories));
+        }
+  
+        // Step 3: Fetch Coaches
+        console.log("Fetching coaches...");
         const coaches_from_local_storage = JSON.parse(localStorage.getItem('coaches') || '[]');
+        
         if (coaches_from_local_storage.length > 0) {
           setCoaches(coaches_from_local_storage);
           console.log('Coaches loaded from local storage');
-        }
-        else {
+        } else {
           const coaches = await getCoaches();
           setCoaches(coaches);
           localStorage.setItem('coaches', JSON.stringify(coaches));
         }
-      } catch (error) {
-        console.error('Error al obtener los profesores:', error);
-      } finally {
-        // setLoading(false);
-      }
-    };
-    fetchCoaches();
-  }, []);
-
-  useEffect(() => {
-    setLoading(true);
-    const fetchTrainings = async () => {
-      try {
+  
+        // Step 4: Fetch Trainings
+        console.log("Fetching trainings...");
         const trainings = await getAllTrainings();
         if (trainings) {
           setTrainings(trainings);
           console.log(trainings);
         }
+  
+        // Step 5: Fetch Challenges
+        console.log("Fetching challenges...");
+        getChallengesList(); // Assuming this does not need to be awaited
       } catch (error) {
-        console.error('Error al obtener entrenamientos:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
-    fetchTrainings();
-  }, []);
+  
+    fetchData();
+  }, [workoutsCount]); // Re-run only if workoutsCount changes
+  
+  useEffect(() => {
+    const top_exercises_done_for_graph = top_exercises_done(workoutList, categoryWithExercises);
+    setTopExercisesDone(top_exercises_done_for_graph.topCategoriesWithExercises);
+  }, [workoutList]);
 
   return (
     <div className="min-h-screen bg-black from-gray-900 to-gray-800 text-white">
