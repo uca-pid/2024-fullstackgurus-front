@@ -8,6 +8,8 @@ import { grey } from '@mui/material/colors';
 import CalendarModal from '../calendar/CalendarPage';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { useNavigate } from 'react-router-dom';
+import GoalsModal from '../goals/Goals';
+import ChallengeForm from '../physical_progress/ChallengeForm';
 
 interface ResponsiveMenuProps {
   handleFilterOpen: () => void;
@@ -18,6 +20,8 @@ const ResponsiveMenu: React.FC<ResponsiveMenuProps> = ({ handleFilterOpen, handl
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const [open, setOpen] = useState(false);
+  const [goalsDrawerOpen, setGoalsDrawerOpen] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
   const handleDrawerOpen = (): void => {
     setDrawerOpen(true);
@@ -31,6 +35,14 @@ const ResponsiveMenu: React.FC<ResponsiveMenuProps> = ({ handleFilterOpen, handl
     setOpen(true);
   };
 
+  const showGoalsDrawer = () => {
+    setGoalsDrawerOpen(true)
+  }
+
+  const onCloseGoalsDrawer = () => {
+    setGoalsDrawerOpen(false)
+  }
+
   const onClose = () => {
     setOpen(false);
   };
@@ -38,6 +50,14 @@ const ResponsiveMenu: React.FC<ResponsiveMenuProps> = ({ handleFilterOpen, handl
   const handlePhysicalProgressOpen = () => {
     navigate('/physicalprogress');
   }
+
+  const openForm = () => {
+    setShowForm(true);
+  };
+
+  const closeForm = () => {
+    setShowForm(false);
+  };
 
   return (
     <>
@@ -82,6 +102,10 @@ const ResponsiveMenu: React.FC<ResponsiveMenuProps> = ({ handleFilterOpen, handl
             <AddCircleOutlineIcon sx={{ color: grey[50], fontSize: 40 }} />
             <ListItemText primary="Add New" sx={{ marginLeft: 2 }} />
           </ListItem>
+          <ListItem onClick={showGoalsDrawer}>
+            <CalendarMonthIcon sx={{ color: grey[50], fontSize: 40 }} />
+            <ListItemText primary="Goals" sx={{ marginLeft: 2 }} />
+          </ListItem>
           <ListItem onClick={showDrawer}>
             <CalendarMonthIcon sx={{ color: grey[50], fontSize: 40 }} />
             <ListItemText primary="See Agenda" sx={{ marginLeft: 2 }} />
@@ -104,6 +128,10 @@ const ResponsiveMenu: React.FC<ResponsiveMenuProps> = ({ handleFilterOpen, handl
           <AddCircleOutlineIcon sx={{ color: grey[50], fontSize: 40 }} />
           <p className='p-3 text-white'>Add New</p>
         </IconButton>
+        <IconButton onClick={showGoalsDrawer}>
+            <CalendarMonthIcon sx={{ color: grey[50], fontSize: 40 }} />
+            <p className='p-3 text-white'>Goals</p>
+          </IconButton>
         <IconButton aria-label="calendar" onClick={showDrawer}>
           <CalendarMonthIcon sx={{ color: grey[50], fontSize: 40 }} />
           <p className='p-3 text-white'>See Agenda</p>
@@ -111,6 +139,12 @@ const ResponsiveMenu: React.FC<ResponsiveMenuProps> = ({ handleFilterOpen, handl
       </Box>
 
       <CalendarModal showDrawer={showDrawer} onClose={onClose} open={open} />
+      <GoalsModal showDrawer={showGoalsDrawer} onClose={onCloseGoalsDrawer} open={goalsDrawerOpen} openForm={openForm}/>
+      <ChallengeForm 
+        isOpen={showForm} 
+        onSave={() => {}} // Define saveChallenge if needed
+        onCancel={closeForm} // Closes form and optionally reopens ChallengeModal
+      />
     </>
   );
 };
