@@ -1,7 +1,7 @@
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import WorkspacePremiumTwoToneIcon from '@mui/icons-material/WorkspacePremiumTwoTone';
-import { physicalChallenges } from '../enums/physicalChallenges';
+import { physicalChallenges, workoutChallenges } from '../enums/challenges';
 
 interface Challenges {
   id: number;
@@ -18,7 +18,12 @@ interface ChallengeModalProps {
 
 export default function ChallengeModal({ pageName, listOfChallenges, open, handleClose }: ChallengeModalProps) {
   const getChallengeDetails = (challengeName: string) => {
-    return physicalChallenges.find(([name]) => name === challengeName);
+    if (pageName === 'Physical Challenges') {
+      return physicalChallenges.find(([name]) => name === challengeName);
+    }
+    else if (pageName === 'Workouts Challenges') {
+      return workoutChallenges.find(([name]) => name === challengeName);
+    }
   };
 
   return (

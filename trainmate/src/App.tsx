@@ -8,7 +8,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import ProfilePage from './pages/user/ProfilePage';
 import CategoriesPage from './pages/categories/categories_page';
 import CalendarPage from './pages/calendar/CalendarPage';
-import PhysicalProgressPage from './pages/physical_progress/physical_progress';
+import PhysicalProgressPage from './pages/physical_progress/physical_progress_page';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);

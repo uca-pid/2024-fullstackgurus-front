@@ -43,6 +43,9 @@ import LoadingAnimation from '../../personalizedComponents/loadingAnimation';
 import '../../App.css';
 import LoadingButton from '../../personalizedComponents/buttons/LoadingButton';
 import { getFilteredData } from './dates_filter';
+import { getChallenges } from '../../api/ChallengesApi';
+import ChallengeModal from '../../personalizedComponents/challengeModal';
+import WorkspacePremiumTwoToneIcon from '@mui/icons-material/WorkspacePremiumTwoTone';
 
 interface Workout {
   id: number;
@@ -109,6 +112,12 @@ interface Trainings {
   exercises: Exercise[];
 }
 
+interface Challenges {
+  id: number;
+  challenge: string;
+  state: boolean;
+}
+
 export default function HomePage() {
   const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState('month');
@@ -139,8 +148,22 @@ export default function HomePage() {
   const [trainings, setTrainings] = useState<Trainings[]>([]);
   const [selectedTraining, setSelectedTraining] = useState<Trainings | null>(null);
   const [loadingButton, setLoadingButton] = useState<boolean>(false)
+  const [challengeModalOpen, setChallengeModalOpen] = useState(false)
+  const [challengesList, setChallengesList] = useState<Challenges[]>([])
 
+  const handleChallengeModalClose = () => {
+    setChallengeModalOpen(false)
+  }
 
+  const getChallengesList = async () => {
+    try {
+      const challenges = await getChallenges('workouts');
+      setChallengesList(challenges)
+    }
+    catch (error) {
+      console.error('Error al obtener challenges:', error);
+    }
+  }
 
   const handleAvatarClick = () => {
     navigate('/profile');
@@ -210,6 +233,7 @@ export default function HomePage() {
     };
 
     fetchWorkouts();
+    getChallengesList(); // Ver si conviene llamarla aca
   }, [workoutsCount]);
 
   const formatDate = (dateString: string) => {
@@ -547,11 +571,21 @@ export default function HomePage() {
           />
           <img src={require('../../images/logo.png')} alt="Logo" width={200} height={150} />
         </div>
-        <ResponsiveMenu handleFilterOpen={handleFilterOpen} handleClickOpen={handleClickOpen} />
+        <Box sx={{display: 'flex', flexDirection: 'row', gap: 3}}>
+          <ResponsiveMenu handleFilterOpen={handleFilterOpen} handleClickOpen={handleClickOpen} />
+          <Box sx={{cursor: 'pointer'}} onClick={() => setChallengeModalOpen(true)}>
+            <WorkspacePremiumTwoToneIcon sx={{ fontSize: 70, mt: 0, mr: { xs: 6, sm: 2 } }} style={{ color: '#AE8625'}}/>
+            <Typography sx={{ml: -1, mb: 2, mt: 1}} style={{ color: '#AE8625'}}>Challenges</Typography>
+          </Box>
+        </Box>
       </header>
       <TopMiddleAlert alertText='Added workout successfully' open={alertWorkoutAddedOpen} onClose={() => setAlertWorkoutAddedOpen(false)} severity='success'/>
       <TopMiddleAlert alertText='Added workout in Agenda successfully' open={alertWorkoutAddedForAgendaOpen} onClose={() => setAlertWorkoutAddedForAgendaOpen(false)} severity='success'/>
       <TopMiddleAlert alertText='Please fill in all the fields' open={alertWorkoutFillFieldsOpen} onClose={() => setAlertWorkoutFillFieldsOpen(false)} severity='warning'/>
+
+      {challengeModalOpen &&
+        <ChallengeModal pageName='Workouts Challenges' listOfChallenges={challengesList} open={challengeModalOpen} handleClose={handleChallengeModalClose}/>
+      }
 
       {/* FILTER PRINCIPAL */}
       <Dialog open={filterOpen} onClose={handleFilterClose}
