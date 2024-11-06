@@ -56,7 +56,7 @@ export default function PhysicalProgressPage() {
 
   const getChallengesList = async () => {
     try {
-      const challenges = await getChallenges('physical')
+      const challenges = await getChallenges('physical');
       setChallengesList(challenges)
     }
     catch (error) {
@@ -199,6 +199,7 @@ export default function PhysicalProgressPage() {
             />
             <CardContent>
               <ResponsiveContainer width="100%" height={640}>
+              {Array.isArray(dataForChart) && dataForChart.length > 0 ? (
                 <LineChart width={500} height={400} data={dataForChart} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
                  onClick={(e) => e.activePayload && handleLineClick(e.activePayload[0].payload)} style={{ cursor: 'pointer' }}>
                   <CartesianGrid strokeDasharray="3 3"/>
@@ -210,6 +211,11 @@ export default function PhysicalProgressPage() {
                   <Line type="monotone" dataKey="BodyMuscle" stroke="#44f814" activeDot={{ r: 10 }}/>
                   <Line type="monotone" dataKey="BodyFat" stroke="#E43654" activeDot={{ r: 10 }}/>
                 </LineChart>
+              ) : (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                  <Typography variant="h6" sx={{ color: '#fff' }}>No data available</Typography>
+                </Box>
+              )}
               </ResponsiveContainer>
               <Last30DaysProgress last30DaysData={last30DaysData}/>
             </CardContent>
@@ -223,6 +229,7 @@ export default function PhysicalProgressPage() {
               />
               <CardContent sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', position: 'relative', mt: -6 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}>
+                {Array.isArray(dataForChart) && dataForChart.length > 0 ? (
                   <PieChart width={400} height={280}>
                     <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={renderCustomizedLabel} stroke="#0088FE" strokeWidth={2} labelLine={false}>
                       <Cell key={`cell-0`} fill={"#44f814"}/>
@@ -232,6 +239,11 @@ export default function PhysicalProgressPage() {
                     <Tooltip contentStyle={{ backgroundColor: 'black', borderRadius: '5px' }} labelStyle={{ color: 'white' }} itemStyle={{ color: '#fff' }}/>
                     <Legend verticalAlign="top" height={50} wrapperStyle={{marginTop: 5}}/>
                   </PieChart>
+                  ) : (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                      <Typography variant="h6" sx={{ color: '#fff' }}>No data available</Typography>
+                    </Box>
+                  )}
                 </Box>
                 <Typography variant="h6" sx={{ position: 'absolute', right: { xs: 0, sm: 25, md: 25 }, top: { xs: '90%', sm: '55%', md: '55%' }, transform: 'translateY(-50%)', color: '#fff' }}>{selectedDay?.date}</Typography>
               </CardContent>

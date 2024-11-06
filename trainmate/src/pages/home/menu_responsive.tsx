@@ -91,7 +91,7 @@ const ResponsiveMenu: React.FC<ResponsiveMenuProps> = ({ handleFilterOpen, handl
       </Drawer>
 
       {/* Normal buttons for large screens */}
-      <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 2 }}>
+      <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 2}}>
         <IconButton aria-label="filter" onClick={handlePhysicalProgressOpen}>
           <TrendingUpIcon sx={{ color: grey[50], fontSize: 40 }} />
           <p className='p-3 text-white'>Physical Progress</p>
