@@ -167,6 +167,8 @@ export default function CategoriesPage() {
       await deleteCategory(categoryId, trainings);
       setCategoryWithExercises(categoryWithExercises.filter((category) => category.id !== categoryId));
       setAlertCategoryDeletedSuccessOpen(true);
+      localStorage.removeItem('categories');
+      localStorage.removeItem('categories_with_exercises');
     } catch (error) {
       setAlertCategoryDeletedErrorOpen(true);
       console.error('Error al eliminar la categoría:', error);
@@ -193,6 +195,7 @@ export default function CategoriesPage() {
         })
       );
       setAlertExerciseDeletedSuccessOpen(true);
+      localStorage.removeItem('categories_with_exercises'); // Ya que se actualizaron exercises, hago que después se vuelva a cargar
     } catch (error) {
       setAlertExerciseDeletedErrorOpen(true);
       console.log('Error al eliminar el ejercicio:', error);
@@ -311,6 +314,8 @@ export default function CategoriesPage() {
           { ...category, exercises: [] }
         ]);
         setAlertCategoryAddedOpen(true);
+        localStorage.removeItem('categories');
+        localStorage.removeItem('categories_with_exercises');
       } catch (error) {
         setLoadingButton(false)
         console.error('Error al guardar la categoría:', error)
@@ -368,7 +373,9 @@ export default function CategoriesPage() {
             );
             setNewExercise(null);
             setAlertExerciseAddedOpen(true);
-            setLoadingButton(false)
+            setLoadingButton(false);
+            localStorage.removeItem('categories');
+            localStorage.removeItem('categories_with_exercises');
           } catch (error) {
             console.error('Error al guardar el ejercicio:', error);
             setLoadingButton(false)
@@ -396,6 +403,8 @@ export default function CategoriesPage() {
           )
         );
         setAlertCategoryEditedOpen(true);
+        localStorage.removeItem('categories');
+        localStorage.removeItem('categories_with_exercises');
       } catch (error) {
         console.error('Error al editar la categoría:', error);
       }
@@ -447,18 +456,20 @@ export default function CategoriesPage() {
         setAlertExerciseEditedOpen(true);
         setImageFile(null);
         setLoadingButton(false);
+        handleCloseEditExerciseDialog();
         setLoading(true);
         const trainings = await getAllTrainings();
         if (trainings) {
           setTrainings(trainings);
         }
         setLoading(false);
+        localStorage.removeItem('categories');
+        localStorage.removeItem('categories_with_exercises');
       } catch (error) {
         setLoadingButton(false);
         console.error('Error al editar el ejercicio:', error);
       }
       setEditingExercise(null);
-      handleCloseEditExerciseDialog();
       setLoadingButton(false);
     }
   };

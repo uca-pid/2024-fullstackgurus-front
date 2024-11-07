@@ -104,7 +104,7 @@ const ResponsiveMenu: React.FC<ResponsiveMenuProps> = ({ handleFilterOpen, handl
             <ListItemText primary="Add New" sx={{ marginLeft: 2 }} />
           </ListItem>
           <ListItem onClick={showGoalsDrawer}>
-            <CalendarMonthIcon sx={{ color: grey[50], fontSize: 40 }} />
+            <OutlinedFlagIcon sx={{ color: grey[50], fontSize: 40 }} />
             <ListItemText primary="Goals" sx={{ marginLeft: 2 }} />
           </ListItem>
           <ListItem onClick={showDrawer}>

@@ -443,35 +443,16 @@ export default function HomePage() {
       try {
         setLoading(true);
 
-        // Step 1: Fetch Workouts
-        console.log("Fetching workouts...");
-        const workouts_from_local_storage = JSON.parse(localStorage.getItem('workouts') || '[]');
-        const calories_duration_per_day_from_local_storage = JSON.parse(localStorage.getItem('calories_duration_per_day') || '{}');
-        let sortedWorkouts = workouts_from_local_storage;
+        const now = Date.now();
+        const TTL = 60 * 60 * 1000; // 1 hora en milisegundos (Despues de una hora, se reinicia el localStorage)
 
-        if (workouts_from_local_storage.length > 0 && Object.keys(calories_duration_per_day_from_local_storage).length > 0) {
-          setWorkoutList(workouts_from_local_storage);
-          setCaloriesPerDay(calories_duration_per_day_from_local_storage);
-          console.log('Workouts and calories per day loaded from local storage');
-        } else {
-          const workouts = await getAllWorkouts();
-          const validWorkouts = workouts.filter((workout: Workout) => workout.duration && workout.date && workout.total_calories && workout.coach);
-          sortedWorkouts = validWorkouts.sort((a: Workout, b: Workout) => new Date(b.date).getTime() - new Date(a.date).getTime());
-          setWorkoutList(sortedWorkouts);
-
-          const calories_duration_per_day = calculate_calories_and_duration_per_day(sortedWorkouts);
-          setCaloriesPerDay(calories_duration_per_day);
-
-          localStorage.setItem('workouts', JSON.stringify(sortedWorkouts));
-          localStorage.setItem('calories_duration_per_day', JSON.stringify(calories_duration_per_day));
-        }
-
-        // Step 2: Fetch Categories and Exercises
+        // Step 1: Fetch Categories and Exercises
         console.log("Fetching categories and exercises...");
         const categories_from_local_storage = JSON.parse(localStorage.getItem('categories') || '[]');
+        const categories_timestamp = parseInt(localStorage.getItem('categories_timestamp') || '0', 10);
         const exercises_from_local_storage = JSON.parse(localStorage.getItem('categories_with_exercises') || '[]');
 
-        if (categories_from_local_storage.length > 0 && exercises_from_local_storage.length > 0) {
+        if (categories_from_local_storage.length > 0 && exercises_from_local_storage.length > 0 && (now - categories_timestamp < TTL)) {
           setCategories(categories_from_local_storage);
           setCategoryWithExercises(exercises_from_local_storage);
         } else {
@@ -488,19 +469,47 @@ export default function HomePage() {
 
           localStorage.setItem('categories_with_exercises', JSON.stringify(categories_with_exercises));
           localStorage.setItem('categories', JSON.stringify(categories));
+          localStorage.setItem('categories_timestamp', Date.now().toString());
+        }
+
+        // Step 2: Fetch Workouts
+        console.log("Fetching workouts...");
+        const workouts_from_local_storage = JSON.parse(localStorage.getItem('workouts') || '[]');
+        const workouts_timestamp = parseInt(localStorage.getItem('workouts_timestamp') || '0', 10);
+        const calories_duration_per_day_from_local_storage = JSON.parse(localStorage.getItem('calories_duration_per_day') || '{}');
+        let sortedWorkouts = workouts_from_local_storage;
+
+        if (workouts_from_local_storage.length > 0 && Object.keys(calories_duration_per_day_from_local_storage).length > 0 && (now - workouts_timestamp < TTL)) {
+          setWorkoutList(workouts_from_local_storage);
+          setCaloriesPerDay(calories_duration_per_day_from_local_storage);
+          console.log('Workouts and calories per day loaded from local storage');
+        } else {
+          const workouts = await getAllWorkouts();
+          const validWorkouts = workouts.filter((workout: Workout) => workout.duration && workout.date && workout.total_calories && workout.coach);
+          sortedWorkouts = validWorkouts.sort((a: Workout, b: Workout) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          setWorkoutList(sortedWorkouts);
+
+          const calories_duration_per_day = calculate_calories_and_duration_per_day(sortedWorkouts);
+          setCaloriesPerDay(calories_duration_per_day);
+
+          localStorage.setItem('workouts', JSON.stringify(sortedWorkouts));
+          localStorage.setItem('workouts_timestamp', Date.now().toString());
+          localStorage.setItem('calories_duration_per_day', JSON.stringify(calories_duration_per_day));
         }
 
         // Step 3: Fetch Coaches
         console.log("Fetching coaches...");
         const coaches_from_local_storage = JSON.parse(localStorage.getItem('coaches') || '[]');
+        const coaches_timestamp = parseInt(localStorage.getItem('coaches_timestamp') || '0', 10);
 
-        if (coaches_from_local_storage.length > 0) {
+        if (coaches_from_local_storage.length > 0 && (now - coaches_timestamp < TTL)) {
           setCoaches(coaches_from_local_storage);
           console.log('Coaches loaded from local storage');
         } else {
           const coaches = await getCoaches();
           setCoaches(coaches);
           localStorage.setItem('coaches', JSON.stringify(coaches));
+          localStorage.setItem('coaches_timestamp', Date.now().toString());
         }
 
         // Step 4: Fetch Trainings
