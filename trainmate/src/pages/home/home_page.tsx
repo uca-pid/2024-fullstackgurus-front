@@ -40,6 +40,8 @@ import { getFilteredData } from './dates_filter';
 import { getChallenges } from '../../api/ChallengesApi';
 import ChallengeModal from '../../personalizedComponents/challengeModal';
 import WorkspacePremiumTwoToneIcon from '@mui/icons-material/WorkspacePremiumTwoTone';
+import { Tooltip as TooltipMui } from '@mui/material';
+
 
 interface Workout {
   id: number;
@@ -440,13 +442,13 @@ export default function HomePage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-  
+
         // Step 1: Fetch Workouts
         console.log("Fetching workouts...");
         const workouts_from_local_storage = JSON.parse(localStorage.getItem('workouts') || '[]');
         const calories_duration_per_day_from_local_storage = JSON.parse(localStorage.getItem('calories_duration_per_day') || '{}');
         let sortedWorkouts = workouts_from_local_storage;
-  
+
         if (workouts_from_local_storage.length > 0 && Object.keys(calories_duration_per_day_from_local_storage).length > 0) {
           setWorkoutList(workouts_from_local_storage);
           setCaloriesPerDay(calories_duration_per_day_from_local_storage);
@@ -456,42 +458,42 @@ export default function HomePage() {
           const validWorkouts = workouts.filter((workout: Workout) => workout.duration && workout.date && workout.total_calories && workout.coach);
           sortedWorkouts = validWorkouts.sort((a: Workout, b: Workout) => new Date(b.date).getTime() - new Date(a.date).getTime());
           setWorkoutList(sortedWorkouts);
-          
+
           const calories_duration_per_day = calculate_calories_and_duration_per_day(sortedWorkouts);
           setCaloriesPerDay(calories_duration_per_day);
-          
+
           localStorage.setItem('workouts', JSON.stringify(sortedWorkouts));
           localStorage.setItem('calories_duration_per_day', JSON.stringify(calories_duration_per_day));
         }
-  
+
         // Step 2: Fetch Categories and Exercises
         console.log("Fetching categories and exercises...");
         const categories_from_local_storage = JSON.parse(localStorage.getItem('categories') || '[]');
         const exercises_from_local_storage = JSON.parse(localStorage.getItem('categories_with_exercises') || '[]');
-  
+
         if (categories_from_local_storage.length > 0 && exercises_from_local_storage.length > 0) {
           setCategories(categories_from_local_storage);
           setCategoryWithExercises(exercises_from_local_storage);
         } else {
           const categories = await getAllCategories();
           let categories_with_exercises: CategoryWithExercises[] = [];
-          
+
           for (const category of categories) {
             const exercises = await getExerciseFromCategory(category.id);
             categories_with_exercises = [...categories_with_exercises, { ...category, exercises }];
           }
-          
+
           setCategories(categories);
           setCategoryWithExercises(categories_with_exercises);
-          
+
           localStorage.setItem('categories_with_exercises', JSON.stringify(categories_with_exercises));
           localStorage.setItem('categories', JSON.stringify(categories));
         }
-  
+
         // Step 3: Fetch Coaches
         console.log("Fetching coaches...");
         const coaches_from_local_storage = JSON.parse(localStorage.getItem('coaches') || '[]');
-        
+
         if (coaches_from_local_storage.length > 0) {
           setCoaches(coaches_from_local_storage);
           console.log('Coaches loaded from local storage');
@@ -500,7 +502,7 @@ export default function HomePage() {
           setCoaches(coaches);
           localStorage.setItem('coaches', JSON.stringify(coaches));
         }
-  
+
         // Step 4: Fetch Trainings
         console.log("Fetching trainings...");
         const trainings = await getAllTrainings();
@@ -508,7 +510,7 @@ export default function HomePage() {
           setTrainings(trainings);
           console.log(trainings);
         }
-  
+
         // Step 5: Fetch Challenges
         console.log("Fetching challenges...");
         getChallengesList(); // Assuming this does not need to be awaited
@@ -518,10 +520,10 @@ export default function HomePage() {
         setLoading(false);
       }
     };
-  
+
     fetchData();
   }, [workoutsCount]); // Re-run only if workoutsCount changes
-  
+
   useEffect(() => {
     const top_exercises_done_for_graph = top_exercises_done(workoutList, categoryWithExercises);
     setTopExercisesDone(top_exercises_done_for_graph.topCategoriesWithExercises);
@@ -531,28 +533,25 @@ export default function HomePage() {
     <div className="min-h-screen bg-black from-gray-900 to-gray-800 text-white">
       <header className="p-4 flex justify-between items-center">
         <div className="flex items-center">
-          <Avatar 
-            alt="User" 
-            src={require('../../images/profile_pic_2.jpg')} 
-            onClick={handleAvatarClick} 
+          <Avatar
+            alt="User"
+            src={require('../../images/profile_pic_2.jpg')}
+            onClick={handleAvatarClick}
             style={{ cursor: 'pointer', marginRight: '12px' }}
           />
           <img src={require('../../images/logo.png')} alt="Logo" width={200} height={150} />
         </div>
-        <Box sx={{display: 'flex', flexDirection: 'row', gap: 3}}>
+        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 3 }}>
           <ResponsiveMenu handleFilterOpen={handleFilterOpen} handleClickOpen={handleClickOpen} />
-          <Box sx={{cursor: 'pointer'}} onClick={() => setChallengeModalOpen(true)}>
-            <WorkspacePremiumTwoToneIcon sx={{ fontSize: 70, mt: 0, mr: { xs: 6, sm: 2 } }} style={{ color: '#AE8625'}}/>
-            <Typography sx={{ml: -1, mb: 2, mt: 1}} style={{ color: '#AE8625'}}>Challenges</Typography>
-          </Box>
+
         </Box>
       </header>
-      <TopMiddleAlert alertText='Added workout successfully' open={alertWorkoutAddedOpen} onClose={() => setAlertWorkoutAddedOpen(false)} severity='success'/>
-      <TopMiddleAlert alertText='Added workout in Agenda successfully' open={alertWorkoutAddedForAgendaOpen} onClose={() => setAlertWorkoutAddedForAgendaOpen(false)} severity='success'/>
-      <TopMiddleAlert alertText='Please fill in all the fields' open={alertWorkoutFillFieldsOpen} onClose={() => setAlertWorkoutFillFieldsOpen(false)} severity='warning'/>
+      <TopMiddleAlert alertText='Added workout successfully' open={alertWorkoutAddedOpen} onClose={() => setAlertWorkoutAddedOpen(false)} severity='success' />
+      <TopMiddleAlert alertText='Added workout in Agenda successfully' open={alertWorkoutAddedForAgendaOpen} onClose={() => setAlertWorkoutAddedForAgendaOpen(false)} severity='success' />
+      <TopMiddleAlert alertText='Please fill in all the fields' open={alertWorkoutFillFieldsOpen} onClose={() => setAlertWorkoutFillFieldsOpen(false)} severity='warning' />
 
       {challengeModalOpen &&
-        <ChallengeModal pageName='Workouts Challenges' listOfChallenges={challengesList} open={challengeModalOpen} handleClose={handleChallengeModalClose}/>
+        <ChallengeModal pageName='Workouts Challenges' listOfChallenges={challengesList} open={challengeModalOpen} handleClose={handleChallengeModalClose} />
       }
 
       {/* FILTER PRINCIPAL */}
@@ -900,7 +899,7 @@ export default function HomePage() {
                     <XAxis dataKey="date" stroke="#fff" tick={{ dy: 13 }} />
                     <YAxis stroke="#E43654" yAxisId="left" tick={{ fontWeight: 'bold' }} />
                     <YAxis stroke="#44f814" orientation="right" yAxisId="right" tick={{ fontWeight: 'bold' }} />
-                    <Tooltip contentStyle={{ backgroundColor: 'black', borderRadius: '5px' }} labelStyle={{ color: 'white' }}/>
+                    <Tooltip contentStyle={{ backgroundColor: 'black', borderRadius: '5px' }} labelStyle={{ color: 'white' }} />
                     <Line type="monotone" dataKey="Calories" stroke="#E43654" activeDot={{ r: 10 }} yAxisId="left" />
                     <Line type="monotone" dataKey="Minutes" stroke="#44f814" activeDot={{ r: 10 }} yAxisId="right" />
                     <Brush dataKey="date" height={30} stroke="#000000" y={300} fill="#161616" travellerWidth={10}
@@ -961,7 +960,17 @@ export default function HomePage() {
           </Card>
           <Box sx={{ display: 'flex', height: '100%', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
             <Card sx={{ flex: 1, backgroundColor: '#161616', color: '#fff', width: '100%' }} className='border border-gray-600'>
-              <CardHeader title="Workouts" />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <CardHeader title="Workouts" />
+                <TooltipMui title="Challenges" arrow>
+                  <Box sx={{ cursor: 'pointer' }} onClick={() => setChallengeModalOpen(true)}>
+                    <WorkspacePremiumTwoToneIcon
+                      sx={{ fontSize: 30, mt: 0, mr: { xs: 6, sm: 2 } }}
+                      style={{ color: '#AE8625' }}
+                    />
+                  </Box>
+                </TooltipMui>
+              </div>
               <CardContent>
                 <ScrollArea sx={{ maxHeight: 400, overflow: 'auto' }}>
                   {Array.isArray(workoutList) && workoutList.length > 0 ? (
