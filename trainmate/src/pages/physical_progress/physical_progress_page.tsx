@@ -8,11 +8,12 @@ import LoadingAnimation from '../../personalizedComponents/loadingAnimation';
 import LoadingButton from '../../personalizedComponents/buttons/LoadingButton';
 import TopMiddleAlert from '../../personalizedComponents/TopMiddleAlert';
 import { renderCustomizedLabel } from './customizedLabel';
-import { calculate_last_30_days_progress } from '../../functions/progress_calcs';
-import Last30DaysProgress from './last30daysProgress';
+import { calculate_last_30_days_physical_progress } from '../../functions/progress_physical_calcs';
+import Last30DaysProgress from './last30daysPhysicalProgress';
 import WorkspacePremiumTwoToneIcon from '@mui/icons-material/WorkspacePremiumTwoTone';
 import { getChallenges } from '../../api/ChallengesApi';
 import ChallengeModal from '../../personalizedComponents/challengeModal';
+import { Tooltip as TooltipMui } from '@mui/material';
 
 interface PhysicalData {
   date: string;
@@ -161,7 +162,7 @@ export default function PhysicalProgressPage() {
 
   const dataForChart = useMemo(() => formatDataForChart(), [data]);
 
-  const last30DaysData = useMemo(() => calculate_last_30_days_progress(dataForChart), [dataForChart]);
+  const last30DaysData = useMemo(() => calculate_last_30_days_physical_progress(dataForChart), [dataForChart]);
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: 'black', color: 'white', p: 4 }}  >
@@ -172,13 +173,10 @@ export default function PhysicalProgressPage() {
           </IconButton>
             <img src={require('../../images/logo.png')} alt="Logo" width={200} height={150} className="hidden md:block"/>
         </Box>
-        <Box sx={{flex: 1}}>
+        <Box sx={{flex: 1, mb: 12}}>
           <Typography variant="h4" sx={{ fontSize: { xs: '1.3rem', sm: '1.8rem', md: '2.5rem' }, position: 'absolute', left: '50%', transform: 'translateX(-50%)'}}>Physical Progress</Typography>
         </Box>
-        <Box sx={{cursor: 'pointer'}} onClick={() => setChallengeModalOpen(true)}>
-          <WorkspacePremiumTwoToneIcon sx={{ fontSize: 70, mt: -2 }} style={{ color: '#AE8625'}}/>
-          <Typography sx={{ml: -1, mb: 2, mt: 1}} style={{ color: '#AE8625'}}>Challenges</Typography>
-        </Box>
+
       </Box>
 
       <TopMiddleAlert alertText='Added new entry successfully' open={alertDataAddedOpen} onClose={() => setAlertDataAddedOpen(false)} severity='success'/>
@@ -194,11 +192,17 @@ export default function PhysicalProgressPage() {
         <Box sx={{ display: 'flex', gap: 4, flexDirection: { xs: 'column', sm: 'column', md: 'row' } }}>
           {/* Gráfico de Líneas */}
           <Card sx={{ flex: 2, backgroundColor: '#161616', color: '#fff'}} className='border border-gray-600'>
-            <CardHeader
-              title="Weight progress"
-            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <CardHeader sx={{ ml: 2}} title="Physical progress"/>
+              <TooltipMui title="Challenges" arrow>
+                <Box sx={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center' }} onClick={() => setChallengeModalOpen(true)}>
+                  <WorkspacePremiumTwoToneIcon sx={{ fontSize: 50, mt: 2, mb: 1, mr: 2 }} style={{ color: '#AE8625' }}/>
+                  <Typography sx={{mr: 2, mb: 0, mt: 0}} style={{ color: '#AE8625'}}>Challenges</Typography>
+                </Box>
+              </TooltipMui>
+            </div>
             <CardContent>
-              <ResponsiveContainer width="100%" height={640}>
+              <ResponsiveContainer width="100%" height={510}>
               {Array.isArray(dataForChart) && dataForChart.length > 0 ? (
                 <LineChart width={500} height={400} data={dataForChart} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
                  onClick={(e) => e.activePayload && handleLineClick(e.activePayload[0].payload)} style={{ cursor: 'pointer' }}>
@@ -223,7 +227,7 @@ export default function PhysicalProgressPage() {
 
           <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
             {/* Gráfico de Tortas */}
-            <Card sx={{backgroundColor: '#161616', color: '#fff', p: 2, height: 420 }} className='border border-gray-600'>
+            <Card sx={{backgroundColor: '#161616', color: '#fff', p: 2, height: 390 }} className='border border-gray-600'>
               <CardHeader
                 title="Percentage of weight"
               />
@@ -250,7 +254,7 @@ export default function PhysicalProgressPage() {
             </Card>
 
             {/* Formulario */}
-            <Card sx={{backgroundColor: '#161616', color: '#fff', p: 2, height: 460 }} className='border border-gray-600'>
+            <Card sx={{backgroundColor: '#161616', color: '#fff', p: 2, height: 430 }} className='border border-gray-600'>
               <CardHeader
                 title="New entry"
               />
@@ -340,7 +344,7 @@ export default function PhysicalProgressPage() {
                     },
                   }}
                 />
-                <Box sx={{display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mt: 3}}>
+                <Box sx={{display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mt: 1}}>
                   <LoadingButton
                     isLoading={loadingButton}
                     onClick={handleSave}

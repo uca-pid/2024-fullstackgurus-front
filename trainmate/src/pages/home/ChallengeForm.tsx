@@ -36,6 +36,7 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({ isOpen, onCancel, onSave 
       const savedGoal = await saveGoal(formattedData);
       if (onSave) onSave(savedGoal); // Call onSave callback if provided
       onCancel(); // Close the form
+      setFormData({ startDate: '', endDate: '', title: '', description: '' }); // Clear form data
     } catch (error) {
       console.error('Error saving goal:', error);
     } finally {

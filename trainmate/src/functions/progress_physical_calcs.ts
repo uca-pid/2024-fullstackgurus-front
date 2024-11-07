@@ -6,7 +6,7 @@ interface PhysicalDataForChart {
     BodyMuscle: number;
   }
   
-  interface ProgressData {
+  interface PhysicalProgressData {
     initialValue: number;
     latestValue: number;
     change: number;
@@ -15,9 +15,9 @@ interface PhysicalDataForChart {
   
   type MetricKey = 'Weight' | 'BodyFat' | 'BodyMuscle';
   
-  type ProgressResult = {[key in MetricKey]: ProgressData | null;} & {message?: string;};
+  type ProgressResult = {[key in MetricKey]: PhysicalProgressData | null;} & {message?: string;};
   
-  export const calculate_last_30_days_progress = (data: PhysicalDataForChart[]): ProgressResult => {
+  export const calculate_last_30_days_physical_progress = (data: PhysicalDataForChart[]): ProgressResult => {
     const today = new Date();
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(today.getDate() - 30);
