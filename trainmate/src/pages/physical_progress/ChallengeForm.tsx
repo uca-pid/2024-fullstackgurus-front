@@ -42,7 +42,7 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({ isOpen, onCancel, onSave 
       setIsLoading(false);
     }
   };
-  
+
 
   return (
     <Dialog open={isOpen} onClose={onCancel} PaperProps={{
@@ -88,7 +88,7 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({ isOpen, onCancel, onSave 
           variant="outlined"
           value={formData.startDate}
           onChange={handleTextFieldChange}
-          InputLabelProps={{ style: { color: '#fff' } }}
+          InputLabelProps={{ shrink: true, style: { color: '#fff' } }} // Added shrink here
           InputProps={{ style: { color: '#fff', backgroundColor: grey[800] } }}
           sx={{ mb: 3 }}
         />
@@ -100,13 +100,13 @@ const ChallengeForm: React.FC<ChallengeFormProps> = ({ isOpen, onCancel, onSave 
           variant="outlined"
           value={formData.endDate}
           onChange={handleTextFieldChange}
-          InputLabelProps={{ style: { color: '#fff' } }}
+          InputLabelProps={{ shrink: true, style: { color: '#fff' } }} // Added shrink here
           InputProps={{ style: { color: '#fff', backgroundColor: grey[800] } }}
           sx={{ mb: 3 }}
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onCancel} sx={{ color: '#fff' }}>Back to Challenges</Button>
+        <Button onClick={onCancel} sx={{ color: '#fff' }}>Close</Button>
         <Button onClick={handleSave} sx={{ color: '#fff' }} disabled={isLoading}>
           {isLoading ? 'Saving...' : 'Save Goal'}
         </Button>

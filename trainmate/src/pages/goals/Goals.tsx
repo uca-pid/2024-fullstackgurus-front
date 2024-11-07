@@ -14,6 +14,11 @@ import CheckIcon from '@mui/icons-material/Check';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import { Tooltip as TooltipMui } from '@mui/material'; // Alias Tooltip if needed
+import SmsFailedIcon from '@mui/icons-material/SmsFailed';
+import PieChartIcon from '@mui/icons-material/PieChart';
+
+
 
 
 dayjs.extend(isSameOrBefore);
@@ -152,7 +157,9 @@ const GoalsModal: React.FC<GoalsProps> = ({ showDrawer, onClose, open, openForm 
                     aria-label="add"
                     onClick={openForm}
                 >
+                    <p className='text-sm text-white'>Add Goal</p>
                     <AddIcon />
+
                 </IconButton>
 
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -161,11 +168,123 @@ const GoalsModal: React.FC<GoalsProps> = ({ showDrawer, onClose, open, openForm 
                             label="Start Date"
                             value={dateRange[0]}
                             onChange={(newValue) => handleDateChange([newValue, dateRange[1]])}
+                            slotProps={{
+                                textField: {
+                                    variant: 'outlined',
+                                    fullWidth: true,
+                                    sx: {
+                                        backgroundColor: grey[800],
+                                        color: grey[50],
+                                        borderRadius: '8px',
+                                        label: { color: grey[400], fontWeight: 'bold' },
+                                        input: { color: '#fff' },
+                                        "& .MuiOutlinedInput-root": {
+                                            "& fieldset": {
+                                                borderColor: grey[700],
+                                            },
+                                            "&:hover fieldset": {
+                                                borderColor: grey[400],
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                borderColor: grey[100],
+                                            },
+                                        },
+                                    },
+                                },
+                                popper: {
+                                    sx: {
+                                        "& .MuiPaper-root": {
+                                            backgroundColor: grey[800],
+                                        },
+                                        "& .MuiPickersCalendarHeader-root": {
+                                            color: grey[50], // Month/Year color
+                                        },
+                                        "& .MuiDayCalendar-weekDayLabel": {
+                                            color: grey[400], // Weekday label colors
+                                        },
+                                        "& .MuiPickersDay-root": {
+                                            color: grey[50], // Day numbers color
+                                        },
+                                        // Increase specificity to override default styles
+                                        "& .MuiPickersDay-root.Mui-selected": {
+                                            backgroundColor: '#000000 !important',
+                                            color: grey[50],
+                                            fontWeight: 'bold',
+                                        },
+                                        "& .MuiPickersDay-root.Mui-selected:hover": {
+                                            backgroundColor: '#000000 !important',
+                                        },
+                                        // Style for today's date
+                                        "& .MuiPickersDay-root.MuiPickersDay-today": {
+                                            border: `1px solid ${grey[700]}`,
+                                        },
+                                        "& .MuiPickersDay-root:hover": {
+                                            backgroundColor: grey[600],
+                                        },
+                                    },
+                                },
+                            }}
                         />
                         <DatePicker
                             label="End Date"
                             value={dateRange[1]}
                             onChange={(newValue) => handleDateChange([dateRange[0], newValue])}
+                            slotProps={{
+                                textField: {
+                                    variant: 'outlined',
+                                    fullWidth: true,
+                                    sx: {
+                                        backgroundColor: grey[800],
+                                        color: grey[50],
+                                        borderRadius: '8px',
+                                        label: { color: grey[400], fontWeight: 'bold' },
+                                        input: { color: '#fff' },
+                                        "& .MuiOutlinedInput-root": {
+                                            "& fieldset": {
+                                                borderColor: grey[700],
+                                            },
+                                            "&:hover fieldset": {
+                                                borderColor: grey[400],
+                                            },
+                                            "&.Mui-focused fieldset": {
+                                                borderColor: grey[100],
+                                            },
+                                        },
+                                    },
+                                },
+                                popper: {
+                                    sx: {
+                                        "& .MuiPaper-root": {
+                                            backgroundColor: grey[800],
+                                        },
+                                        "& .MuiPickersCalendarHeader-root": {
+                                            color: grey[50], // Month/Year color
+                                        },
+                                        "& .MuiDayCalendar-weekDayLabel": {
+                                            color: grey[400], // Weekday label colors
+                                        },
+                                        "& .MuiPickersDay-root": {
+                                            color: grey[50], // Day numbers color
+                                        },
+                                        // Increase specificity to override default styles
+                                        "& .MuiPickersDay-root.Mui-selected": {
+                                            backgroundColor: '#000000 !important',
+                                            color: grey[50],
+                                            fontWeight: 'bold',
+                                        },
+                                        "& .MuiPickersDay-root.Mui-selected:hover": {
+                                            backgroundColor: '#000000 !important',
+                                        },
+                                        // Style for today's date
+                                        "& .MuiPickersDay-root.MuiPickersDay-today": {
+                                            border: `1px solid ${grey[700]}`,
+                                        },
+                                        "& .MuiPickersDay-root:hover": {
+                                            backgroundColor: grey[600],
+                                        },
+                                    },
+                                },
+                            }}
                         />
                     </Box>
                 </LocalizationProvider>
@@ -175,23 +294,31 @@ const GoalsModal: React.FC<GoalsProps> = ({ showDrawer, onClose, open, openForm 
                 <Divider sx={{ marginY: 2, backgroundColor: grey[700] }} />
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, marginBottom: 2 }}>
-                    <Button
-                        onClick={() => setShowPieChart(!showPieChart)}
-                        sx={{ color: grey[50], flex: 1 }}
-                        variant="contained"
-                        color="secondary"
-                    >
-                        {showPieChart ? 'Show Goals List' : 'Show Pie Chart'}
-                    </Button>
+                    <TooltipMui title="Show stats" arrow>
+                        <IconButton onClick={() => setShowPieChart(!showPieChart)}>
+                            <PieChartIcon
+                                sx={{
+                                    color: showPieChart ? '#81d8d0' : grey[50], // Change color when active
+                                    fontSize: 30,
+                                }}
+                            />
+                            <p className='text-sm text-white'>Show stats</p>
+                        </IconButton>
 
-                    <Button
-                        onClick={() => setShowIncomplete(!showIncomplete)}
-                        sx={{ color: grey[50], flex: 1 }}
-                        variant="contained"
-                        color="secondary"
-                    >
-                        {showIncomplete ? 'Hide Incomplete Goals' : 'Show Incomplete Goals'}
-                    </Button>
+                    </TooltipMui>
+
+                    <TooltipMui title="Show incompletes" arrow>
+                        <IconButton onClick={() => setShowIncomplete(!showIncomplete)}>
+                            <SmsFailedIcon
+                                sx={{
+                                    color: showIncomplete ? '#81d8d0' : grey[50], // Change color when active
+                                    fontSize: 30,
+                                }}
+                            />
+                            <p className='text-sm text-white'>Show incomplete</p>
+                        </IconButton>
+                    </TooltipMui>
+
                 </Box>
 
                 {showPieChart ? (
@@ -216,10 +343,12 @@ const GoalsModal: React.FC<GoalsProps> = ({ showDrawer, onClose, open, openForm 
                     // Goals List View
                     <Box sx={{ maxHeight: 'calc(100vh - 300px)', overflowY: 'auto' }}>
                         {/* Completed Goals Toggle */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => setShowCompleted(!showCompleted)}>
-                            <Typography sx={{ color: grey[50], flex: 1 }}>Completed Goals</Typography>
-                            {showCompleted ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                        </Box>
+                        <Divider sx={{ marginY: 2, backgroundColor: grey[600] }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => setShowCompleted(!showCompleted)}>
+                                <Typography sx={{ color: grey[50], flex: 1 }}>Completed Goals</Typography>
+                                {showCompleted ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                            </Box>
+                        </Divider>
                         <Divider sx={{ backgroundColor: grey[600] }} />
                         <Collapse in={showCompleted}>
                             {filteredGoals.filter((goal) => goal.completed).map((goal: Goal) => (
@@ -242,10 +371,14 @@ const GoalsModal: React.FC<GoalsProps> = ({ showDrawer, onClose, open, openForm 
                         </Collapse>
 
                         {/* Pending Goals Toggle */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => setShowPending(!showPending)}>
-                            <Typography sx={{ color: grey[50], flex: 1 }}>Pending Goals</Typography>
-                            {showPending ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                        </Box>
+
+                        <Divider sx={{ marginY: 2, backgroundColor: grey[600] }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => setShowPending(!showPending)}>
+
+                                <Typography sx={{ color: grey[50], flex: 1 }}>Pending Goals</Typography>
+                                {showPending ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                            </Box>
+                        </Divider>
                         <Divider sx={{ backgroundColor: grey[600] }} />
                         <Collapse in={showPending}>
                             {filteredGoals.filter((goal) => !goal.completed).map((goal: Goal) => (
@@ -280,25 +413,26 @@ const GoalsModal: React.FC<GoalsProps> = ({ showDrawer, onClose, open, openForm 
                         {/* Incomplete Goals Section */}
                         {showIncomplete && (
                             <>
-                                <Divider sx={{ marginY: 2, backgroundColor: grey[600] }} />
-                                <Typography sx={{ color: grey[50], textAlign: 'center' }}>Incomplete Goals</Typography>
-                                {incompleteGoals.map((goal: Goal) => (
-                                    <Box
-                                        key={goal.id}
-                                        sx={{
-                                            marginBottom: 2,
-                                            backgroundColor: grey[800],
-                                            padding: 2,
-                                            borderRadius: '8px',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                        }}
-                                    >
-                                        <Typography sx={{ color: '#81d8d0', fontWeight: 'bold' }}>{goal.title}</Typography>
-                                        <Typography sx={{ color: grey[400] }}>{goal.description}</Typography>
-                                        <Typography sx={{ color: '#44f814' }}>{`Start: ${dayjs(goal.start_date).format('DD/MM/YYYY')} - End: ${dayjs(goal.end_date).format('DD/MM/YYYY')}`}</Typography>
-                                    </Box>
-                                ))}
+                                <Divider sx={{ marginY: 2, backgroundColor: grey[600] }} >
+                                    <Typography sx={{ color: grey[50], textAlign: 'center' }}>Incomplete Goals</Typography>
+                                    {incompleteGoals.map((goal: Goal) => (
+                                        <Box
+                                            key={goal.id}
+                                            sx={{
+                                                marginBottom: 2,
+                                                backgroundColor: grey[800],
+                                                padding: 2,
+                                                borderRadius: '8px',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                            }}
+                                        >
+                                            <Typography sx={{ color: '#81d8d0', fontWeight: 'bold' }}>{goal.title}</Typography>
+                                            <Typography sx={{ color: grey[400] }}>{goal.description}</Typography>
+                                            <Typography sx={{ color: '#44f814' }}>{`Start: ${dayjs(goal.start_date).format('DD/MM/YYYY')} - End: ${dayjs(goal.end_date).format('DD/MM/YYYY')}`}</Typography>
+                                        </Box>
+                                    ))}
+                                </Divider>
                             </>
                         )}
                     </Box>
