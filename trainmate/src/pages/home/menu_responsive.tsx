@@ -10,6 +10,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { useNavigate } from 'react-router-dom';
 import GoalsModal from '../goals/Goals';
 import ChallengeForm from '../physical_progress/ChallengeForm';
+import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
 
 interface ResponsiveMenuProps {
   handleFilterOpen: () => void;
@@ -129,7 +130,7 @@ const ResponsiveMenu: React.FC<ResponsiveMenuProps> = ({ handleFilterOpen, handl
           <p className='p-3 text-white'>Add New</p>
         </IconButton>
         <IconButton onClick={showGoalsDrawer}>
-            <CalendarMonthIcon sx={{ color: grey[50], fontSize: 40 }} />
+            <OutlinedFlagIcon sx={{ color: grey[50], fontSize: 40 }} />
             <p className='p-3 text-white'>Goals</p>
           </IconButton>
         <IconButton aria-label="calendar" onClick={showDrawer}>
