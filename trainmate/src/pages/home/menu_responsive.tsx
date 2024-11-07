@@ -9,7 +9,7 @@ import CalendarModal from '../calendar/CalendarPage';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { useNavigate } from 'react-router-dom';
 import GoalsModal from '../goals/Goals';
-import ChallengeForm from '../physical_progress/ChallengeForm';
+import ChallengeForm from './ChallengeForm';
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
 
 interface ResponsiveMenuProps {

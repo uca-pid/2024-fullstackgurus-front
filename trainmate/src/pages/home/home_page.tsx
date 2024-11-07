@@ -14,7 +14,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 import { grey } from '@mui/material/colors';
 import CloseIcon from '@mui/icons-material/Close';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Brush, Rectangle } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Brush, Rectangle, Legend } from 'recharts';
 import Typography from '@mui/material/Typography';
 import ScrollArea from '@mui/material/Box';
 import { getWorkouts, saveWorkout, getWorkoutsCalories } from '../../api/WorkoutsApi';
@@ -41,6 +41,8 @@ import { getChallenges } from '../../api/ChallengesApi';
 import ChallengeModal from '../../personalizedComponents/challengeModal';
 import WorkspacePremiumTwoToneIcon from '@mui/icons-material/WorkspacePremiumTwoTone';
 import { Tooltip as TooltipMui } from '@mui/material';
+import { calculate_last_30_days_calories_progress } from '../../functions/progress_calories_calcs';
+import Last30DaysProgress from './last30daysCaloriesProgress';
 
 
 interface Workout {
@@ -214,6 +216,8 @@ export default function HomePage() {
   };
 
   const dataForChart = useMemo(() => formatDataForChart(), [caloriesPerDay]);
+
+  const last30DaysData = useMemo(() => calculate_last_30_days_calories_progress(dataForChart), [dataForChart]);
 
   const [newWorkout, setNewWorkout] = useState({
     training_id: '',
@@ -552,7 +556,6 @@ export default function HomePage() {
         </div>
         <Box sx={{ display: 'flex', flexDirection: 'row', gap: 3 }}>
           <ResponsiveMenu handleFilterOpen={handleFilterOpen} handleClickOpen={handleClickOpen} />
-
         </Box>
       </header>
       <TopMiddleAlert alertText='Added workout successfully' open={alertWorkoutAddedOpen} onClose={() => setAlertWorkoutAddedOpen(false)} severity='success' />
@@ -845,9 +848,15 @@ export default function HomePage() {
       ) : (
         <main className="p-4 space-y-6">
           <Card sx={{ backgroundColor: '#161616', color: '#fff' }} className='border border-gray-600' >
-            <CardHeader
-              title="Workouts Progress"
-            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <CardHeader title="Workouts progress" />
+              <TooltipMui title="Challenges" arrow>
+                <Box sx={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center' }} onClick={() => setChallengeModalOpen(true)}>
+                  <WorkspacePremiumTwoToneIcon sx={{ fontSize: 50, mt: 2, mb: 1, mr: 2 }} style={{ color: '#AE8625' }}/>
+                  <Typography sx={{mr: 2, mb: 0, mt: 0}} style={{ color: '#AE8625'}}>Challenges</Typography>
+                </Box>
+              </TooltipMui>
+            </div>
             <CardContent>
 
               {(selectedTrainingInFilter && selectedTrainingInFilter.name) ? (
@@ -901,7 +910,7 @@ export default function HomePage() {
                 <Box></Box>
               )}
 
-              <ResponsiveContainer width="100%" height={340} >
+              <ResponsiveContainer width="100%" height={440} >
                 {Array.isArray(workoutList) && workoutList.length > 0 ? (
                   <LineChart data={getFilteredData(dataForChart, timeRange)} margin={{ top: 10, right: 0, left: 0, bottom: 40 }}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -909,9 +918,10 @@ export default function HomePage() {
                     <YAxis stroke="#E43654" yAxisId="left" tick={{ fontWeight: 'bold' }} />
                     <YAxis stroke="#44f814" orientation="right" yAxisId="right" tick={{ fontWeight: 'bold' }} />
                     <Tooltip contentStyle={{ backgroundColor: 'black', borderRadius: '5px' }} labelStyle={{ color: 'white' }} />
+                    <Legend verticalAlign="top" height={50} wrapperStyle={{display: 'flex', flexDirection: 'row', justifyContent: 'center'}}/>
                     <Line type="monotone" dataKey="Calories" stroke="#E43654" activeDot={{ r: 10 }} yAxisId="left" />
                     <Line type="monotone" dataKey="Minutes" stroke="#44f814" activeDot={{ r: 10 }} yAxisId="right" />
-                    <Brush dataKey="date" height={30} stroke="#000000" y={300} fill="#161616" travellerWidth={10}
+                    <Brush dataKey="date" height={30} stroke="#000000" y={400} fill="#161616" travellerWidth={10}
                       className="custom-brush"
                       traveller={(props) => {
                         const { x, y, width, height } = props;
@@ -953,7 +963,7 @@ export default function HomePage() {
                           </g>
                         );
                       }} />
-                    <text x="50%" y={320} fill="#ffffff" textAnchor="middle" fontSize="12px" >Filter date</text>
+                    <text x="50%" y={420} fill="#ffffff" textAnchor="middle" fontSize="12px" >Filter date</text>
                   </LineChart>
                 ) : (
                   <div>
@@ -965,20 +975,13 @@ export default function HomePage() {
                   </div>
                 )}
               </ResponsiveContainer>
+              <Last30DaysProgress last30DaysData={last30DaysData} />
             </CardContent>
           </Card>
           <Box sx={{ display: 'flex', height: '100%', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
             <Card sx={{ flex: 1, backgroundColor: '#161616', color: '#fff', width: '100%' }} className='border border-gray-600'>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <CardHeader title="Workouts" />
-                <TooltipMui title="Challenges" arrow>
-                  <Box sx={{ cursor: 'pointer' }} onClick={() => setChallengeModalOpen(true)}>
-                    <WorkspacePremiumTwoToneIcon
-                      sx={{ fontSize: 30, mt: 0, mr: { xs: 6, sm: 2 } }}
-                      style={{ color: '#AE8625' }}
-                    />
-                  </Box>
-                </TooltipMui>
               </div>
               <CardContent>
                 <ScrollArea sx={{ maxHeight: 400, overflow: 'auto' }}>
